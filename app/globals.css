@@ -1,26 +1,387 @@
 @import "tailwindcss";
 
+/* ══════════════════════════════════════════════════
+   Premium Light Theme — Mattress Design Agent
+   ══════════════════════════════════════════════════ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── Backgrounds ── */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-page: linear-gradient(180deg, #f0f4f8 0%, #e8edf4 100%);
+
+  /* ── Borders ── */
+  --border-subtle: #e2e8f0;
+  --border-accent: #c7d2fe;
+
+  /* ── Typography ── */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  /* ── Accents ── */
+  --accent-indigo: #4f46e5;
+  --accent-violet: #7c3aed;
+  --accent-blue: #2563eb;
+  --accent-emerald: #059669;
+
+  /* ── Gradients ── */
+  --gradient-primary: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --gradient-hero: linear-gradient(180deg, #f0f4f8 0%, #e2e8f0 50%, #f0f4f8 100%);
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-glow: var(--shadow-md);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 8px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
+
+  /* ── Radius ── */
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+
+  /* ── Mattress CO Colors ── */
+  --color-core: #3b82f6;
+  --color-topfoam: #16a34a;
+  --color-guard: #ea580c;
+  --color-botfoam: #0d9488;
+  --color-cover: #78716c;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ── Global Reset ── */
+* {
+  box-sizing: border-box;
+  margin: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html,
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ── Scrollbar (Minimal) ── */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.card-selected {
+  background: rgba(79, 70, 229, 0.04);
+  border-color: var(--accent-indigo);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1), var(--shadow-md);
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  background: var(--gradient-primary);
+  color: #ffffff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+
+.btn-primary:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent-indigo);
+  color: var(--accent-indigo);
+  background: rgba(79, 70, 229, 0.04);
+}
+
+/* ── Step Indicator ── */
+.step-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid var(--border-subtle);
+  background: var(--bg-primary);
+  color: var(--text-muted);
+}
+
+.step-dot.active {
+  border-color: var(--accent-indigo);
+  background: var(--accent-indigo);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+}
+
+.step-dot.completed {
+  border-color: var(--accent-emerald);
+  background: var(--accent-emerald);
+  color: white;
+}
+
+.step-connector {
+  flex: 1;
+  height: 2px;
+  background: var(--border-subtle);
+  margin: 0 4px;
+  transition: background 0.3s ease;
+}
+
+.step-connector.completed {
+  background: var(--accent-emerald);
+}
+
+/* ── Input Fields ── */
+.input-field,
+input[type="number"] {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field:focus,
+input[type="number"]:focus {
+  border-color: var(--accent-indigo);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.input-field::placeholder {
+  color: var(--text-muted);
+}
+
+/* ── Option Grid ── */
+.option-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.option-grid.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.option-grid.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 768px) {
+
+  .option-grid.cols-2,
+  .option-grid.cols-3 {
+    grid-template-columns: 1fr;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── Grade Badge ── */
+.grade-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.grade-low {
+  background: rgba(5, 150, 105, 0.08);
+  color: #059669;
+}
+
+.grade-mid {
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+}
+
+.grade-high {
+  background: rgba(124, 58, 237, 0.08);
+  color: #7c3aed;
+}
+
+.grade-custom {
+  background: rgba(0, 0, 0, 0.04);
+  color: #64748b;
+}
+
+/* ── SVG Drawing ── */
+.drawing-container {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Animations ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: fadeInUp 0.35s ease-out;
+}
+
+/* ═══════════════════════════════════════
+   @media print — 개발요청서 인쇄 전용
+   ═══════════════════════════════════════ */
+@media print {
+
+  /* A4 페이지 설정 */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: white !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* ── 1) body 직속 자식 모두 숨기기 ── */
+  body>* {
+    display: none !important;
+  }
+
+  /* ── 2) Portal 모달만 표시 ── */
+  body>#dev-request-root {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: white !important;
+    inset: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* ── 3) 모달 내부 자식도 모두 표시 ── */
+  #dev-request-root>div {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  /* ── 4) 각 A4 페이지 ── */
+  .dev-request-page {
+    box-shadow: none !important;
+    width: 100% !important;
+    min-height: auto !important;
+    border: none !important;
+    position: relative !important;
+    padding: 15mm 15mm !important;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .dev-request-page:last-of-type {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* ── 5) 인쇄 숨김 요소 ── */
+  .no-print {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* ── 6) 페이지 구분 ── */
+  .print-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  /* ── 7) 페이지 내 잘림 방지 ── */
+  .print-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
 }
