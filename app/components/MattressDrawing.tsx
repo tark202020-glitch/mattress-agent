@@ -19,15 +19,27 @@ export default function MattressDrawing({ className, onlyView }: MattressDrawing
         guardFoamEnabled, guardFoamThickness,
         bottomFoamEnabled, bottomFoamThickness,
         coverId,
+        packagingId
     } = useDesignStore();
     const customOpts = useCustomOptionsStore();
 
     if (!customWidth || !customDepth) {
         return (
-            <div style={{ minHeight: 500, background: '#0a0e14', borderRadius: 12, border: '1px solid #1e2a38', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div className="text-center" style={{ color: '#556677' }}>
-                    <div className="text-5xl mb-4">📐</div>
-                    <p className="text-sm">사이즈를 선택하면 실시간 도면이 표시됩니다</p>
+            <div style={{
+                minHeight: 500,
+                backgroundColor: '#ffffff',
+                backgroundImage: 'radial-gradient(#e2e8f0 1px, transparent 1px)',
+                backgroundSize: '24px 24px',
+                borderRadius: 12,
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: 'inset 0 0 40px rgba(248,250,252,0.5)'
+            }}>
+                <div className="text-center" style={{ color: '#64748b' }}>
+                    <div className="text-5xl mb-4 opacity-50">📐</div>
+                    <p className="text-sm font-medium">사이즈를 선택하면 실시간 도면이 표시됩니다</p>
                 </div>
             </div>
         );
@@ -56,6 +68,18 @@ export default function MattressDrawing({ className, onlyView }: MattressDrawing
     const totalH = botT + coreH + topT;
 
     const dims = calcCoreDimensions(W, D, gfT, isDual, gfEnabled);
+
+    // ── 포장 박스 규격 산출 ──
+    let boxSpecStr = '';
+    if (packagingId === 'ROLL') {
+        if (W <= 1100) boxSpecStr = '1400×310×310';
+        else if (W <= 1500) boxSpecStr = '1800×310×310';
+        else boxSpecStr = '2100×310×310';
+    } else if (packagingId === 'FOLD_3') {
+        if (W <= 1499) boxSpecStr = '1100×410×410';
+        else if (W <= 1700) boxSpecStr = '1100×470×470';
+        else boxSpecStr = '1200×550×550';
+    }
 
     // ── 스타일 (White Print Mode) ──
     const L = { THIN: 0.5, MED: 1, THICK: 1.5 };
@@ -365,14 +389,40 @@ export default function MattressDrawing({ className, onlyView }: MattressDrawing
                                             textAnchor="middle" fill={CO.topFoam} fontSize="9" fontFamily={FONT}>상단폼 {topT}mm</text>
                                     )}
 
-                                    <rect
-                                        x={fvX + pad + (gfEnabled ? gfDrawW2 : 0)} y={coreYF}
-                                        width={innerW - (gfEnabled ? gfDrawW2 * 2 : 0)} height={coreDrawH2}
-                                        fill="url(#hatch-core)" stroke={CO.core} strokeWidth={L.MED} opacity={0.7}
-                                    />
-                                    {coreDrawH2 > 12 && (
-                                        <text x={fvX + fvW / 2} y={coreYF + coreDrawH2 / 2 + 4}
-                                            textAnchor="middle" fill={CO.core} fontSize="9" fontFamily={FONT}>코어 {coreH}mm</text>
+                                    {isDual ? (
+                                        <>
+                                            <rect
+                                                x={fvX + pad + (gfEnabled ? gfDrawW2 : 0)} y={coreYF}
+                                                width={(innerW - (gfEnabled ? gfDrawW2 * 2 : 0) - gfDrawW2) / 2} height={coreDrawH2}
+                                                fill="url(#hatch-core)" stroke={CO.core} strokeWidth={L.MED} opacity={0.7}
+                                            />
+                                            <rect
+                                                x={fvX + pad + (gfEnabled ? gfDrawW2 : 0) + (innerW - (gfEnabled ? gfDrawW2 * 2 : 0) - gfDrawW2) / 2} y={coreYF}
+                                                width={gfDrawW2} height={coreDrawH2}
+                                                fill="url(#hatch-guard)" stroke={CO.guard} strokeWidth={L.MED} opacity={0.7}
+                                            />
+                                            <rect
+                                                x={fvX + pad + (gfEnabled ? gfDrawW2 : 0) + (innerW - (gfEnabled ? gfDrawW2 * 2 : 0) - gfDrawW2) / 2 + gfDrawW2} y={coreYF}
+                                                width={(innerW - (gfEnabled ? gfDrawW2 * 2 : 0) - gfDrawW2) / 2} height={coreDrawH2}
+                                                fill="url(#hatch-core)" stroke={CO.core} strokeWidth={L.MED} opacity={0.7}
+                                            />
+                                            {coreDrawH2 > 12 && (
+                                                <text x={fvX + fvW / 2} y={coreYF + coreDrawH2 / 2 + 4}
+                                                    textAnchor="middle" fill={CO.core} fontSize="9" fontFamily={FONT}>코어 L/R {coreH}mm</text>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <rect
+                                                x={fvX + pad + (gfEnabled ? gfDrawW2 : 0)} y={coreYF}
+                                                width={innerW - (gfEnabled ? gfDrawW2 * 2 : 0)} height={coreDrawH2}
+                                                fill="url(#hatch-core)" stroke={CO.core} strokeWidth={L.MED} opacity={0.7}
+                                            />
+                                            {coreDrawH2 > 12 && (
+                                                <text x={fvX + fvW / 2} y={coreYF + coreDrawH2 / 2 + 4}
+                                                    textAnchor="middle" fill={CO.core} fontSize="9" fontFamily={FONT}>코어 {coreH}mm</text>
+                                            )}
+                                        </>
                                     )}
                                     {gfEnabled && gfDrawW2 > 0 && (
                                         <>
@@ -600,9 +650,11 @@ export default function MattressDrawing({ className, onlyView }: MattressDrawing
                             (Cover Top +{coverTopT}mm)
                         </text>
 
-                        <text x={BD + 510} y={tbY + 18} fill={CO.muted} fontSize="7" fontFamily={FONT} fontWeight="600">SCALE</text>
+                        <text x={BD + 510} y={tbY + 18} fill={CO.muted} fontSize="7" fontFamily={FONT} fontWeight="600">SCALE & BOX</text>
                         <text x={BD + 510} y={tbY + 36} fill={CO.label} fontSize="10" fontWeight="600" fontFamily={FONT}>NTS (Not to Scale)</text>
-                        <text x={BD + 510} y={tbY + 54} fill={CO.muted} fontSize="8" fontFamily={FONT}>UNIT: mm</text>
+                        <text x={BD + 510} y={tbY + 54} fill={CO.muted} fontSize="8" fontFamily={FONT}>
+                            UNIT: mm {boxSpecStr ? `| Box: ${boxSpecStr}` : ''}
+                        </text>
 
                         <text x={BD + 690} y={tbY + 18} fill={CO.muted} fontSize="7" fontFamily={FONT} fontWeight="600">DWG NO.</text>
                         <text x={BD + 690} y={tbY + 36} fill={CO.label} fontSize="10" fontWeight="600" fontFamily={FONT}>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useDesignStore } from '../lib/store';
-import DevelopmentRequestModal from './DevelopmentRequestModal';
+import PricingPanel from './PricingPanel';
 import {
     SIZE_PRESETS, CORE_OPTIONS, COVER_OPTIONS, TOP_FOAM_OPTIONS,
     CONTROLLER_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS,
@@ -112,32 +112,9 @@ export default function SpecSummary() {
                         </div>
                     ))}
                 </div>
-
-                {/* Development Request Trigger */}
-                <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
-                    <button
-                        onClick={() => setShowRequestModal(true)}
-                        style={{
-                            width: '100%',
-                            padding: '10px',
-                            background: '#4f46e5',
-                            color: 'white',
-                            fontSize: 13,
-                            fontWeight: 600,
-                            borderRadius: 6,
-                            border: 'none',
-                            cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
-                        }}
-                    >
-                        <span>📄</span> 개발요청서 생성
-                    </button>
-                </div>
+                <PricingPanel />
             </div>
 
-            {showRequestModal && (
-                <DevelopmentRequestModal onClose={() => setShowRequestModal(false)} />
-            )}
         </>
     );
 }

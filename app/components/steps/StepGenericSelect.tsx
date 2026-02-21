@@ -77,34 +77,48 @@ export function StepGenericSelect({ stepKey }: GenericStepProps) {
                 {allOptions.map((opt) => {
                     const isSelected = selectedId === opt.id;
                     const custom = isCustom(opt.id);
+
+                    // 예외 처리: 가드폼 활성화 시 ROLL 포장 비활성화
+                    const isDisabled = stepKey === 'packaging' && opt.id === 'ROLL' && store.guardFoamEnabled === true;
+
                     return (
                         <button
                             key={opt.id}
-                            onClick={() => setter(opt.id)}
+                            onClick={() => {
+                                if (!isDisabled) setter(opt.id);
+                            }}
                             className="card"
                             style={{
                                 padding: 20, textAlign: 'left',
-                                cursor: 'pointer', transition: 'all 0.2s',
+                                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s',
                                 position: 'relative',
+                                opacity: isDisabled ? 0.5 : 1,
                                 ...(isSelected ? {
                                     borderColor: '#4f46e5',
                                     background: 'rgba(79, 70, 229, 0.04)',
                                     boxShadow: '0 0 0 2px rgba(79, 70, 229, 0.15)',
                                 } : {}),
+                                ...(isDisabled ? {
+                                    background: '#f8fafc',
+                                    borderColor: '#e2e8f0',
+                                } : {}),
                             }}
+                            disabled={isDisabled}
                         >
-                            {custom && <DeleteBadge onClick={() => removersMap[stepKey](opt.id)} />}
-                            <div style={{ fontSize: 28, marginBottom: 10, opacity: 0.9 }}>
+                            {custom && !isDisabled && <DeleteBadge onClick={() => removersMap[stepKey](opt.id)} />}
+                            <div style={{ fontSize: 28, marginBottom: 10, opacity: isDisabled ? 0.3 : 0.9 }}>
                                 {icons[opt.id] || '📋'}
                             </div>
                             <div style={{
                                 fontWeight: 700, fontSize: 16, marginBottom: 4,
-                                color: isSelected ? '#4f46e5' : '#0f172a',
+                                color: isDisabled ? '#94a3b8' : isSelected ? '#4f46e5' : '#0f172a',
                             }}>
                                 {opt.label}
+                                {isDisabled && <span style={{ fontSize: 10, color: '#ef4444', marginLeft: 6, fontWeight: 500 }}>(가드폼 적용불가)</span>}
                             </div>
                             <div style={{
-                                fontSize: 13, color: isSelected ? '#6366f1' : '#94a3b8',
+                                fontSize: 13, color: isDisabled ? '#cbd5e1' : isSelected ? '#6366f1' : '#94a3b8',
                             }}>
                                 {opt.description}
                             </div>

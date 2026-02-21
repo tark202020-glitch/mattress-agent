@@ -13,17 +13,18 @@ const SCALE = 0.001; // mm to meters
 const GAP_EXPLODED = 0.225;
 const HOLE_RADIUS = 0.06; // 60mm radius (Ø120)
 
-function Box({ position, args, color, opacity = 1, transparent = false, label }: any) {
+function Box({ position, args, color, opacity = 1, transparent = false, label, radius = 0 }: any) {
+    if (radius > 0) {
+        return (
+            <RoundedBox position={position} args={args} radius={radius} smoothness={4} castShadow receiveShadow>
+                <meshStandardMaterial color={color} roughness={0.6} metalness={0.1} transparent={transparent} opacity={opacity} />
+            </RoundedBox>
+        );
+    }
     return (
         <mesh position={position} castShadow receiveShadow>
             <boxGeometry args={args} />
-            <meshStandardMaterial
-                color={color}
-                roughness={0.6}
-                metalness={0.1}
-                transparent={transparent}
-                opacity={opacity}
-            />
+            <meshStandardMaterial color={color} roughness={0.6} metalness={0.1} transparent={transparent} opacity={opacity} />
         </mesh>
     );
 }
@@ -47,13 +48,13 @@ function CoreBox({ position, args, color }: any) {
     );
 }
 
-function GuardBox({ position, args, color }: any) {
+function GuardBox({ position, args, color, radius = 0.002 }: any) {
     return (
         <RoundedBox
             position={position}
             args={args}
-            radius={0.002}
-            smoothness={2}
+            radius={Math.max(radius, 0.002)}
+            smoothness={radius > 0.02 ? 4 : 2}
             castShadow
             receiveShadow
         >
@@ -66,17 +67,31 @@ function GuardBox({ position, args, color }: any) {
     );
 }
 
-function PerforatedGuardFoam({ position, width, height, depth, holes, color }: any) {
+function PerforatedGuardFoam({ position, width, height, depth, holes, color, radius = 0 }: any) {
     const geometry = useMemo(() => {
         const shape = new THREE.Shape();
         const w2 = width / 2;
         const h2 = height / 2;
 
-        shape.moveTo(-w2, -h2);
-        shape.lineTo(w2, -h2);
-        shape.lineTo(w2, h2);
-        shape.lineTo(-w2, h2);
-        shape.lineTo(-w2, -h2);
+        const r = Math.min(radius, w2, h2);
+
+        if (r > 0) {
+            shape.moveTo(-w2 + r, -h2);
+            shape.lineTo(w2 - r, -h2);
+            shape.quadraticCurveTo(w2, -h2, w2, -h2 + r);
+            shape.lineTo(w2, h2 - r);
+            shape.quadraticCurveTo(w2, h2, w2 - r, h2);
+            shape.lineTo(-w2 + r, h2);
+            shape.quadraticCurveTo(-w2, h2, -w2, h2 - r);
+            shape.lineTo(-w2, -h2 + r);
+            shape.quadraticCurveTo(-w2, -h2, -w2 + r, -h2);
+        } else {
+            shape.moveTo(-w2, -h2);
+            shape.lineTo(w2, -h2);
+            shape.lineTo(w2, h2);
+            shape.lineTo(-w2, h2);
+            shape.lineTo(-w2, -h2);
+        }
 
         holes.forEach((hx: number) => {
             const holePath = new THREE.Path();
@@ -106,12 +121,13 @@ function PerforatedGuardFoam({ position, width, height, depth, holes, color }: a
     );
 }
 
+
 function MattressModel({ exploded }: { exploded: boolean }) {
     const {
         customWidth, customDepth, coreId, isDual,
-        topFoamEnabled, topFoamOptionId,
-        guardFoamEnabled, guardFoamThickness,
-        bottomFoamEnabled, bottomFoamThickness,
+        topFoamEnabled, topFoamOptionId, topFoamRadius,
+        guardFoamEnabled, guardFoamThickness, guardFoamRadius,
+        bottomFoamEnabled, bottomFoamThickness, bottomFoamRadius,
     } = useDesignStore();
     const customOpts = useCustomOptionsStore();
 
@@ -137,7 +153,7 @@ function MattressModel({ exploded }: { exploded: boolean }) {
     const botT = botT_mm * SCALE;
 
     const CO = {
-        core: '#FFFDD0',  // 아이보리 (스트링)
+        core: '#FFFDD0',
         guard: '#ea580c',
         top: '#16a34a',
         bot: '#0d9488',
@@ -157,6 +173,8 @@ function MattressModel({ exploded }: { exploded: boolean }) {
     if (exploded) currentY += GAP_EXPLODED + coreLift;
 
     const topY = currentY + topT / 2;
+    currentY += topT;
+    if (exploded && topT > 0) currentY += GAP_EXPLODED;
 
     const dims = calcCoreDimensions(customWidth, customDepth, guardFoamThickness, isDual, gfEnabled);
     const coreW = dims.coreW * SCALE;
@@ -178,22 +196,22 @@ function MattressModel({ exploded }: { exploded: boolean }) {
             parts.push(
                 <PerforatedGuardFoam
                     key="gf-top"
-                    position={[0, guardY, -D / 2 + gfT / 2]}
+                    position={[0, guardY, D / 2 - gfT / 2]}
                     width={W} height={coreH} depth={gfT}
-                    holes={holePositions} color={CO.guard}
+                    holes={holePositions} color={CO.guard} radius={guardFoamRadius * SCALE}
                 />
             );
 
             parts.push(
-                <GuardBox key="gf-bot" position={[0, guardY, D / 2 - gfT / 2]} args={[W, coreH, gfT]} color={CO.guard} />
+                <GuardBox key="gf-bot" position={[0, guardY, -D / 2 + gfT / 2]} args={[W, coreH, gfT]} color={CO.guard} radius={guardFoamRadius * SCALE} />
             );
 
             const leftX = -W / 2 + gfT / 2;
             const rightX = W / 2 - gfT / 2;
 
             parts.push(
-                <GuardBox key="gf-left" position={[leftX, guardY, 0]} args={[gfT, coreH, gdLen]} color={CO.guard} />,
-                <GuardBox key="gf-right" position={[rightX, guardY, 0]} args={[gfT, coreH, gdLen]} color={CO.guard} />
+                <GuardBox key="gf-left" position={[leftX, guardY, 0]} args={[gfT, coreH, gdLen]} color={CO.guard} radius={guardFoamRadius * SCALE} />,
+                <GuardBox key="gf-right" position={[rightX, guardY, 0]} args={[gfT, coreH, gdLen]} color={CO.guard} radius={guardFoamRadius * SCALE} />
             );
 
             if (isDual) {
@@ -227,7 +245,7 @@ function MattressModel({ exploded }: { exploded: boolean }) {
     return (
         <group dispose={null}>
             {bottomFoamEnabled && botT > 0 && (
-                <Box position={[0, botY, 0]} args={[W, botT, D]} color={CO.bot} label="Bottom Foam" />
+                <Box position={[0, botY, 0]} args={[W, botT, D]} color={CO.bot} label="Bottom Foam" radius={bottomFoamRadius * SCALE} />
             )}
 
             {renderCoreLayer()}
@@ -248,19 +266,18 @@ function MattressModel({ exploded }: { exploded: boolean }) {
                                         const color = i === 0 ? '#16a34a' : '#4ade80';
                                         return (
                                             <Box key={`top-${i}`} position={[0, centerY, 0]} args={[W, h, D]}
-                                                color={color} opacity={0.9} label={`Top Foam L${i + 1}`} />
+                                                color={color} opacity={0.9} label={`Top Foam L${i + 1}`} radius={topFoamRadius * SCALE} />
                                         );
                                     })}
                                 </group>
                             );
                         } catch {
-                            return <Box position={[0, topY, 0]} args={[W, topT, D]} color={CO.top} label="Top Foam" />;
+                            return <Box position={[0, topY, 0]} args={[W, topT, D]} color={CO.top} label="Top Foam" radius={topFoamRadius * SCALE} />;
                         }
                     }
-                    return <Box position={[0, topY, 0]} args={[W, topT, D]} color={CO.top} label="Top Foam" />;
+                    return <Box position={[0, topY, 0]} args={[W, topT, D]} color={CO.top} label="Top Foam" radius={topFoamRadius * SCALE} />;
                 })()
             )}
-
         </group>
     );
 }

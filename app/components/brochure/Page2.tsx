@@ -35,10 +35,13 @@ export default function Page2({ data }: { data: BrochureData }) {
                     </div>
                 </div>
 
-                {/* 좌측 하단 이미지 (IoT 컨트롤러 등) */}
-                <div className="absolute bottom-10 left-10 w-24 h-24 bg-white rounded-lg shadow-md p-2 flex flex-col items-center justify-center">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full mb-2" />
-                    <span className="text-[10px] text-gray-500 text-center">IoT Controller</span>
+                {/* 좌측 하단 이미지 (IoT 컨트롤러 등 추가 이미지) */}
+                <div className="absolute bottom-10 left-10 w-32 h-32 bg-white rounded-lg shadow-md p-1 flex flex-col items-center justify-center overflow-hidden">
+                    <img
+                        src={images.page2_extra}
+                        alt="Controller/Extra Feature"
+                        className="w-full h-full object-cover rounded"
+                    />
                 </div>
             </div>
 

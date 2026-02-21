@@ -56,10 +56,14 @@ export const convertStateToBrochureData = (state: DesignState): BrochureData => 
         },
         images: {
             page1_main: coverImage,
-            page1_sub: coverImage, // TODO: 서브 이미지 별도 매핑 필요
-            page2_layer: '/resource/pdf_pages/올케어_p2.png', // 임시: PDF 분석 결과 활용
+            page1_sub: coverImage,
+            page2_layer: '/resource/pdf_pages/올케어_p2.png',
             page2_detail: coverImage,
+            page2_extra: coverImage, // 기본값
         },
-        prompts: prompts
+        prompts: {
+            ...prompts,
+            page2_extra: 'A photorealistic close-up of a premium smart mattress IoT controller, modern bedroom setting', // 기본 프롬프트
+        }
     };
 };

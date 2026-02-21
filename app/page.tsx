@@ -1,6 +1,8 @@
 'use client';
 
 import DevelopmentRequestModal from './components/DevelopmentRequestModal';
+import PricingManageModal from './components/PricingManageModal';
+import CompletionModal from './components/CompletionModal';
 
 import { useState, useEffect } from 'react';
 import { useDesignStore } from './lib/store';
@@ -15,6 +17,8 @@ import MattressDrawing from './components/MattressDrawing';
 import Mattress3D from './components/Mattress3D';
 import SpecSummary from './components/SpecSummary';
 import PresetPanel from './components/PresetPanel';
+import Image from 'next/image';
+import anssilLogo from '../resource/ANSSil_logo_final_B.png';
 
 
 /* ══════════ 통일 여백 상수 ══════════ */
@@ -26,6 +30,8 @@ export default function Page() {
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
   const [mounted, setMounted] = useState(false);
   const [isDevRequestOpen, setIsDevRequestOpen] = useState(false);
+  const [isCompletionOpen, setIsCompletionOpen] = useState(false);
+  const [isPricingOpen, setIsPricingOpen] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -70,34 +76,52 @@ export default function Page() {
         {/* ════════ Header ════════ */}
         <header style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          height: 56,
-          padding: `0 ${PAD}px`,
+          flexDirection: 'column',
           borderBottom: '1px solid #e2e8f0',
           background: '#ffffff',
           flexShrink: 0,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: 8,
-              background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontWeight: 700, fontSize: 14,
-            }}>M</div>
-            <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>Mattress Design Agent</span>
-            <span style={{
-              fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-              background: 'rgba(79,70,229,0.06)', color: '#4f46e5',
-              border: '1px solid rgba(79,70,229,0.12)',
-            }}>ALPHA V1.019</span>
+          {/* Top Row */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: 56,
+            padding: `0 ${PAD}px`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Image src={anssilLogo} alt="ANSSil Logo" style={{ height: 24, width: 'auto', objectFit: 'contain' }} />
+              <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>ANSSil String Mattress Agent</span>
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                background: 'rgba(79,70,229,0.06)', color: '#4f46e5',
+                border: '1px solid rgba(79,70,229,0.12)',
+              }}>ALPHA V1.037</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <PresetPanel />
+              <button
+                onClick={() => setIsPricingOpen(true)}
+                style={{
+                  fontSize: 11, fontWeight: 700, padding: '6px 14px', borderRadius: 20,
+                  background: 'rgba(5,150,105,0.08)', color: '#059669',
+                  border: '1px solid rgba(5,150,105,0.15)',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(5,150,105,0.15)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(5,150,105,0.08)'; }}
+              >💰 단가 관리</button>
+              <span style={{
+                fontSize: 13, fontWeight: 600, padding: '4px 12px', borderRadius: 20,
+                background: 'rgba(79,70,229,0.06)', color: '#4f46e5',
+              }}>Step {currentStep} / {WIZARD_STEPS.length}</span>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <PresetPanel />
-            <span style={{
-              fontSize: 13, fontWeight: 600, padding: '4px 12px', borderRadius: 20,
-              background: 'rgba(79,70,229,0.06)', color: '#4f46e5',
-            }}>Step {currentStep} / {WIZARD_STEPS.length}</span>
+
+          {/* Bottom Table Row */}
+          <div style={{ borderTop: '1px solid #e2e8f0', background: '#fafbfc' }}>
+            <StepIndicator />
           </div>
         </header>
 
@@ -130,10 +154,7 @@ export default function Page() {
               </p>
             </div>
 
-            {/* ▸ 고정 영역 2: 스텝 인디케이터 (항시 노출) */}
-            <div style={{ flexShrink: 0, padding: `0 ${PAD}px` }}>
-              <StepIndicator />
-            </div>
+
 
             {/* ▸ 스크롤 영역: 스텝 콘텐츠 */}
             <div style={{
@@ -162,8 +183,24 @@ export default function Page() {
                 >이전</button>
                 <button
                   onClick={() => {
-                    if (currentStep < WIZARD_STEPS.length) nextStep();
-                    else setIsDevRequestOpen(true);
+                    if (currentStep < WIZARD_STEPS.length) {
+                      nextStep();
+                    } else {
+                      // Validation
+                      const missing: string[] = [];
+                      if (!useDesignStore.getState().sizePresetId && useDesignStore.getState().customWidth === 0) missing.push('사이즈');
+                      if (!useDesignStore.getState().coreId) missing.push('스트링 코어');
+                      if (!useDesignStore.getState().coverId) missing.push('커버');
+                      if (useDesignStore.getState().topFoamEnabled && !useDesignStore.getState().topFoamOptionId) missing.push('상단폼');
+                      if (!useDesignStore.getState().packagingId) missing.push('포장');
+                      if (!useDesignStore.getState().deliveryId) missing.push('배송');
+
+                      if (missing.length > 0) {
+                        alert(`다음 정보가 선택되지 않았습니다:\n- ${missing.join('\n- ')}`);
+                      } else {
+                        setIsCompletionOpen(true);
+                      }
+                    }
                   }}
                   className="btn-primary"
                   style={{ flex: 2 }}
@@ -228,6 +265,20 @@ export default function Page() {
       {isDevRequestOpen && (
         <DevelopmentRequestModal
           onClose={() => setIsDevRequestOpen(false)}
+        />
+      )}
+      {isCompletionOpen && (
+        <CompletionModal
+          onClose={() => setIsCompletionOpen(false)}
+          onOpenDevRequest={() => {
+            setIsCompletionOpen(false);
+            setIsDevRequestOpen(true);
+          }}
+        />
+      )}
+      {isPricingOpen && (
+        <PricingManageModal
+          onClose={() => setIsPricingOpen(false)}
         />
       )}
     </div>

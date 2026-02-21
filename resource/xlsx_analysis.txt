@@ -1,0 +1,175 @@
+=== Sheet Names ===
+["ANSSil","iloom SmartPlatform Product"]
+
+========================================
+=== Sheet: ANSSil ===
+========================================
+Range: B2:K87
+Merged Cells Count: 23
+  Merge: E8:G8
+  Merge: H8:K8
+  Merge: B2:K4
+  Merge: E6:G6
+  Merge: H6:K6
+  Merge: E7:G7
+  Merge: H7:K7
+  Merge: E9:G9
+  Merge: H9:K9
+  Merge: E10:G10
+  Merge: H10:K10
+  Merge: E11:G11
+  Merge: H11:K11
+  Merge: E12:G12
+  Merge: H12:K12
+  Merge: E13:G13
+  Merge: H13:K13
+  Merge: B31:B32
+  Merge: C31:C32
+  Merge: D31:D32
+  Merge: E31:H31
+  Merge: B46:D46
+  Merge: C62:D62
+
+Cell Data (rows 2 to 87):
+  Row 2: B2=ANSSil Smart Platform 견적서
+  Row 6: B6=※ 견적일 :  2025년 09월 30일 (유효기간 : 견적 후 1개월) | E6=상호(법인명) | H6=주식회사 앤씰
+  Row 7: B7=※ 결제 조건 : 발주 시 선금 50%, 납품 시 잔금 50% | E7=사업자 등록번호 | H7=114-86-00389
+  Row 8: B8=※ 배송비 미포함(지정 물류센터 납품 기준) | E8=성명(대표자) | H8=송  범  근
+  Row 9: B9=※  MOQ 5k | E9=업태 | H9=제조업
+  Row 10: E10=종목 | H10=매트리스 및 침구류, 가구류
+  Row 11: H11=디자인소품, 모조장식품, 방송소품
+  Row 12: E12=Tel / Fax | H12=02-532-2725 / 02-532-2788
+  Row 13: E13=사업장 소재지 | H13=경기도 광주시 고불로 279번길 14
+  Row 31: B31=분류 | C31=모델명 | D31=구성 | E31=String Size | I31=공급가 | J31=공급가 | K31=공급가
+  Row 32: E32=규격 | F32=W | G32=L | H32=H | I32=1k | J32=5k | K32=10K
+  Row 33: B33=IoT String Platform | C33= Hardware V1 | D33=String  | E33=S | F33=NUM:90 | G33=NUM:200 | H33=NUM:20 | I33=23 | J33=23 | K33=23
+  Row 34: E34=SS | F34=NUM:110 | G34=NUM:200 | H34=NUM:20 | I34=23 | J34=23 | K34=23
+  Row 35: E35=Q | F35=NUM:150 | G35=NUM:200 | H35=NUM:20 | I35=23 | J35=23 | K35=23
+  Row 36: E36=KK | F36=NUM:180 | G36=NUM:200 | H36=NUM:20 | I36=23 | J36=23 | K36=23
+  Row 37: E37=KK(Duo) | F37=NUM:180 | G37=NUM:200 | H37=NUM:20 | I37=23 | J37=23 | K37=23
+  Row 45: B45=[ Remark ]
+
+========================================
+=== Sheet: iloom SmartPlatform Product ===
+========================================
+Range: B2:AG99
+Merged Cells Count: 46
+  Merge: B55:K55
+  Merge: N78:V78
+  Merge: N79:V79
+  Merge: N80:V80
+  Merge: E49:H49
+  Merge: I49:K49
+  Merge: D50:D52
+  Merge: E50:H50
+  Merge: I50:K50
+  Merge: E51:H51
+  Merge: I51:K51
+  Merge: E52:H52
+  Merge: I52:K52
+  Merge: I47:K48
+  Merge: B29:D29
+  Merge: C30:D30
+  Merge: B34:B35
+  Merge: C34:C35
+  Merge: D34:D35
+  Merge: E34:H34
+  Merge: B43:D43
+  Merge: B47:B48
+  Merge: C47:C48
+  Merge: D47:D48
+  Merge: E47:H48
+  Merge: E12:G12
+  Merge: H12:K12
+  Merge: E13:G13
+  Merge: H13:K13
+  Merge: B17:B18
+  Merge: C17:C18
+  Merge: D17:D18
+  Merge: E17:H17
+  Merge: E9:G9
+  Merge: H9:K9
+  Merge: E10:G10
+  Merge: H10:K10
+  Merge: E11:G11
+  Merge: H11:K11
+  Merge: E8:G8
+  Merge: H8:K8
+  Merge: B2:K4
+  Merge: E6:G6
+  Merge: H6:K6
+  Merge: E7:G7
+  Merge: H7:K7
+
+Cell Data (rows 2 to 99):
+  Row 2: B2=ANSSil Smart Platform 견적서
+  Row 6: B6=※ 견적일 :  2025년 09월 30일 (유효기간 : 견적 후 1개월) | E6=상호(법인명) | H6=주식회사 앤씰
+  Row 7: B7=※ 결제 조건 : 발주 시 선금 50%, 납품 시 잔금 50% | E7=사업자 등록번호 | H7=114-86-00389
+  Row 8: B8=※ 배송비 미포함(지정 물류센터 납품 기준) | E8=성명(대표자) | H8=송  범  근
+  Row 9: B9=※  MOQ 5k | E9=업태 | H9=제조업
+  Row 10: E10=종목 | H10=매트리스 및 침구류, 가구류
+  Row 11: H11=디자인소품, 모조장식품, 방송소품
+  Row 12: E12=Tel / Fax | H12=02-532-2725 / 02-532-2788
+  Row 13: E13=사업장 소재지 | H13=경기도 광주시 고불로 279번길 14
+  Row 16: T16=1k | U16=5k | V16=10k
+  Row 17: B17=분류 | C17=모델명 | D17=구성 | E17=String Size | I17=공급가 | J17=공급가 | K17=공급가 | N17=스트링 | O17=컨트롤러 | P17=센서or Stick | Q17=패키지 | R17=합계 | S17=노.재.판 | T17=이윤 | U17=이윤 | V17=이윤
+  Row 18: E18=규격 | F18=W | G18=L | H18=H | I18=5k | J18=10k | K18=50k | S18=NUM:0.15 | T18=NUM:0.1 | U18=NUM:0 | V18=NUM:-0.1
+  Row 19: B19=Smart Motion Bed | C19=il-Smart-Controller | D19=사이즈 : 80mm * 190mm * 250mm | E19=S | F19=NUM:90 | G19=NUM:200 | H19=NUM:20 | I19=NUM:206000 | J19=NUM:187000 | K19=NUM:169000 | N19=NUM:72000 | O19=NUM:78000 | P19=NUM:12000 | Q19=NUM:1000 | R19=NUM:163000 | S19=NUM:187450 | T19=NUM:206195.00000000003 | U19=NUM:187450 | V19=NUM:168705
+  Row 20: D20=파워 :  | E20=SS | F20=NUM:110 | G20=NUM:200 | H20=NUM:20 | I20=NUM:220000 | J20=NUM:200000 | K20=NUM:180000 | N20=NUM:82900 | O20=NUM:78000 | P20=NUM:12000 | Q20=NUM:1000 | R20=NUM:173900 | S20=NUM:199984.99999999997 | T20=NUM:219983.5 | U20=NUM:199984.99999999997 | V20=NUM:179986.49999999997
+  Row 21: D21=디스플레이 : 
+  Row 22: D22=버튼 : 
+  Row 23: D23=에어 기능
+  Row 24: D24=IoT 기능 | E24=Q | F24=NUM:150 | G24=NUM:200 | H24=NUM:20 | I24=NUM:251000 | J24=NUM:228000 | K24=NUM:205000 | N24=NUM:107500 | O24=NUM:78000 | P24=NUM:12000 | Q24=NUM:1000 | R24=NUM:198500 | S24=NUM:228274.99999999997 | T24=NUM:251102.5 | U24=NUM:228274.99999999997 | V24=NUM:205447.49999999997
+  Row 25: D25=전원기능 | E25=KK | F25=NUM:180 | G25=NUM:200 | H25=NUM:20 | I25=NUM:276000 | J25=NUM:251000 | K25=NUM:226000 | N25=NUM:127200 | O25=NUM:78000 | P25=NUM:12000 | Q25=NUM:1000 | R25=NUM:218200 | S25=NUM:250929.99999999997 | T25=NUM:276023 | U25=NUM:250929.99999999997 | V25=NUM:225836.99999999997
+  Row 26: D26=별도 기구 | E26=KK(Duo) | F26=NUM:180 | G26=NUM:200 | H26=NUM:20 | I26=NUM:411000 | J26=NUM:374000 | K26=NUM:336000 | N26=NUM:144000 | O26=NUM:156000 | P26=NUM:24000 | Q26=NUM:1000 | R26=NUM:325000 | S26=NUM:373750 | T26=NUM:411125.00000000006 | U26=NUM:373750 | V26=NUM:336375
+  Row 28: B28=[ Remark ]
+  Row 29: B29= * APP 개발 및 유지 보수 비용 추가 (하단 첨부)
+ * S, SS, Q, KK | E29=* KK(Duo)
+  Row 30: C30=※ 컬러 디자인 변경(브랜드변경)
+  Row 32: X32=3k 이상시 예상
+  Row 33: T33=1k | U33=5k | V33=10k | X33=스트링 | Y33=컨트롤러 | Z33=센서or Stick | AE33=1k | AF33=5k | AG33=10k
+  Row 34: B34=분류 | C34=모델명 | D34=구성 | E34=String Size | I34=공급가 | J34=공급가 | K34=공급가 | N34=스트링 | O34=컨트롤러 | P34=센서or Stick | Q34=패키지 | R34=합계 | S34=노.재.판 | T34=이윤 | U34=이윤 | V34=이윤 | AD34=노.재.판 | AE34=이윤 | AF34=이윤 | AG34=이윤
+  Row 35: E35=규격 | F35=W | G35=L | H35=H | I35=5k | J35=10k | K35=50k | S35=NUM:0.15 | T35=NUM:0.1 | U35=NUM:-0.1 | V35=NUM:-0.4 | AA35=패키지 | AB35=합계 | AC35=원가절감률 | AD35=NUM:0.15
+  Row 36: B36=Smart Platform | C36= Hardware V1 | D36=String  | E36=S | F36=NUM:90 | G36=NUM:200 | H36=NUM:20 | I36=NUM:926000 | J36=NUM:758000 | K36=NUM:505000 | N36=NUM:72000 | O36=NUM:130000 | P36=NUM:520000 | Q36=NUM:10000 | R36=NUM:732000 | S36=NUM:841799.9999999999 | T36=NUM:925980 | U36=NUM:757619.9999999999 | V36=NUM:505079.9999999999 | X36=NUM:72000 | Y36=NUM:110000 | Z36=NUM:420000 | AA36=NUM:10000 | AB36=NUM:612000 | AC36=NUM:0.16393442622950816 | AD36=23 | AE36=23 | AF36=23 | AG36=23
+  Row 37: D37=+ Smart Controller | E37=SS | F37=NUM:110 | G37=NUM:200 | H37=NUM:20 | I37=NUM:940000 | J37=NUM:769000 | K37=NUM:513000 | N37=NUM:82900 | O37=NUM:130000 | P37=NUM:520000 | Q37=NUM:10000 | R37=NUM:742900 | S37=NUM:854334.9999999999 | T37=NUM:939768.5 | U37=NUM:768901.4999999999 | V37=NUM:512600.9999999999 | X37=NUM:82900 | Y37=NUM:110000 | Z37=NUM:420000 | AA37=NUM:10000 | AB37=NUM:622900 | AC37=NUM:0.16152914254946826 | AD37=23 | AE37=23 | AF37=23 | AG37=23
+  Row 38: D38=+ BP Sensor | E38=Q | F38=NUM:150 | G38=NUM:200 | H38=NUM:20 | I38=NUM:971000 | J38=NUM:794000 | K38=NUM:530000 | N38=NUM:107500 | O38=NUM:130000 | P38=NUM:520000 | Q38=NUM:10000 | R38=NUM:767500 | S38=NUM:882624.9999999999 | T38=NUM:970887.5 | U38=NUM:794362.4999999999 | V38=NUM:529574.9999999999 | X38=NUM:107500 | Y38=NUM:110000 | Z38=NUM:420000 | AA38=NUM:10000 | AB38=NUM:647500 | AC38=NUM:0.15635179153094458 | AD38=23 | AE38=23 | AF38=23 | AG38=23
+  Row 39: D39=  80 * 110 Size (540 point) | E39=KK | F39=NUM:180 | G39=NUM:200 | H39=NUM:20 | I39=NUM:996000 | J39=NUM:815000 | K39=NUM:543000 | N39=NUM:127200 | O39=NUM:130000 | P39=NUM:520000 | Q39=NUM:10000 | R39=NUM:787200 | S39=NUM:905279.9999999999 | T39=NUM:995808 | U39=NUM:814751.9999999999 | V39=NUM:543167.9999999999 | X39=NUM:127200 | Y39=NUM:110000 | Z39=NUM:420000 | AA39=NUM:10000 | AB39=NUM:667200 | AC39=NUM:0.15243902439024393 | AD39=23 | AE39=23 | AF39=23 | AG39=23
+  Row 40: D40=+ ANSSil Link APP | E40=KK(Duo) | F40=NUM:180 | G40=NUM:200 | H40=NUM:20 | I40=NUM:1839000 | J40=NUM:1505000 | K40=NUM:1003000 | N40=NUM:144000 | O40=NUM:260000 | P40=NUM:1040000 | Q40=NUM:10000 | R40=NUM:1454000 | S40=NUM:1672099.9999999998 | T40=NUM:1839310 | U40=NUM:1504889.9999999998 | V40=NUM:1003259.9999999998 | X40=NUM:144000 | Y40=NUM:220000 | Z40=NUM:840000 | AA40=NUM:10000 | AB40=NUM:1214000 | AC40=NUM:0.16506189821182948 | AD40=23 | AE40=23 | AF40=23 | AG40=23
+  Row 42: B42=[ Remark ]
+  Row 43: B43= * APP 개발 및 유지 보수 비용 추가 (하단 첨부)
+ * S, SS, Q, KK | E43=* KK(Duo)
+  Row 44: C44=※ 컬러 디자인 변경(브랜드변경)
+  Row 46: N46=APP 개발비
+  Row 47: B47=분류 | C47=모델명 | D47=구성 | E47=참고 | I47=개발공급가 | N47=구분 | O47=디자인 | P47=개발 | Q47=PM | R47=합계 | S47=참여율 | T47=기간 | U47=합계
+  Row 49: B49=Software System | C49=APP  | D49=APP
+'- IOS & Android 개별 nativ APP 별도 제공
+'- Server System 포함 (일룸 전용 AWS로 별도 시스템 구성)
+'- 현재 개발된 앤씰 APP의 디자인 변경 버전 | E49=현재 ANSSil APP 기준
+ 브랜드 디자인 변경 | I49=NUM:40000000 | S49=NUM:0.8 | U49=NUM:0
+  Row 50: C50=유지보수 | D50=- 기본 업데이트 : 버그수정, 서드파티 호환성 업데이트, 신규 기능 업데이트, 디자인 수정
+- 모바일 환경 앱 보안 : 보안 최적화, 규제 관련 변화 체크 및 업데이트
+- 시스템 / 인프라 : 앱스토어 등록, 버전 관리, 긴급 대응 포함
+- MAU 에 따라 견적 | E50=MAU : 1,000 | I50=1,400,000 / 월 | N50=주니어 | R50=NUM:0 | U50=NUM:0
+  Row 51: E51=MAU : 1,000 ~ 5,000 | I51=3,000,000 / 월 | N51=미들 | O51=NUM:5000000 | P51=NUM:5000000 | R51=NUM:10000000 | S51=NUM:8000000 | T51=NUM:2 | U51=NUM:16000000
+  Row 52: E52=MAU :  5,000이상 | I52=TBD | N52=시니어 | P52=NUM:8000000 | Q52=NUM:7000000 | R52=NUM:15000000 | S52=NUM:12000000 | T52=NUM:2 | U52=NUM:24000000
+  Row 53: N53=합계 | U53=NUM:40000000
+  Row 54: B54=[ Remark ]
+  Row 55: B55=※ APP 개발건 
+- L/T 8w 기준 : 기능 추가시 별도 계약
+- 유지보수 MAU에 따른 차별 비용 (1년단위 유지보수 계약)
+- 소스 제공 불가
+  Row 56: N56=유지보수 1단계 : MAU 1,000
+  Row 57: N57=구분 | O57=디자인 | P57=개발 | Q57=PM | R57=합계 | S57=참여율 | T57=기간 | U57=인건비 합계 | V57=고정비(AWS) | W57=종합
+  Row 59: S59=NUM:0.05 | U59=NUM:0
+  Row 60: N60=주니어 | R60=NUM:0 | U60=NUM:0 | V60=NUM:500000
+  Row 61: N61=미들 | O61=NUM:5000000 | P61=NUM:5000000 | R61=NUM:10000000 | S61=NUM:500000 | T61=NUM:1 | U61=NUM:500000
+  Row 62: N62=시니어 | P62=NUM:8000000 | R62=NUM:8000000 | S62=NUM:400000 | T62=NUM:1 | U62=NUM:400000
+  Row 63: N63=합계 | U63=NUM:900000 | V63=NUM:500000 | W63=NUM:1400000
+  Row 65: N65=유지보수 2단계 : MAU 5,000
+  Row 66: N66=구분 | O66=디자인 | P66=개발 | Q66=PM | R66=합계 | S66=참여율 | T66=기간 | U66=인건비 합계 | V66=고정비(AWS) | W66=종합
+  Row 67: T67=NUM:2
+  Row 68: S68=NUM:0.1 | U68=NUM:0
+  Row 69: N69=주니어 | R69=NUM:0 | S69=NUM:0 | U69=NUM:0 | V69=NUM:1000000
+  Row 70: N70=미들 | O70=NUM:5000000 | R70=NUM:5000000 | S70=NUM:500000 | T70=NUM:1 | U70=NUM:500000
+  Row 71: N71=시니어 | P71=NUM:8000000 | Q71=NUM:7000000 | R71=NUM:15000000 | S71=NUM:1500000 | T71=NUM:1 | U71=NUM:1500000
+  Row 72: N72=합계 | S72=NUM:0 | U72=NUM:2000000 | V72=NUM:1000000 | W72=NUM:3000000

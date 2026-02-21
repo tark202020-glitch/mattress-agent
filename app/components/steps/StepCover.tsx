@@ -23,7 +23,7 @@ const gradeColor: Record<string, string> = {
 };
 
 export default function StepCover() {
-    const { coverId, setCover, customCoverImages, setCustomCoverImage } = useDesignStore();
+    const { coverId, setCover, customCoverImages, setCustomCoverImage, structureType } = useDesignStore();
     const { covers: customCovers, addCover, removeCover, _hydrate } = useCustomOptionsStore();
     const [showAdd, setShowAdd] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -34,17 +34,32 @@ export default function StepCover() {
     const allCovers = [...COVER_OPTIONS, ...customCovers];
     const isCustom = (id: string) => customCovers.some(c => c.id === id);
 
+    const isAllowedCover = (id: string, structType: string | null) => {
+        if (id.startsWith('CUSTOM_COV_')) return true;
+        if (structType === 'basic') {
+            return id === 'HEALING_NUMBER' || id === 'COMPACT';
+        } else if (structType === 'premium') {
+            return id !== 'HEALING_NUMBER' && id !== 'COMPACT';
+        }
+        return true; // standard 시 전체 노출
+    };
+
+    const allowedCovers = allCovers.filter(c => isAllowedCover(c.id, structureType));
+
     return (
         <div className="animate-in">
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 16,
+                gap: 12,
             }}>
-                {allCovers.map((cover) => {
+                {allowedCovers.map((cover) => {
                     const isSelected = coverId === cover.id;
                     const custom = isCustom(cover.id);
                     const customImage = customCoverImages[cover.id];
+
+                    let displayGrade = gradeLabel[cover.grade] || cover.grade;
+                    let displayGradeColor = gradeColor[cover.grade] || '#64748b';
 
                     return (
                         <button
@@ -53,141 +68,159 @@ export default function StepCover() {
                             className="card"
                             style={{
                                 padding: 0, textAlign: 'left',
-                                transition: 'all 0.2s', position: 'relative',
+                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                position: 'relative',
                                 overflow: 'hidden',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 flexDirection: 'row',
                                 alignItems: 'stretch',
-                                ...(isSelected ? {
-                                    borderColor: cover.color,
-                                    background: `${cover.color}0D`,
-                                    boxShadow: `0 0 0 3px ${cover.color}26`,
-                                } : {}),
+                                borderRadius: 16,
+                                border: '1px solid',
+                                borderColor: isSelected ? cover.color : '#e2e8f0',
+                                backgroundColor: isSelected ? `${cover.color}08` : '#ffffff',
+                                boxShadow: isSelected
+                                    ? `0 4px 12px ${cover.color}15, 0 0 0 1px ${cover.color}40`
+                                    : '0 2px 8px rgba(0,0,0,0.04)',
+                                transform: isSelected ? 'translateY(-2px)' : 'none',
+                            }}
+                            onMouseEnter={e => {
+                                if (!isSelected) {
+                                    e.currentTarget.style.borderColor = '#cbd5e1';
+                                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.06)';
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                }
+                            }}
+                            onMouseLeave={e => {
+                                if (!isSelected) {
+                                    e.currentTarget.style.borderColor = '#e2e8f0';
+                                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
+                                    e.currentTarget.style.transform = 'none';
+                                }
                             }}
                         >
                             {custom && <DeleteBadge onClick={() => removeCover(cover.id)} />}
 
-                            {/* 이미지 영역 */}
-                            {(customImage || cover.image) ? (
-                                <div style={{
-                                    width: 140, minHeight: 100,
-                                    position: 'relative',
-                                    flexShrink: 0,
-                                    borderRight: '1px solid #e2e8f0',
-                                    overflow: 'hidden',
-                                }}>
-                                    {customImage ? (
-                                        <img
-                                            src={customImage}
-                                            alt={cover.label}
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        />
-                                    ) : (
-                                        <Image
-                                            src={cover.image!}
-                                            alt={cover.label}
-                                            fill
-                                            style={{ objectFit: 'cover' }}
-                                            sizes="140px"
-                                        />
-                                    )}
-                                    {/* AI 생성 이미지 배지 */}
-                                    {customImage && (
-                                        <div style={{
-                                            position: 'absolute', bottom: 4, left: 4,
-                                            background: 'rgba(79,70,229,0.85)', color: '#fff',
-                                            fontSize: 9, fontWeight: 700, padding: '2px 6px',
-                                            borderRadius: 4, letterSpacing: 0.3,
-                                        }}>
-                                            AI
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div style={{
-                                    width: 140, minHeight: 100,
-                                    flexShrink: 0,
-                                    background: cover.color,
-                                    borderRight: '1px solid #e2e8f0',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                }}>
+                            {/* 이미지 및 정보 컨테이너 (가로 배치) */}
+                            <div style={{ display: 'flex', flexDirection: 'row', width: '100%', alignItems: 'stretch' }}>
+                                {/* 이미지 영역 */}
+                                {(customImage || cover.image) ? (
                                     <div style={{
-                                        width: 48, height: 48, borderRadius: 12,
-                                        background: 'rgba(255,255,255,0.25)',
-                                        border: '2px solid rgba(255,255,255,0.3)',
-                                    }} />
-                                </div>
-                            )}
-
-                            {/* 텍스트 영역 */}
-                            <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                                    <div style={{
-                                        fontWeight: 700, fontSize: 16,
-                                        color: isSelected ? '#0f172a' : '#475569',
+                                        width: 140, minHeight: 110,
+                                        position: 'relative',
+                                        flexShrink: 0,
+                                        borderRight: `1px solid ${isSelected ? `${cover.color}20` : '#f1f5f9'}`,
+                                        overflow: 'hidden',
                                     }}>
-                                        {cover.label}
+                                        {customImage ? (
+                                            <img
+                                                src={customImage}
+                                                alt={cover.label}
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                            />
+                                        ) : (
+                                            <Image
+                                                src={cover.image!}
+                                                alt={cover.label}
+                                                fill
+                                                style={{ objectFit: 'cover' }}
+                                                sizes="140px"
+                                            />
+                                        )}
+                                        {/* AI 생성 이미지 배지 */}
+                                        {customImage && (
+                                            <div style={{
+                                                position: 'absolute', bottom: 6, left: 6,
+                                                background: 'rgba(15, 23, 42, 0.75)', color: '#fff',
+                                                backdropFilter: 'blur(4px)',
+                                                fontSize: 9, fontWeight: 700, padding: '3px 8px',
+                                                borderRadius: 6, letterSpacing: 0.5,
+                                            }}>
+                                                AI GENERATED
+                                            </div>
+                                        )}
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                        {/* AI 이미지 생성 버튼 */}
-                                        <span
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setImageGenTarget({
-                                                    id: cover.id,
-                                                    label: cover.label,
-                                                    description: cover.description,
-                                                    color: cover.color,
-                                                    image: cover.image,
-                                                });
-                                            }}
-                                            style={{
-                                                fontSize: 10, fontWeight: 700, padding: '3px 8px',
-                                                borderRadius: 6,
-                                                color: '#4f46e5',
-                                                background: '#eef2ff',
-                                                border: '1px solid #c7d2fe',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.15s',
-                                                whiteSpace: 'nowrap',
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                (e.target as HTMLElement).style.background = '#4f46e5';
-                                                (e.target as HTMLElement).style.color = '#fff';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                (e.target as HTMLElement).style.background = '#eef2ff';
-                                                (e.target as HTMLElement).style.color = '#4f46e5';
-                                            }}
-                                        >
-                                            🎨 AI 이미지
-                                        </span>
-                                        <span style={{
-                                            fontSize: 10, fontWeight: 700, padding: '3px 8px',
-                                            borderRadius: 6,
-                                            color: gradeColor[cover.grade] || '#64748b',
-                                            background: `${gradeColor[cover.grade] || '#64748b'}10`,
-                                            border: `1px solid ${gradeColor[cover.grade] || '#64748b'}20`,
+                                ) : (
+                                    <div style={{
+                                        width: 140, minHeight: 110,
+                                        flexShrink: 0,
+                                        background: cover.color,
+                                        borderRight: '1px solid #e2e8f0',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}>
+                                        <div style={{
+                                            width: 48, height: 48, borderRadius: 12,
+                                            background: 'rgba(255,255,255,0.25)',
+                                            border: '2px solid rgba(255,255,255,0.3)',
+                                        }} />
+                                    </div>
+                                )}
+
+                                {/* 텍스트 영역 */}
+                                <div style={{ flex: 1, padding: '18px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+                                        <div style={{
+                                            fontWeight: 800, fontSize: 17,
+                                            color: isSelected ? '#0f172a' : '#334155',
+                                            letterSpacing: '-0.3px',
                                         }}>
-                                            {gradeLabel[cover.grade] || cover.grade}
-                                        </span>
+                                            {cover.label}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            {/* AI 이미지 생성 버튼 */}
+                                            <span
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setImageGenTarget({
+                                                        id: cover.id,
+                                                        label: cover.label,
+                                                        description: cover.description,
+                                                        color: cover.color,
+                                                        image: cover.image,
+                                                    });
+                                                }}
+                                                style={{
+                                                    fontSize: 11, fontWeight: 700, padding: '4px 10px',
+                                                    borderRadius: 8, letterSpacing: '0.3px',
+                                                    color: '#6366f1',
+                                                    background: '#e0e7ff',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s',
+                                                    whiteSpace: 'nowrap',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 4,
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    (e.currentTarget as HTMLElement).style.background = '#c7d2fe';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    (e.currentTarget as HTMLElement).style.background = '#e0e7ff';
+                                                }}
+                                            >
+                                                <span style={{ fontSize: 12 }}>✨</span> AI 이미지
+                                            </span>
+                                            <span style={{
+                                                fontSize: 11, fontWeight: 700, color: displayGradeColor,
+                                                background: `${displayGradeColor}15`, padding: '4px 8px', borderRadius: 6,
+                                            }}>
+                                                {displayGrade}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div style={{ fontSize: 13, color: '#94a3b8' }}>
-                                    {cover.description}
+                                    <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.4 }}>
+                                        {cover.description}
+                                    </div>
                                 </div>
                             </div>
-
                             {isSelected && (
                                 <div style={{
-                                    position: 'absolute', top: 10, right: 10,
+                                    position: 'absolute', top: 14, right: 14,
                                 }}>
                                     <div style={{
-                                        width: 10, height: 10, borderRadius: '50%',
+                                        width: 12, height: 12, borderRadius: '50%',
                                         background: cover.color,
-                                        animation: 'pulse 2s ease-in-out infinite',
-                                        boxShadow: `0 0 6px ${cover.color}80`,
+                                        boxShadow: `0 0 0 4px ${cover.color}20`,
                                     }} />
                                 </div>
                             )}
@@ -196,8 +229,8 @@ export default function StepCover() {
                 })}
             </div>
 
-            <div style={{ marginTop: 16 }}>
-                <AddButton onClick={() => setShowAdd(true)} label="새 커버 추가" />
+            <div style={{ marginTop: 24 }}>
+                <AddButton onClick={() => setShowAdd(true)} label="새 커버 디자인 추가하기" />
             </div>
 
             {showAdd && (
@@ -244,4 +277,3 @@ export default function StepCover() {
         </div>
     );
 }
-

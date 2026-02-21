@@ -47,10 +47,10 @@ export interface TopFoamOption {
 }
 
 export const TOP_FOAM_OPTIONS: TopFoamOption[] = [
-    { id: 'TOP_50', label: '50mm', thickness: 50, layers: null, description: '단일 레이어 50mm' },
-    { id: 'TOP_70', label: '70mm', thickness: 70, layers: null, description: '단일 레이어 70mm' },
-    { id: 'TOP_70_2L', label: '70mm (2Layer 2:5)', thickness: 70, layers: '2:5', description: '2층 구조 (20mm + 50mm)' },
-    { id: 'TOP_80_2L', label: '80mm (2Layer 3:5)', thickness: 80, layers: '3:5', description: '2층 구조 (30mm + 50mm)' },
+    { id: 'TOP_50', label: '50mm', thickness: 50, layers: null, description: '단일레이어 HR 40kg' },
+    { id: 'TOP_70', label: '70mm', thickness: 70, layers: null, description: '단일레이어 HR 50kg' },
+    { id: 'TOP_70_2L', label: '70mm (2Layer 5:2)', thickness: 70, layers: '5:2', description: '50mm HR 50kg, 20mm HR 40kg' },
+    { id: 'TOP_80_2L', label: '80mm (2Layer 6:2)', thickness: 80, layers: '6:2', description: '60mm HR 50kg, 20mm HR 40kg' },
 ];
 
 // 가드폼 옵션
@@ -97,13 +97,13 @@ export interface CoverOption {
 }
 
 export const COVER_OPTIONS: CoverOption[] = [
+    { id: 'COMPACT', label: '컴팩트 스타일', grade: '저', color: '#7C8C72', description: '심플 컴팩트 디자인', coverTopThickness: 30, image: '/covers/컴팩트.jpg' },
     { id: 'HEALING_NUMBER', label: '힐링넘버 스타일', grade: '저', color: '#D4C5A9', description: '기본형 커버', coverTopThickness: 30, image: '/covers/힐링넘버.jpg' },
-    { id: 'OAK_TWEED', label: '오크트위드 스타일', grade: '중', color: '#8B7355', description: '트위드 패브릭 감각', coverTopThickness: 30, image: '/covers/오크트위드.jpg' },
     { id: 'FLAT_GRID', label: '플랫그리드 스타일', grade: '중', color: '#A0A0A0', description: '모던 그리드 패턴', coverTopThickness: 30, image: '/covers/플랫그리드.jpg' },
+    { id: 'OAK_TWEED', label: '오크트위드 스타일', grade: '중', color: '#8B7355', description: '트위드 패브릭 감각', coverTopThickness: 30, image: '/covers/오크트위드.jpg' },
     { id: 'ALL_CARE', label: '올케어 스타일', grade: '중', color: '#B8D4E3', description: '항균 기능성 원단', coverTopThickness: 30, image: '/covers/올케어.jpg' },
-    { id: 'GENTLE_BREED', label: '젠틀브리드 스타일', grade: '고', color: '#2C3E50', description: '프리미엄 고급 원단', coverTopThickness: 30, image: '/covers/젠틀브리즈.jpg' },
     { id: 'I5', label: 'i5 스타일', grade: '고', color: '#1A1A2E', description: '최고급 프리미엄 라인', coverTopThickness: 30, image: '/covers/i5.jpg' },
-    { id: 'COMPACT', label: '컴팩트 스타일', grade: '중', color: '#7C8C72', description: '심플 컴팩트 디자인', coverTopThickness: 30, image: '/covers/컴팩트.jpg' },
+    { id: 'GENTLE_BREED', label: '젠틀브리즈 스타일', grade: '고', color: '#2C3E50', description: '프리미엄 고급 원단', coverTopThickness: 30, image: '/covers/젠틀브리즈.jpg' },
 ];
 
 // --- Step 5~7 ---
@@ -117,21 +117,21 @@ export const CONTROLLER_OPTIONS: GenericOption[] = [
 ];
 
 export const PACKAGING_OPTIONS: GenericOption[] = [
-    { id: 'ROLL', label: '롤 타입', description: '롤 압축 포장' },
-    { id: 'FOLD_3', label: '압축 3단접', description: '3단 접이 압축 포장' },
-    { id: 'SEPARATE', label: '분리포장 압축(스마트)', description: '스마트 분리 포장' },
+    { id: 'ROLL', label: '롤 타입 (type A)', description: '조립상태 그대로 압축 방식' },
+    { id: 'FOLD_3', label: '압축 3단접 (type B)', description: '3단 접이 후 압축 방식' },
 ];
 
 export const DELIVERY_OPTIONS: GenericOption[] = [
-    { id: 'DIRECT_PRODUCT', label: '완제품형태 직배', description: '완제품 상태로 직접 배달' },
-    { id: 'DIRECT_PACKED', label: '포장 직배', description: '포장 후 직접 배달' },
-    { id: 'PARCEL', label: '포장 택배', description: '포장 후 택배 발송' },
+    { id: 'SELF', label: '자체 배송', description: '박스 직접 배송건(VIP)' },
+    { id: 'PARCEL', label: '택배 배송', description: '경동택배 배송(일반)' },
+    { id: 'CONTAINER', label: '컨테이너', description: '파렛적재용' },
+    { id: 'PENDING', label: '미정', description: '배송 방식 미정' },
 ];
 
 // --- 위자드 단계 ---
 export const WIZARD_STEPS = [
     { id: 1, title: '사이즈', icon: '📐', description: '매트리스 사이즈와 Single/Dual을 선택하세요' },
-    { id: 2, title: '폼 선택', icon: '🛡️', description: '상단폼, 가드폼, 하단폼을 설정하세요' },
+    { id: 2, title: '구조 선택', icon: '🛡️', description: '매트리스 폼의 레이어 구조(Basic, Standard, Premium)를 선택하세요' },
     { id: 3, title: '스트링', icon: '🔧', description: '스트링 타입을 선택하세요' },
     { id: 4, title: '커버', icon: '🎨', description: '외부 커버 디자인을 선택하세요' },
     { id: 5, title: '컨트롤러', icon: '🎮', description: '제어 장치를 선택하세요' },

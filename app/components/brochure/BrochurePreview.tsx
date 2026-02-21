@@ -15,8 +15,29 @@ export default function BrochurePreview({ data, onUpdatePrompts, onClose, onBack
     const [activeTab, setActiveTab] = useState<'page1' | 'page2'>('page1');
     const [showPromptEditor, setShowPromptEditor] = useState(false);
 
+    const handlePrint = () => {
+        window.print();
+    };
+
     return (
-        <div className="fixed inset-0 bg-black/80 flex flex-col z-50">
+        <div className="fixed inset-0 bg-black/80 flex flex-col print-hide-container" style={{ zIndex: 9999 }}>
+            <style>{`
+                @media print {
+                    @page { size: A3 landscape; margin: 0; }
+                    body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    body > *:not(#print-area) { display: none !important; }
+                    .print-hide-container { display: none !important; }
+                    #print-area { display: block !important; position: absolute; left: 0; top: 0; width: 100%; background: white; }
+                    .print-page { 
+                        width: 1587px; height: 1123px; 
+                        page-break-after: always; 
+                        overflow: hidden; 
+                        position: relative;
+                        background: white;
+                    }
+                }
+            `}</style>
+
             {/* Header */}
             <div className="h-14 bg-gray-900 flex justify-between items-center px-6 text-white border-b border-gray-800">
                 <div className="flex items-center gap-4">
@@ -66,10 +87,13 @@ export default function BrochurePreview({ data, onUpdatePrompts, onClose, onBack
                     </div>
 
                     <div className="pt-4 border-t">
-                        <button className="w-full py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-bold flex items-center justify-center gap-2">
+                        <button
+                            onClick={handlePrint}
+                            className="w-full py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-bold flex items-center justify-center gap-2"
+                        >
                             📥 PDF 다운로드
                         </button>
-                        <p className="text-xs text-gray-500 text-center mt-2">A4 사이즈 (고해상도)</p>
+                        <p className="text-xs text-gray-500 text-center mt-2">저장 대화상자창에서 [PDF로 저장] 선택<br />가로 방향 / 가상 프린트 여백 없음으로 설정</p>
                     </div>
                 </div>
 
@@ -96,6 +120,18 @@ export default function BrochurePreview({ data, onUpdatePrompts, onClose, onBack
                     onClose={() => setShowPromptEditor(false)}
                 />
             )}
+
+            {/* =========================================
+                PRINT ONLY AREA (Hidden on screen)
+            ========================================= */}
+            <div id="print-area" className="hidden">
+                <div className="print-page">
+                    <Page1 data={data} />
+                </div>
+                <div className="print-page">
+                    <Page2 data={data} />
+                </div>
+            </div>
         </div>
     );
 }
