@@ -104,14 +104,6 @@ function saveToStorage(categories: PriceCategory[]) {
     } catch { /* quota error 무시 */ }
 }
 
-// ── 사이즈에 맞는 단가 찾기 ──
-function findSizePrice(item: PriceItem, sizeId?: string): number {
-    if (!item.prices.length) return 0;
-    if (!sizeId) return item.prices[0].unitPrice;
-
-    const sizePrice = item.prices.find(p => p.sizeId === sizeId);
-    return sizePrice ? sizePrice.unitPrice : item.prices[0].unitPrice;
-}
 
 // ── Store ──
 export const usePricingStore = create<PricingState & PricingActions>((set, get) => ({
