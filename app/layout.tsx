@@ -5,6 +5,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "매트리스 설계 에이전트 | Mattress Design Agent",
   description: "매트리스 사양을 입력하면 도면, 견적서, 브로셔를 자동 생성하는 스마트 설계 도구",
+  icons: {
+    icon: '/icon.png',
+  },
 };
 
 export default function RootLayout({
