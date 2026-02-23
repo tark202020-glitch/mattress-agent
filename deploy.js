@@ -27,7 +27,17 @@ try {
     execSync('git add .', { stdio: 'inherit' });
 
     console.log("git commit 시작...");
-    execSync('git commit -m "feat: [Alpha V1.053] AI Reference Images user upload and default images update"', { stdio: 'inherit' });
+    try {
+        execSync('git commit -m "feat: [Alpha V1.053] AI Reference Images user upload and default images update"', { stdio: 'inherit' });
+    } catch (commitError) {
+        if (commitError.stdout && commitError.stdout.toString().includes('nothing to commit')) {
+            console.log("커밋할 내용이 없습니다. 다음 단계로 넘어갑니다.");
+        } else if (commitError.message && commitError.message.includes('Command failed: git commit')) {
+            console.log("커밋할 내용이 없거나 이미 반영되어 있습니다. 다음 단계로 넘어갑니다.");
+        } else {
+            throw commitError;
+        }
+    }
 
     console.log("git push 시작...");
     execSync('git push', { stdio: 'inherit' });
