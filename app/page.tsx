@@ -66,7 +66,7 @@ export default function LandingPage() {
               <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(#94a3b8 1px, transparent 1px), linear-gradient(90deg, #94a3b8 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
               <div className="relative w-full aspect-[4/5] border border-slate-300 shadow-sm bg-white overflow-hidden p-2 transform -rotate-1 hover:rotate-0 transition-transform duration-300">
                 <img
-                  src="/api/local-image?type=drawing"
+                  src="/images/2d-drawing.png"
                   alt="2D Drawing Preview"
                   className="object-contain w-full h-full p-2"
                 />
@@ -109,7 +109,7 @@ export default function LandingPage() {
                 <div className="mt-auto w-full aspect-video bg-[#FAFAFA] relative flex items-center justify-center overflow-hidden border-t border-slate-100 group-hover:bg-[#F3F4F6] transition-colors">
                   <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)', backgroundSize: '8px 8px' }}></div>
                   <img
-                    src="/api/local-image?type=preview"
+                    src="/images/3d-preview.png"
                     alt="3D Mattress Preview"
                     className="object-contain w-full h-full p-4 relative z-10 group-hover:scale-105 transition-transform duration-500 saturate-[1.2] contrast-105 drop-shadow-md"
                   />
@@ -120,11 +120,11 @@ export default function LandingPage() {
             {/* Card 3: AI Cover */}
             <div className="bg-white border border-slate-300 shadow-sm flex flex-col relative overflow-hidden group">
               <div className="p-5 border-b border-slate-200 bg-white">
-                <h3 className="font-mono text-[0.8rem] uppercase tracking-[0.15em] font-semibold text-slate-800">AI-DRIVEN DESIGN</h3>
+                <h3 className="font-mono text-[0.8rem] uppercase tracking-[0.15em] font-semibold text-slate-800">AI MATTRESS DESIGN</h3>
               </div>
               <div className="p-8 md:p-10 flex-1 flex flex-col">
                 <p className="text-slate-600 text-[0.95rem] font-medium leading-[1.8] mb-10">
-                  키워드나 프롬프트를 입력하면 AI가 커버용 패턴을 즉각 생성하여 3D 모델에 바로 적용해볼 수 있습니다.
+                  나노 바나나로 원하는 매트리스 디자인을 직접 할 수 있습니다.
                 </p>
                 <div className="mt-auto flex justify-center pb-4">
                   {/* Abstract jigsaw/AI shape */}
