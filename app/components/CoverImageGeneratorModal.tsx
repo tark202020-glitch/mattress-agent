@@ -82,6 +82,32 @@ interface GeneratedImage {
     base64: string;
 }
 
+/* ── 이미지 리사이징 헬퍼 ── */
+async function resizeImageBase64(base64: string, maxWidth = 800, maxHeight = 800): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth || height > maxHeight) {
+                const ratio = Math.min(maxWidth / width, maxHeight / height);
+                width = Math.round(width * ratio);
+                height = Math.round(height * ratio);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) { resolve(base64); return; }
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            resolve(dataUrl.split(',')[1]);
+        };
+        img.onerror = () => resolve(base64);
+        img.src = `data:image/jpeg;base64,${base64}`;
+    });
+}
+
 /* ── 이미지 → Base64 ── */
 async function imagePathToBase64(imagePath: string): Promise<string | null> {
     try {
@@ -91,9 +117,11 @@ async function imagePathToBase64(imagePath: string): Promise<string | null> {
         if (blob.size < 100) return null;
         return new Promise((resolve) => {
             const reader = new FileReader();
-            reader.onloadend = () => {
+            reader.onloadend = async () => {
                 const dataUrl = reader.result as string;
-                resolve(dataUrl.split(',')[1]);
+                const base64 = dataUrl.split(',')[1];
+                const resized = await resizeImageBase64(base64);
+                resolve(resized);
             };
             reader.onerror = () => resolve(null);
             reader.readAsDataURL(blob);
@@ -306,7 +334,14 @@ export default function CoverImageGeneratorModal({
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body),
-                }).then(res => res.json())
+                }).then(async res => {
+                    const text = await res.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        throw new Error(`Server returned invalid JSON: ${text.slice(0, 100)}`);
+                    }
+                })
             );
 
             const results = await Promise.all(requests);

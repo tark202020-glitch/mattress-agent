@@ -1,6 +1,15 @@
 import { GoogleAuth } from 'google-auth-library';
 import { NextResponse } from 'next/server';
 
+export const maxDuration = 60; // 60 seconds timeout
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '10mb',
+        },
+    },
+};
+
 // ── NANO BANANA (Vertex AI 대체) 환경 설정 ──
 // AI Studio의 Gemini 이미지 생성 모델(Nano Banana) 호출
 const USE_NANO_BANANA = true;

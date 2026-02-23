@@ -1,3 +1,11 @@
+## [Alpha V1.049] - 2026-02-23 20:30:00
+
+### 🔄 Build Update
+- **Summary**: AI 커버이미지 로딩 시 Next.js Payload 한도 초과 오류 방어를 위한 리사이즈 구현
+- **Detail** :
+  - **프론트엔드 리사이징 로직 추가**: `CoverImageGeneratorModal.tsx`에 참고 이미지(고화질 2~4장)를 Base64 인코딩 시 Canvas API를 통해 Max Size 800px로 1차 압축하여 병목을 줄이도록 성능 개선
+  - **API Payload Limit 해제**: `app/api/generate-image/route.ts` 라우트 환경 설정에 `bodyParser: { sizeLimit: '10mb' }`를 선언하여 1MB 초과 시 413 코드와 함께 뱉어내던 Next.js JSON 파싱 에러(Unexpected token R) 구조적 해결
+
 ## [Alpha V1.048] - 2026-02-23 20:01:21
 
 ### 🔄 Build Update
