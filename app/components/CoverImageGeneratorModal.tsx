@@ -29,8 +29,8 @@ const SUBJECT_DESC: Record<string, string> = {
     'HEALING_NUMBER': 'a beige quilted mattress cover with diamond pattern stitching and fabric label',
     'OAK_TWEED': 'a brown tweed fabric mattress cover with woven texture and edge piping',
     'FLAT_GRID': 'a grey modern mattress cover with flat grid pattern and clean lines',
-    'ALL_CARE': 'a light blue antimicrobial mattress cover with smooth surface and brand label',
-    'GENTLE_BREED': 'a dark navy premium mattress cover with fine knit texture and gold label',
+    'ALL_CARE': 'a white and light grey antimicrobial mattress cover with smooth surface and brand label',
+    'GENTLE_BREED': 'a warm beige or light grey premium mattress cover with fine knit texture and gold label',
     'I5': 'a black premium mattress cover with sleek charcoal surface and metallic branding',
     'COMPACT': 'a sage green compact mattress cover with simple quilted pattern',
 };

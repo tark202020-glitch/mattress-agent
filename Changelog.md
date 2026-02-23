@@ -1,3 +1,11 @@
+## [Alpha V1.050] - 2026-02-23 21:05:00
+
+### 🔄 Build Update
+- **Summary**: AI 커버이미지 색상 프롬프트 개선 (젠틀브리즈, 올케어)
+- **Detail** :
+  - **색상 왜곡 문제 해결 (`CoverImageGeneratorModal.tsx`)**: '젠틀브리즈(GENTLE_BREED)' 모델 선택 시 기본 색상 프롬프트가 `dark navy`로 하드코딩 되어있어 어두운 네이비색 매트리스가 생성되던 현상 해결 (`warm beige or light grey`로 변경).
+  - '올케어(ALL_CARE)' 모델 또한 `light blue`에서 `white and light grey`로 실제 제품 색상에 맞게 조정하여 원본 참고 이미지의 색상 톤이 유지되도록 정확도 향상.
+
 ## [Alpha V1.049] - 2026-02-23 20:30:00
 
 ### 🔄 Build Update
