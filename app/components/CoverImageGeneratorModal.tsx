@@ -176,9 +176,12 @@ export default function CoverImageGeneratorModal({
     const [inpaintError, setInpaintError] = useState<string | null>(null);
     const [hasStroke, setHasStroke] = useState(false);
 
-    // ── 사용자 추가 매트리스 프롬프트 (시스템 프롬프트에 추가 적용) ──
-    const [userMattressPrompt, setUserMattressPrompt] = useState('');
+    // ── 매트리스 프롬프트 (시스템 사전 정의값 노출 및 수정 가능) ──
+    const [mattressPrompt, setMattressPrompt] = useState('');
 
+    useEffect(() => {
+        setMattressPrompt(SUBJECT_DESC[coverId] || 'a premium mattress cover');
+    }, [coverId]);
     const clearCanvas = useCallback(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -262,8 +265,6 @@ export default function CoverImageGeneratorModal({
     const [finalImage, setFinalImage] = useState<string | null>(null);
     const [aspectRatio, setAspectRatio] = useState('1:1');
 
-    const subjectDesc = SUBJECT_DESC[coverId] || 'a premium mattress cover';
-
     useEffect(() => {
         if (coverImage) {
             setRefImageLoading(true);
@@ -298,10 +299,10 @@ export default function CoverImageGeneratorModal({
     function buildPrompt(): string {
         const scene = scenePrompt.trim() || 'in a modern bedroom with neutral tones, photorealistic 4K';
         const angle = anglePrompt.trim();
-        const extra = userMattressPrompt.trim();
+        const mattress = mattressPrompt.trim();
         let prompt = scene;
-        if (angle) prompt += `. ${angle}`;
-        if (extra) prompt += `. Mattress details: ${extra}`;
+        if (angle) prompt += `.\n${angle}`;
+        if (mattress) prompt += `.\nMattress details: ${mattress}`;
         return prompt;
     }
 
@@ -325,7 +326,7 @@ export default function CoverImageGeneratorModal({
             };
             if (baseRefs.length > 0) {
                 body.referenceImages = baseRefs;
-                body.subjectDescription = subjectDesc;
+                body.subjectDescription = mattressPrompt.trim();
             }
 
             // ✅ 2장을 동시에 생성 (Promise.all 병렬 호출)
@@ -602,14 +603,14 @@ export default function CoverImageGeneratorModal({
                             {!finalImage && (
                                 <div style={{ marginBottom: 10, padding: 10, background: '#fefce8', border: '1px solid #fde68a', borderRadius: 9 }}>
                                     <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e', marginBottom: 4 }}>
-                                        🛏️ 매트리스 추가 설명 <span style={{ fontWeight: 400, color: '#a16207' }}>(선택사항)</span>
+                                        🛏️ 매트리스 (디자인 및 색상)
                                     </div>
                                     <textarea
-                                        value={userMattressPrompt} onChange={(e) => setUserMattressPrompt(e.target.value)} rows={2}
+                                        value={mattressPrompt} onChange={(e) => setMattressPrompt(e.target.value)} rows={3}
                                         placeholder="예: with thick pillow-top quilting and blue piping"
                                         style={{ width: '100%', padding: 7, border: '1px solid #fde68a', borderRadius: 7, fontSize: 11, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box', background: '#fffbeb' }}
                                     />
-                                    {userMattressPrompt.trim() && <div style={{ marginTop: 5, fontSize: 10, color: '#78350f' }}>🔍 최종 프롬프트: <em style={{ color: '#4f46e5' }}>"{buildPrompt()}"</em></div>}
+                                    {mattressPrompt.trim() && <div style={{ marginTop: 5, fontSize: 10, color: '#78350f' }}>🔍 최종 프롬프트 (배경 + 앵글 + 매트리스 조합): <br /><em style={{ color: '#4f46e5', whiteSpace: 'pre-wrap' }}>{buildPrompt()}</em></div>}
                                 </div>
                             )}
 

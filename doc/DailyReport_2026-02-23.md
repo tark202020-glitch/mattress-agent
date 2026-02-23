@@ -32,4 +32,9 @@
   - **UI 텍스트 교체 (`app/page.tsx`)**: 주변 디자인 레이아웃(FULL CUSTOMIZATION 등)에 맞추어 `AI MATTRESS DESIGN`으로 조화롭게 영문 제목을 패치하고, 내용은 "나노 바나나로 원하는 매트리스 디자인을 직접 할 수 있습니다." 로 한국어 안내문으로 교체.
 
 ## �📅 다음 단계 (Next Plan)
-- 본 문서를 포함하여 **Changelog [Alpha V1.048]** 업데이트 내용을 Git에 커밋(`node deploy.js`) 및 Vercel로 배포하여 반영 결과 모니터링 수행.
+### 5. 🚨 AI 커버이미지 프롬프트 투명성 개선 및 JSON 파싱 에러 핫픽스
+- **수정 대응 내역**:
+  - **이미지 통신 최적화 (`CoverImageGeneratorModal.tsx`)**: 고용량 참고 이미지 전송 시 Next.js 서버(기본 1MB 한도)에서 발생하던 413 Payload Too Large / JSON(Unexpected token R) 에러를 방지하기 위해 캔버스 기반 800px 리사이징 기능 도입 및 `route.ts`의 `bodyParser.sizeLimit` 환경 변수를 10MB로 확장.
+  - **매트리스 디자인 프롬프트 UI 노출**: 기존 백엔드에서 강제 하드코딩되던 매트리스별 기본 디자인(`SUBJECT_DESC`)을 제거하고, UI 입력창("매트리스 (디자인 및 색상)")의 기본값으로 시각적으로 노출시킴. 사용자가 언제든 배경/앵글/매트리스 색상 프롬프트가 어떻게 조합되는지 한눈에 파악하고 수정할 수 있도록 투명성과 자율성을 극대화. (젠틀브리즈, 올케어 등의 색상 왜곡 문제 원천 해결)
+
+- 본 문서를 포함하여 업데이트 내용을 Git에 커밋(`node deploy.js`) 및 Vercel로 배포하여 반영 결과 모니터링 수행.
