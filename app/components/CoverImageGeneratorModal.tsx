@@ -256,6 +256,37 @@ export default function CoverImageGeneratorModal({
     // ── 참고 이미지 (원본 커버) ──
     const [originalRefImages, setOriginalRefImages] = useState<string[]>([]);
     const [refImageLoading, setRefImageLoading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        setRefImageLoading(true);
+        const newImages: string[] = [];
+        let loadedCount = 0;
+
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const dataUrl = reader.result as string;
+                const base64 = dataUrl.split(',')[1];
+                const resized = await resizeImageBase64(base64);
+                newImages.push(resized);
+                loadedCount++;
+                if (loadedCount === files.length) {
+                    setOriginalRefImages(prev => [...prev, ...newImages]);
+                    setRefImageLoading(false);
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Reset input so the same file can be selected again if needed
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
 
     // ── 반복 선택 워크플로우 상태 ──
     const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
@@ -518,23 +549,45 @@ export default function CoverImageGeneratorModal({
                     {activeTab === 'bgswap' && (
                         <>
                             {/* 참고 이미지 */}
-                            <div style={{ marginBottom: 12, padding: 10, background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 9, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, color: '#166534' }}>
-                                    {refImageLoading ? '⏳ 로딩...' : '📷 참고 이미지:'}
-                                </span>
-                                {originalRefImages.map((b64: string, idx: number) => (
-                                    <div key={`orig-${idx}`} style={{ width: 44, height: 44, borderRadius: 6, overflow: 'hidden', border: '2px solid #86efac', position: 'relative' }}>
-                                        <img src={`data:image/jpeg;base64,${b64}`} alt="원본" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        <span style={{ position: 'absolute', top: 1, left: 1, fontSize: 7, fontWeight: 700, color: '#fff', background: '#166534', padding: '0 3px', borderRadius: 2 }}>원본</span>
+                            <div style={{ marginBottom: 12, padding: 10, background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 9, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: 11, fontWeight: 700, color: '#166534' }}>
+                                        {refImageLoading ? '⏳ 로딩...' : '📷 참고 이미지:'}
+                                    </span>
+                                    <div style={{ display: 'flex', gap: 6 }}>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            style={{ display: 'none' }}
+                                            multiple
+                                            accept="image/*"
+                                            onChange={handleFileUpload}
+                                        />
+                                        <button onClick={() => fileInputRef.current?.click()} style={{ padding: '4px 8px', fontSize: 10, fontWeight: 700, borderRadius: 5, border: '1px solid #22c55e', background: '#fff', color: '#16a34a', cursor: 'pointer' }}>
+                                            + 추가
+                                        </button>
+                                        <button onClick={() => setOriginalRefImages([])} disabled={originalRefImages.length === 0} style={{ padding: '4px 8px', fontSize: 10, fontWeight: 700, borderRadius: 5, border: '1px solid #fca5a5', background: '#fff', color: '#ef4444', cursor: originalRefImages.length === 0 ? 'not-allowed' : 'pointer', opacity: originalRefImages.length === 0 ? 0.5 : 1 }}>
+                                            비우기
+                                        </button>
                                     </div>
-                                ))}
-                                {selectedAsRef && (
-                                    <div style={{ width: 44, height: 44, borderRadius: 6, overflow: 'hidden', border: '2px solid #7c3aed', position: 'relative' }}>
-                                        <img src={selectedAsRef.imageUrl} alt="선택" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        <span style={{ position: 'absolute', top: 1, left: 1, fontSize: 7, fontWeight: 700, color: '#fff', background: '#7c3aed', padding: '0 3px', borderRadius: 2 }}>선택</span>
-                                    </div>
-                                )}
-                                <span style={{ fontSize: 10, color: '#64748b' }}>{getRefImages().length}장 사용</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                                    {originalRefImages.map((b64: string, idx: number) => (
+                                        <div key={`orig-${idx}`} style={{ width: 44, height: 44, borderRadius: 6, overflow: 'hidden', border: '2px solid #86efac', position: 'relative' }}>
+                                            <img src={`data:image/jpeg;base64,${b64}`} alt="원본" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            <span style={{ position: 'absolute', top: 1, left: 1, fontSize: 7, fontWeight: 700, color: '#fff', background: '#166534', padding: '0 3px', borderRadius: 2 }}>원본</span>
+                                            <button onClick={() => setOriginalRefImages(prev => prev.filter((_, i) => i !== idx))} style={{ position: 'absolute', top: 0, right: 0, width: 14, height: 14, background: 'rgba(239,68,68,0.9)', color: '#fff', fontSize: 8, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderBottomLeftRadius: 4 }}>✕</button>
+                                        </div>
+                                    ))}
+                                    {selectedAsRef && (
+                                        <div style={{ width: 44, height: 44, borderRadius: 6, overflow: 'hidden', border: '2px solid #7c3aed', position: 'relative' }}>
+                                            <img src={selectedAsRef.imageUrl} alt="선택" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            <span style={{ position: 'absolute', top: 1, left: 1, fontSize: 7, fontWeight: 700, color: '#fff', background: '#7c3aed', padding: '0 3px', borderRadius: 2 }}>선택</span>
+                                            <button onClick={() => setSelectedAsRef(null)} style={{ position: 'absolute', top: 0, right: 0, width: 14, height: 14, background: 'rgba(239,68,68,0.9)', color: '#fff', fontSize: 8, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderBottomLeftRadius: 4 }}>✕</button>
+                                        </div>
+                                    )}
+                                    <span style={{ fontSize: 10, color: '#64748b', marginLeft: 'auto' }}>{getRefImages().length}장 사용</span>
+                                </div>
                             </div>
 
                             {/* 배경/분위기 */}
