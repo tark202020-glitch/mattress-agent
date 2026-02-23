@@ -27,7 +27,7 @@ try {
     execSync('git add .', { stdio: 'inherit' });
 
     console.log("git commit 시작...");
-    execSync('git commit -m "feat: [Alpha V1.047] Update layout density, add local-image API, add Supabase sign-out"', { stdio: 'inherit' });
+    execSync('git commit -m "feat: [Alpha V1.053] AI Reference Images user upload and default images update"', { stdio: 'inherit' });
 
     console.log("git push 시작...");
     execSync('git push', { stdio: 'inherit' });
