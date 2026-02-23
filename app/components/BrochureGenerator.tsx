@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useDesignStore } from '../lib/store';
 import { convertStateToBrochureData } from '../lib/brochureUtils';
@@ -91,6 +91,32 @@ async function imagePathToBase64(imagePath: string): Promise<string | null> {
     } catch { return null; }
 }
 
+/* ── 이미지 리사이징 헬퍼 ── */
+async function resizeImageBase64(base64: string, maxWidth = 800, maxHeight = 800): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth || height > maxHeight) {
+                const ratio = Math.min(maxWidth / width, maxHeight / height);
+                width = Math.round(width * ratio);
+                height = Math.round(height * ratio);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) { resolve(base64); return; }
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            resolve(dataUrl.split(',')[1]);
+        };
+        img.onerror = () => resolve(base64);
+        img.src = `data:image/jpeg;base64,${base64}`;
+    });
+}
+
 async function loadCoverImages(coverId: string, basePath: string): Promise<string[]> {
     const fileBase = COVER_FILE_BASE[coverId];
     if (!fileBase) {
@@ -146,6 +172,7 @@ export default function BrochureGenerator({ isOpen, onClose }: BrochureGenerator
     // Ref Images
     const [originalRefImages, setOriginalRefImages] = useState<string[]>([]);
     const [refImageLoading, setRefImageLoading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Selection state (max 5)
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
@@ -174,6 +201,76 @@ export default function BrochureGenerator({ isOpen, onClose }: BrochureGenerator
             }
         }
     }, [isOpen, designState, coverId, coverImage]);
+
+    // ── 자동 프롬프트 생성 (첫 진입 또는 새 이미지 업로드 시) ──
+    useEffect(() => {
+        if (originalRefImages.length > 0 && userMattressPrompt === '') {
+            const fetchPrompt = async () => {
+                try {
+                    const analyzeRes = await fetch('/api/analyze-image-prompt', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ imageBase64: originalRefImages[0] })
+                    });
+                    if (analyzeRes.ok) {
+                        const data = await analyzeRes.json();
+                        if (data.description) {
+                            setUserMattressPrompt(data.description);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to auto-generate prompt from image', err);
+                }
+            };
+            fetchPrompt();
+        }
+    }, [originalRefImages, coverId]); // coverId가 바뀌어 init 될 때 작동
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        setRefImageLoading(true);
+        const newImages: string[] = [];
+        let loadedCount = 0;
+
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const dataUrl = reader.result as string;
+                const base64 = dataUrl.split(',')[1];
+                const resized = await resizeImageBase64(base64);
+                newImages.push(resized);
+                loadedCount++;
+                if (loadedCount === files.length) {
+                    setOriginalRefImages(prev => [...prev, ...newImages]);
+                    setRefImageLoading(false);
+
+                    // 새로 업로드한 이미지로 프롬프트 자동 갱신
+                    try {
+                        const analyzeRes = await fetch('/api/analyze-image-prompt', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ imageBase64: newImages[0] })
+                        });
+                        if (analyzeRes.ok) {
+                            const data = await analyzeRes.json();
+                            if (data.description) {
+                                setUserMattressPrompt(data.description);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Failed to auto-generate prompt from image', err);
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
 
     if (!isOpen || !mounted || !brochureData) return null;
 
@@ -348,20 +445,52 @@ export default function BrochureGenerator({ isOpen, onClose }: BrochureGenerator
                 <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px' }}>
 
                     {/* 참고 이미지 */}
-                    <div style={{ marginBottom: 12, padding: 10, background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 9, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: '#166534' }}>
-                            {refImageLoading ? '⏳ 로딩...' : '📷 참고 이미지:'}
-                        </span>
-                        {originalRefImages.map((b64: string, idx: number) => (
-                            <div key={`orig-${idx}`} style={{ width: 44, height: 44, borderRadius: 6, overflow: 'hidden', border: '2px solid #86efac', position: 'relative' }}>
-                                <img src={`data:image/jpeg;base64,${b64}`} alt="원본" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                <span style={{ position: 'absolute', top: 1, left: 1, fontSize: 7, fontWeight: 700, color: '#fff', background: '#166534', padding: '0 3px', borderRadius: 2 }}>원본</span>
+                    <div style={{ marginBottom: 12, padding: 10, background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 9, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#166534' }}>
+                                {refImageLoading ? '⏳ 로딩...' : '📷 커스텀 참고 이미지 (선택사항)'}
+                            </span>
+                            <div style={{ display: 'flex', gap: 6 }}>
+                                {originalRefImages.length > 0 && (
+                                    <button
+                                        onClick={() => setOriginalRefImages([])}
+                                        style={{ fontSize: 10, padding: '4px 8px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}
+                                    >
+                                        전체 삭제
+                                    </button>
+                                )}
+                                <label style={{ fontSize: 10, padding: '4px 8px', background: '#fff', color: '#166534', border: '1px solid #86efac', borderRadius: 4, cursor: 'pointer', fontWeight: 700 }}>
+                                    + 이미지 추가
+                                    <input
+                                        type="file"
+                                        accept="image/jpeg, image/png, image/webp"
+                                        multiple
+                                        style={{ display: 'none' }}
+                                        ref={fileInputRef}
+                                        onChange={handleFileUpload}
+                                    />
+                                </label>
                             </div>
-                        ))}
-                        {selectedAsRef && (
-                            <div style={{ width: 44, height: 44, borderRadius: 6, overflow: 'hidden', border: '2px solid #7c3aed', position: 'relative' }}>
-                                <img src={selectedAsRef.imageUrl} alt="선택" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                <span style={{ position: 'absolute', top: 1, left: 1, fontSize: 7, fontWeight: 700, color: '#fff', background: '#7c3aed', padding: '0 3px', borderRadius: 2 }}>선택</span>
+                        </div>
+
+                        {originalRefImages.length > 0 && (
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                {originalRefImages.map((b64: string, idx: number) => (
+                                    <div key={`orig-${idx}`} style={{ width: 44, height: 44, borderRadius: 6, overflow: 'hidden', border: '2px solid #86efac', position: 'relative' }}>
+                                        <img src={`data:image/jpeg;base64,${b64}`} alt="원본" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <button
+                                            onClick={() => setOriginalRefImages(prev => prev.filter((_, i) => i !== idx))}
+                                            style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: 14, height: 14, fontSize: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                                        >✕</button>
+                                        <span style={{ position: 'absolute', bottom: 1, left: 1, fontSize: 7, fontWeight: 700, color: '#fff', background: '#166534', padding: '0 3px', borderRadius: 2 }}>원본</span>
+                                    </div>
+                                ))}
+                                {selectedAsRef && (
+                                    <div style={{ width: 44, height: 44, borderRadius: 6, overflow: 'hidden', border: '2px solid #7c3aed', position: 'relative' }}>
+                                        <img src={selectedAsRef.imageUrl} alt="선택" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <span style={{ position: 'absolute', bottom: 1, left: 1, fontSize: 7, fontWeight: 700, color: '#fff', background: '#7c3aed', padding: '0 3px', borderRadius: 2 }}>선택</span>
+                                    </div>
+                                )}
                             </div>
                         )}
                         <span style={{ fontSize: 10, color: '#64748b' }}>{getRefImages().length}장 사용</span>
