@@ -31,7 +31,7 @@ const SUBJECT_DESC: Record<string, string> = {
     'FLAT_GRID': 'a grey modern mattress cover with flat grid pattern and clean lines',
     'ALL_CARE': 'a white and light grey antimicrobial mattress cover with smooth surface and brand label',
     'GENTLE_BREED': 'a warm beige or light grey premium mattress cover with fine knit texture and gold label',
-    'I5': 'a black premium mattress cover with sleek charcoal surface and metallic branding',
+    'I5': 'The top surface is white with a subtle diagonal knitted pattern. The side is divided into two sections: a light gray upper band and a dark charcoal gray lower fabric. Minimalist and sleek aesthetics, high-quality fabric texture.',
     'COMPACT': 'a sage gray compact mattress cover with simple quilted pattern',
 };
 
