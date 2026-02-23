@@ -6,88 +6,82 @@ export default function Page1({ data }: { data: BrochureData }) {
 
     return (
         <div className="w-full h-full bg-white flex overflow-hidden">
-            {/* Left: Main Image (50%) */}
-            <div className="w-1/2 h-full bg-gray-100 relative">
+            {/* Left: Main Image (65%) */}
+            <div className="w-[65%] h-full bg-gray-100 relative">
                 <img
                     src={images.page1_main}
                     alt="Mattress Main View"
                     className="w-full h-full object-cover"
                 />
-                {/* 오버레이 텍스트 (옵션 - 이미지 내부 텍스트 대신 HTML로 얹을 경우) */}
-                {/* <div className="absolute top-10 left-10 text-white drop-shadow-lg">
-          <h1 className="text-6xl font-light leading-tight">{meta.title}</h1>
-        </div> */}
             </div>
 
-            {/* Right: Content Panel (50%) */}
-            <div className="w-1/2 h-full flex flex-col p-14 justify-between">
+            {/* Right: Content Panel (35%) - Magazine Style */}
+            <div className="w-[35%] h-full flex flex-col p-16 justify-between bg-zinc-50 border-l border-zinc-200">
 
-                {/* Top: Sub Image Area */}
-                <div className="w-full aspect-[4/3] bg-gray-50 mb-8 overflow-hidden rounded-sm">
-                    <img
-                        src={images.page1_sub}
-                        alt="Detail View"
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                    />
-                </div>
-
-                {/* Center: Title & Description */}
-                <div className="flex-1 flex flex-col gap-6">
+                {/* Top: Title & Description */}
+                <div className="flex flex-col gap-8 mt-10">
                     <div>
-                        <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-2">
-                            {meta.title}
-                        </h1>
-                        <h2 className="text-2xl font-medium text-blue-800">
+                        <h2 className="text-3xl font-light text-blue-900 tracking-wide uppercase mb-3">
                             {meta.subtitle}
                         </h2>
+                        <h1 className="text-7xl font-bold text-gray-900 leading-none tracking-tight">
+                            {meta.title}
+                        </h1>
                     </div>
 
-                    <hr className="border-gray-300 w-full" />
+                    <div className="w-16 h-1 bg-blue-900" />
 
-                    <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
+                    <p className="text-gray-600 text-lg leading-relaxed whitespace-pre-wrap font-serif">
                         {meta.description}
                     </p>
                 </div>
 
+                {/* Center: Sub Image Area */}
+                <div className="w-full aspect-video bg-gray-200 my-12 overflow-hidden shadow-md">
+                    <img
+                        src={images.page1_sub}
+                        alt="Detail View"
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000"
+                    />
+                </div>
+
                 {/* Bottom: Spec Info */}
-                <div className="mt-10 space-y-6">
+                <div className="mt-4 space-y-8">
                     {/* Colors */}
-                    <div>
-                        <h4 className="text-xs font-bold text-blue-900 mb-2 uppercase tracking-wider">Color</h4>
-                        <div className="flex gap-3">
+                    <div className="flex items-center justify-between border-t border-zinc-300 pt-6">
+                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Color</h4>
+                        <div className="flex gap-4">
                             {meta.colors.map((color, i) => (
                                 <div key={i} className="flex items-center gap-2">
                                     <div
-                                        className="w-6 h-6 rounded-full border border-gray-200 shadow-sm"
+                                        className="w-8 h-8 rounded-full border border-gray-300 shadow-sm"
                                         style={{ backgroundColor: color }}
                                     />
-                                    {/* 첫 번째 색상만 텍스트 표시 (대표 색상) */}
-                                    {i === 0 && <span className="text-xs text-gray-500">Selected</span>}
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     {/* Sizes */}
-                    <div>
-                        <h4 className="text-xs font-bold text-blue-900 mb-2 uppercase tracking-wider">Available Sizes</h4>
-                        <div className="flex gap-1 flex-wrap">
+                    <div className="flex justify-between items-start border-t border-zinc-300 pt-6">
+                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-1">Available Sizes</h4>
+                        <div className="flex gap-2 flex-wrap justify-end pl-10">
                             {meta.sizes.map((size) => (
                                 <span
                                     key={size}
-                                    className="px-2 py-1 border border-gray-300 text-[10px] text-gray-600 min-w-[30px] text-center"
+                                    className="px-3 py-1.5 border border-gray-300 text-xs text-gray-700 font-medium"
                                 >
                                     {size}
                                 </span>
                             ))}
-                            <span className="px-2 py-1 bg-blue-900 text-white text-[10px] min-w-[30px] text-center">
+                            <span className="px-3 py-1.5 bg-blue-900 text-white text-xs font-bold">
                                 CUSTOM
                             </span>
                         </div>
                     </div>
 
                     {/* Page Number */}
-                    <div className="pt-8 text-right text-gray-400 text-xs">
+                    <div className="pt-10 text-right text-gray-400 font-serif text-xl">
                         01
                     </div>
                 </div>
