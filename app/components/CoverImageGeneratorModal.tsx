@@ -14,14 +14,14 @@ interface CoverImageGeneratorModalProps {
 }
 
 /* ── 커버 ID → 파일명 베이스 매핑 ── */
-const COVER_FILE_BASE: Record<string, string> = {
-    'HEALING_NUMBER': '힐링넘버',
-    'OAK_TWEED': '오크트위드',
-    'FLAT_GRID': '플랫그리드',
-    'ALL_CARE': '올케어',
-    'GENTLE_BREED': '젠틀브리즈',
-    'I5': 'i5',
-    'COMPACT': '컴팩트',
+const COVER_FILE_BASE: Record<string, string[]> = {
+    'HEALING_NUMBER': ['힐링넘버.jpg', 'healing_01.png', 'healing_02.png'],
+    'OAK_TWEED': ['오크트위드.jpg', 'oak_01.png', 'oak_02.png'],
+    'FLAT_GRID': ['플랫그리드.jpg', 'flat_01.png', 'flat_02.png'],
+    'ALL_CARE': ['올케어.jpg', 'allcare_01.jpg', 'allcare_02.jpg'],
+    'GENTLE_BREED': ['젠틀브리즈.jpg', 'gentle_01.jpg', 'gentle_02.jpg'],
+    'I5': ['i5.jpg', 'i5_01.jpg', 'i5_02.jpg'],
+    'COMPACT': ['컴팩트.jpg'],
 };
 
 /* ── Subject Description ── */
@@ -131,18 +131,20 @@ async function imagePathToBase64(imagePath: string): Promise<string | null> {
 
 /* ── 복수 이미지 로드 ── */
 async function loadCoverImages(coverId: string, basePath: string): Promise<string[]> {
-    const fileBase = COVER_FILE_BASE[coverId];
-    if (!fileBase) {
+    const fileBases = COVER_FILE_BASE[coverId];
+    if (!fileBases || fileBases.length === 0) {
         const b64 = await imagePathToBase64(basePath);
         return b64 ? [b64] : [];
     }
-    const candidates = [
-        `/covers/${fileBase}.jpg`,
-        `/covers/${fileBase}_01.jpg`,
-        `/covers/${fileBase}_02.jpg`,
-        `/covers/${fileBase}_03.jpg`,
-        `/covers/${fileBase}_04.jpg`,
-    ];
+
+    // COVER_FILE_BASE 배열에 있는 모든 이미지 경로를 시도
+    const candidates = fileBases.map(filename => `/covers/${filename}`);
+
+    // basePath (보통 썸네일)도 항상 첫 번째로 추가 (중복 방지)
+    if (basePath && !candidates.includes(basePath)) {
+        candidates.unshift(basePath);
+    }
+
     const results = await Promise.all(candidates.map(imagePathToBase64));
     return results.filter((b): b is string => b !== null);
 }
