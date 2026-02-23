@@ -260,6 +260,33 @@ export default function CoverImageGeneratorModal({
     const [refImageLoading, setRefImageLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+
+
+    useEffect(() => {
+        if (originalRefImages.length > 0 && mattressPrompt === SUBJECT_DESC[coverId]) {
+            // 기본값이 세팅된 직후라면 이미지 기반 분석 수행
+            // (위의 useEffect와 기능을 합침)
+            const fetchPrompt = async () => {
+                try {
+                    const analyzeRes = await fetch('/api/analyze-image-prompt', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ imageBase64: originalRefImages[0] })
+                    });
+                    if (analyzeRes.ok) {
+                        const data = await analyzeRes.json();
+                        if (data.description) {
+                            setMattressPrompt(data.description);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to auto-generate prompt from image', err);
+                }
+            };
+            fetchPrompt();
+        }
+    }, [originalRefImages, coverId]);
+
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
@@ -279,6 +306,23 @@ export default function CoverImageGeneratorModal({
                 if (loadedCount === files.length) {
                     setOriginalRefImages(prev => [...prev, ...newImages]);
                     setRefImageLoading(false);
+
+                    // 첫 번째 업로드된 이미지로 프롬프트 자동 생성
+                    try {
+                        const analyzeRes = await fetch('/api/analyze-image-prompt', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ imageBase64: newImages[0] })
+                        });
+                        if (analyzeRes.ok) {
+                            const data = await analyzeRes.json();
+                            if (data.description) {
+                                setMattressPrompt(data.description);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Failed to auto-generate prompt from image', err);
+                    }
                 }
             };
             reader.readAsDataURL(file);
