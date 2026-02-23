@@ -32,7 +32,7 @@ const SUBJECT_DESC: Record<string, string> = {
     'ALL_CARE': 'a white and light grey antimicrobial mattress cover with smooth surface and brand label',
     'GENTLE_BREED': 'a warm beige or light grey premium mattress cover with fine knit texture and gold label',
     'I5': 'a black premium mattress cover with sleek charcoal surface and metallic branding',
-    'COMPACT': 'a sage green compact mattress cover with simple quilted pattern',
+    'COMPACT': 'a sage gray compact mattress cover with simple quilted pattern',
 };
 
 /* ── 분위기 프리셋 ── */
