@@ -5,7 +5,7 @@ import React, { useState, useMemo, useRef, useImperativeHandle, forwardRef, useE
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Center, Environment, ContactShadows, RoundedBox } from '@react-three/drei';
 import { useDesignStore } from '../lib/store';
-import { CORE_OPTIONS, TOP_FOAM_OPTIONS, calcCoreDimensions } from '../lib/constants';
+import { CORE_OPTIONS, TOP_FOAM_OPTIONS, COVER_OPTIONS, calcCoreDimensions } from '../lib/constants';
 import { useCustomOptionsStore } from '../lib/customOptionsStore';
 
 // --- Constants ---
@@ -159,22 +159,25 @@ function MattressModel({ explodeGap }: { explodeGap: number }) {
         bot: '#0d9488',
     };
 
+    // 추가: 3D 모델 자체에도 약간의 기본 간격을 줍니다 (0.05 등)
     let currentY = 0;
+    const baseGap = 0.05; // 3D 부품간 기본 이격 거리
+    const actualGap = explodeGap + baseGap; // 슬라이더 값 + 기본 간격
 
     const botY = currentY + botT / 2;
     currentY += botT;
-    if (botT > 0) currentY += explodeGap;
+    if (botT > 0) currentY += actualGap;
 
     const guardY = currentY + coreH / 2;
-    const coreLift = explodeGap * 1.333;
+    const coreLift = actualGap * 1.333;
     const coreY = guardY + coreLift;
 
     currentY += coreH;
-    currentY += explodeGap + coreLift;
+    currentY += actualGap + coreLift;
 
     const topY = currentY + topT / 2;
     currentY += topT;
-    if (topT > 0) currentY += explodeGap;
+    if (topT > 0) currentY += actualGap;
 
     const dims = calcCoreDimensions(customWidth, customDepth, guardFoamThickness, isDual, gfEnabled);
     const coreW = dims.coreW * SCALE;
@@ -227,7 +230,7 @@ function MattressModel({ explodeGap }: { explodeGap: number }) {
 
         if (isDual) {
             const offsetX = gfT / 2 + coreW / 2;
-            const coreExp = explodeGap * 0.222;
+            const coreExp = actualGap * 0.222;
 
             parts.push(
                 <CoreBox key="core-l" position={[-offsetX - coreExp, coreY, 0]} args={[coreW, coreH, coreD]} color={CO.core} />,
@@ -302,6 +305,63 @@ export interface Mattress3DProps {
     hideControls?: boolean;    // 버튼 숨기기 (개발요청서용)
 }
 
+// ── 이미지 파이핑(경계선) Y축 퍼센트 스캔 헬퍼 ──
+async function detectSplitRatio(imageUrl: string): Promise<number> {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return resolve(46); // fallback
+
+            // 이미지를 작게 리사이즈하여 스캔 영역 및 연산 축소
+            const W = 100;
+            const H = 200;
+            canvas.width = W;
+            canvas.height = H;
+            ctx.drawImage(img, 0, 0, W, H);
+
+            const imgData = ctx.getImageData(0, 0, W, H);
+            const data = imgData.data;
+
+            let maxDiff = 0;
+            let bestY = Math.floor(H * 0.46); // default 46% near center
+
+            // 가장 대비(Contrast)가 큰 가로줄(경계선/파이핑)을 탐색합니다. (대략 35% ~ 60% 높이 사이 중앙 영역)
+            const startY = Math.floor(H * 0.35);
+            const endY = Math.floor(H * 0.60);
+
+            for (let y = startY; y < endY; y++) {
+                let diffSum = 0;
+                for (let x = 0; x < W; x++) {
+                    const idx1 = (y * W + x) * 4;
+                    const idx2 = ((y + 1) * W + x) * 4;
+                    // 위 픽셀과 아래 픽셀의 밝기 차이 누적
+                    const luma1 = 0.299 * data[idx1] + 0.587 * data[idx1 + 1] + 0.114 * data[idx1 + 2];
+                    const luma2 = 0.299 * data[idx2] + 0.587 * data[idx2 + 1] + 0.114 * data[idx2 + 2];
+                    diffSum += Math.abs(luma1 - luma2);
+                }
+                if (diffSum > maxDiff) {
+                    maxDiff = diffSum;
+                    bestY = y;
+                }
+            }
+
+            // 구한 bestY를 퍼센트로 환산 (위에서부터 픽셀 Y 위치)
+            const percentage = (bestY / H) * 100;
+            // 상식적인 범위를 벗어나면 기본값 46 사용
+            if (percentage < 30 || percentage > 70) {
+                resolve(46);
+            } else {
+                resolve(percentage);
+            }
+        };
+        img.onerror = () => resolve(46);
+        img.src = imageUrl;
+    });
+}
+
 const Mattress3D = forwardRef<Mattress3DHandle, Mattress3DProps>(function Mattress3D(
     { className, forcedExploded, hideControls },
     ref
@@ -309,6 +369,23 @@ const Mattress3D = forwardRef<Mattress3DHandle, Mattress3DProps>(function Mattre
     const [internalGap, setInternalGap] = useState(0);
     const explodeGap = forcedExploded ? 0.225 : internalGap;
     const glRef = useRef<THREE.WebGLRenderer | null>(null);
+
+    const { coverId, customCoverImages } = useDesignStore();
+    const customOpts = useCustomOptionsStore();
+    const [splitRatio, setSplitRatio] = useState(46);
+
+    const coverOption = [...COVER_OPTIONS, ...customOpts.covers].find(c => c.id === coverId);
+    // AI 생성된 이미지가 있다면 최우선, 아니면 기본 커버 이미지 경로
+    const currentCoverImg = (coverId && customCoverImages[coverId]) ? customCoverImages[coverId] : coverOption?.image;
+
+    // 커버 이미지가 변경될 때마다 경계선(Split Ratio) 동적 스캔
+    useEffect(() => {
+        if (currentCoverImg) {
+            detectSplitRatio(currentCoverImg).then((ratio) => {
+                setSplitRatio(ratio);
+            });
+        }
+    }, [currentCoverImg]);
 
     useImperativeHandle(ref, () => ({
         capture: async () => {
@@ -322,7 +399,7 @@ const Mattress3D = forwardRef<Mattress3DHandle, Mattress3DProps>(function Mattre
     return (
         <div className={`relative ${className || ''}`} style={{ borderRadius: 12, overflow: 'hidden', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
             {!hideControls && (
-                <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
+                <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2">
                     <div className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-1 items-center">
                         <span className="text-[10px] font-bold text-slate-500 tracking-wider">부품 간격 조절</span>
                         <input
@@ -338,22 +415,52 @@ const Mattress3D = forwardRef<Mattress3DHandle, Mattress3DProps>(function Mattre
                 </div>
             )}
             {!hideControls && (
-                <div className="absolute bottom-4 left-4 z-10 pointer-events-none">
+                <div className="absolute bottom-4 left-4 z-20 pointer-events-none">
                     <span className="text-xs font-bold text-slate-400">3D PREVIEW</span>
                 </div>
             )}
 
-            <Canvas shadows camera={{ position: [2.5, 2.5, 2.5], fov: 45 }} gl={{ preserveDrawingBuffer: true }}>
-                <CanvasCapture onReady={(gl) => { glRef.current = gl; }} />
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
-                <Environment preset="city" />
-                <ambientLight intensity={0.4} />
-                <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
-                <Center>
-                    <MattressModel explodeGap={explodeGap} />
-                </Center>
-                <ContactShadows position={[0, -0.01, 0]} opacity={0.4} scale={10} blur={2} far={4} />
-            </Canvas>
+            {/* 3D Canvas 레이어 (샌드위치 중간) */}
+            <div className="absolute inset-0 z-10 transition-transform duration-300" style={{ transform: `translateY(${explodeGap * 40}px) scale(${1 - explodeGap * 0.4})` }}>
+                <Canvas shadows camera={{ position: [2.5, 1.8, 3.0], fov: 45 }} gl={{ preserveDrawingBuffer: true, alpha: true }}>
+                    <CanvasCapture onReady={(gl) => { glRef.current = gl; }} />
+                    <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI / 2} enableZoom={false} enablePan={false} />
+                    <Environment preset="city" />
+                    <ambientLight intensity={0.4} />
+                    <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
+                    <Center>
+                        <MattressModel explodeGap={explodeGap} />
+                    </Center>
+                    <ContactShadows position={[0, -0.01, 0]} opacity={0.4} scale={10} blur={2} far={4} />
+                </Canvas>
+            </div>
+
+            {/* 상하단 커버 이미지 오버레이 */}
+            {currentCoverImg && (
+                <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden flex items-center justify-center">
+                    {/* 상단 이미지 (Top Cover) */}
+                    <div
+                        className="absolute inset-0 transition-transform duration-300 ease-out flex items-center justify-center"
+                        style={{
+                            clipPath: `inset(0 0 ${100 - splitRatio}% 0)`,
+                            transform: `translateY(-${explodeGap * 400}px) scale(0.95)`,
+                        }}
+                    >
+                        <img src={currentCoverImg} alt="Top Cover" className="max-w-[120%] max-h-[120%] object-contain drop-shadow-2xl" />
+                    </div>
+
+                    {/* 하단 이미지 (Bottom Cover) */}
+                    <div
+                        className="absolute inset-0 transition-transform duration-300 ease-out flex items-center justify-center"
+                        style={{
+                            clipPath: `inset(${splitRatio}% 0 0 0)`,
+                            transform: `translateY(${explodeGap * 150}px) scale(0.95)`,
+                        }}
+                    >
+                        <img src={currentCoverImg} alt="Bottom Cover" className="max-w-[120%] max-h-[120%] object-contain drop-shadow-xl" />
+                    </div>
+                </div>
+            )}
         </div>
     );
 });
