@@ -37,34 +37,215 @@ function FoamBox({ position, args, color, radius = 0.01, roughness = 0.85, opaci
     );
 }
 
-/* 커버 박스 - 텍스처 적용 가능 */
-function CoverBox({ position, args, color, textureUrl, radius = 0.015 }: any) {
-    const texture = useMemo(() => {
-        if (!textureUrl) return null;
-        const loader = new THREE.TextureLoader();
-        const tex = loader.load(textureUrl);
-        tex.wrapS = THREE.ClampToEdgeWrapping;
-        tex.wrapT = THREE.ClampToEdgeWrapping;
-        tex.minFilter = THREE.LinearFilter;
-        return tex;
-    }, [textureUrl]);
+/* ══════════════════════════════════════ */
+/*  커버 텍스처 시스템                         */
+/* ══════════════════════════════════════ */
+
+/* ---- 프로그래매틱 텍스처 생성 유틸 ---- */
+
+function createQuiltedTexture(baseColor: string = '#f5f0eb'): THREE.CanvasTexture {
+    const size = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+
+    // 배경
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(0, 0, size, size);
+
+    const cellSize = 64;
+    const half = cellSize / 2;
+
+    // 쿠션감 그라데이션
+    for (let row = -1; row < size / cellSize + 1; row++) {
+        for (let col = -1; col < size / cellSize + 1; col++) {
+            const cx = col * cellSize + half;
+            const cy = row * cellSize + half;
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, half * 0.9);
+            grad.addColorStop(0, 'rgba(255,255,255,0.4)');
+            grad.addColorStop(0.5, 'rgba(255,255,255,0.15)');
+            grad.addColorStop(0.85, 'rgba(0,0,0,0.08)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.15)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(cx - half, cy - half, cellSize, cellSize);
+        }
+    }
+
+    // 스티칭 대각선
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 1.5;
+    for (let i = -size; i < size * 2; i += cellSize) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + size, size); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(i, size); ctx.lineTo(i + size, 0); ctx.stroke();
+    }
+
+    // 터프팅 버튼
+    for (let row = 0; row <= size / cellSize; row++) {
+        for (let col = 0; col <= size / cellSize; col++) {
+            const cx = col * cellSize;
+            const cy = row * cellSize;
+            const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, 6);
+            bg.addColorStop(0, 'rgba(0,0,0,0.25)');
+            bg.addColorStop(0.6, 'rgba(0,0,0,0.1)');
+            bg.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = bg;
+            ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.beginPath(); ctx.arc(cx - 1, cy - 1, 2.5, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(4, 4);
+    return tex;
+}
+
+function createRibbedTexture(baseColor: string = '#c4b59a'): THREE.CanvasTexture {
+    const w = 512;
+    const h = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(0, 0, w, h);
+
+    const ribWidth = 18;
+    const ribCount = Math.ceil(w / ribWidth);
+    for (let i = 0; i < ribCount; i++) {
+        const x = i * ribWidth;
+        const g = ctx.createLinearGradient(x, 0, x + ribWidth, 0);
+        g.addColorStop(0, 'rgba(0,0,0,0.15)');
+        g.addColorStop(0.15, 'rgba(0,0,0,0.04)');
+        g.addColorStop(0.4, 'rgba(255,255,255,0.1)');
+        g.addColorStop(0.6, 'rgba(255,255,255,0.1)');
+        g.addColorStop(0.85, 'rgba(0,0,0,0.04)');
+        g.addColorStop(1, 'rgba(0,0,0,0.15)');
+        ctx.fillStyle = g;
+        ctx.fillRect(x, 0, ribWidth, h);
+    }
+
+    // 직물 노이즈
+    for (let y = 0; y < h; y += 2) {
+        for (let x = 0; x < w; x += 2) {
+            ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.04})`;
+            ctx.fillRect(x, y, 2, 2);
+        }
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(3, 1);
+    return tex;
+}
+
+/* ---- CoverBox: 복합 메쉬 방식 (상단+측면+하단 개별 Plane) ---- */
+function CoverBox({ position, args, color, textureUrl, isTop = true }: any) {
+    const [W, H, D] = args as [number, number, number];
+
+    // 텍스처 생성 (한 번만)
+    const textures = useMemo(() => {
+        const sideColor = color || '#c4b59a';
+        const topColor = isTop ? '#f5f0eb' : (color || '#d4c5a9');
+
+        // AI 커버 이미지
+        let aiTex: THREE.Texture | null = null;
+        if (textureUrl && isTop) {
+            const loader = new THREE.TextureLoader();
+            aiTex = loader.load(textureUrl);
+            aiTex.wrapS = THREE.ClampToEdgeWrapping;
+            aiTex.wrapT = THREE.ClampToEdgeWrapping;
+        }
+
+        return {
+            quilted: isTop && !aiTex ? createQuiltedTexture(topColor) : null,
+            ai: aiTex,
+            ribbed: createRibbedTexture(sideColor),
+        };
+    }, [color, textureUrl, isTop]);
+
+    const topFaceColor = isTop ? '#f5f0eb' : (color || '#d4c5a9');
+    const sideColor = color || '#c4b59a';
+    const hH = H / 2;
 
     return (
-        <RoundedBox
-            position={position}
-            args={args}
-            radius={Math.max(radius, 0.005)}
-            smoothness={4}
-            castShadow
-            receiveShadow
-        >
-            <meshStandardMaterial
-                color={texture ? '#ffffff' : color}
-                map={texture}
-                roughness={0.7}
-                metalness={0.05}
-            />
-        </RoundedBox>
+        <group position={position}>
+            {/* 상단면 (퀼팅 또는 AI 이미지) */}
+            <mesh position={[0, hH, 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
+                <planeGeometry args={[W, D]} />
+                <meshStandardMaterial
+                    map={textures.ai || textures.quilted || undefined}
+                    color={textures.ai || textures.quilted ? '#ffffff' : topFaceColor}
+                    roughness={0.8}
+                    metalness={0.01}
+                    side={THREE.DoubleSide}
+                />
+            </mesh>
+
+            {/* 하단면 (무지) */}
+            <mesh position={[0, -hH, 0]} rotation={[Math.PI / 2, 0, 0]} receiveShadow>
+                <planeGeometry args={[W, D]} />
+                <meshStandardMaterial
+                    color={sideColor}
+                    roughness={0.85}
+                    metalness={0.01}
+                    side={THREE.DoubleSide}
+                />
+            </mesh>
+
+            {/* 앞면 (+Z) (리브드) */}
+            <mesh position={[0, 0, D / 2]} castShadow receiveShadow>
+                <planeGeometry args={[W, H]} />
+                <meshStandardMaterial
+                    map={textures.ribbed}
+                    color="#ffffff"
+                    roughness={0.75}
+                    metalness={0.02}
+                    side={THREE.DoubleSide}
+                />
+            </mesh>
+
+            {/* 뒷면 (-Z) (리브드) */}
+            <mesh position={[0, 0, -D / 2]} rotation={[0, Math.PI, 0]} castShadow receiveShadow>
+                <planeGeometry args={[W, H]} />
+                <meshStandardMaterial
+                    map={textures.ribbed}
+                    color="#ffffff"
+                    roughness={0.75}
+                    metalness={0.02}
+                    side={THREE.DoubleSide}
+                />
+            </mesh>
+
+            {/* 좌측면 (-X) (리브드) */}
+            <mesh position={[-W / 2, 0, 0]} rotation={[0, -Math.PI / 2, 0]} castShadow receiveShadow>
+                <planeGeometry args={[D, H]} />
+                <meshStandardMaterial
+                    map={textures.ribbed}
+                    color="#ffffff"
+                    roughness={0.75}
+                    metalness={0.02}
+                    side={THREE.DoubleSide}
+                />
+            </mesh>
+
+            {/* 우측면 (+X) (리브드) */}
+            <mesh position={[W / 2, 0, 0]} rotation={[0, Math.PI / 2, 0]} castShadow receiveShadow>
+                <planeGeometry args={[D, H]} />
+                <meshStandardMaterial
+                    map={textures.ribbed}
+                    color="#ffffff"
+                    roughness={0.75}
+                    metalness={0.02}
+                    side={THREE.DoubleSide}
+                />
+            </mesh>
+        </group>
     );
 }
 
@@ -256,7 +437,7 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
                     position={[0, coverT / 2, 0]}
                     args={[W, coverT, D]}
                     color={CO.coverBot}
-                    radius={0.01}
+                    isTop={false}
                 />
             </group>
 
@@ -404,7 +585,7 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
                     args={[W, coverT, D]}
                     color={CO.coverTop}
                     textureUrl={coverImg}
-                    radius={0.015}
+                    isTop={true}
                 />
             </group>
         </group>
