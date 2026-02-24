@@ -122,7 +122,7 @@ function PerforatedGuardFoam({ position, width, height, depth, holes, color, rad
 }
 
 
-function MattressModel({ exploded, explodeGap }: { exploded: boolean, explodeGap: number }) {
+function MattressModel({ explodeGap }: { explodeGap: number }) {
     const {
         customWidth, customDepth, coreId, isDual,
         topFoamEnabled, topFoamOptionId, topFoamRadius,
@@ -163,18 +163,18 @@ function MattressModel({ exploded, explodeGap }: { exploded: boolean, explodeGap
 
     const botY = currentY + botT / 2;
     currentY += botT;
-    if (exploded && botT > 0) currentY += explodeGap;
+    if (botT > 0) currentY += explodeGap;
 
     const guardY = currentY + coreH / 2;
-    const coreLift = exploded ? 0.3 : 0;
+    const coreLift = explodeGap * 1.333;
     const coreY = guardY + coreLift;
 
     currentY += coreH;
-    if (exploded) currentY += explodeGap + coreLift;
+    currentY += explodeGap + coreLift;
 
     const topY = currentY + topT / 2;
     currentY += topT;
-    if (exploded && topT > 0) currentY += explodeGap;
+    if (topT > 0) currentY += explodeGap;
 
     const dims = calcCoreDimensions(customWidth, customDepth, guardFoamThickness, isDual, gfEnabled);
     const coreW = dims.coreW * SCALE;
@@ -227,7 +227,7 @@ function MattressModel({ exploded, explodeGap }: { exploded: boolean, explodeGap
 
         if (isDual) {
             const offsetX = gfT / 2 + coreW / 2;
-            const coreExp = exploded ? 0.05 : 0;
+            const coreExp = explodeGap * 0.222;
 
             parts.push(
                 <CoreBox key="core-l" position={[-offsetX - coreExp, coreY, 0]} args={[coreW, coreH, coreD]} color={CO.core} />,
@@ -306,11 +306,9 @@ const Mattress3D = forwardRef<Mattress3DHandle, Mattress3DProps>(function Mattre
     { className, forcedExploded, hideControls },
     ref
 ) {
-    const [exploded, setExploded] = useState(false);
-    const [explodeGap, setExplodeGap] = useState(0.225);
+    const [internalGap, setInternalGap] = useState(0);
+    const explodeGap = forcedExploded ? 0.225 : internalGap;
     const glRef = useRef<THREE.WebGLRenderer | null>(null);
-
-    const isExploded = forcedExploded !== undefined ? forcedExploded : exploded;
 
     useImperativeHandle(ref, () => ({
         capture: async () => {
@@ -325,31 +323,18 @@ const Mattress3D = forwardRef<Mattress3DHandle, Mattress3DProps>(function Mattre
         <div className={`relative ${className || ''}`} style={{ borderRadius: 12, overflow: 'hidden', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
             {!hideControls && (
                 <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
-                    <button
-                        onClick={() => setExploded(!exploded)}
-                        className="px-3 py-1.5 text-xs font-semibold rounded-full shadow-sm transition-all"
-                        style={{
-                            background: isExploded ? '#4f46e5' : 'white',
-                            color: isExploded ? 'white' : '#475569',
-                            border: '1px solid #e2e8f0'
-                        }}
-                    >
-                        {isExploded ? '분해 뷰 끄기' : '분해 뷰 보기'}
-                    </button>
-                    {isExploded && (
-                        <div className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-1 items-center animate-in fade-in slide-in-from-top-2">
-                            <span className="text-[10px] font-bold text-slate-500 tracking-wider">부품 간격 조절</span>
-                            <input
-                                type="range"
-                                min="0.05"
-                                max="0.5"
-                                step="0.01"
-                                value={explodeGap}
-                                onChange={(e) => setExplodeGap(parseFloat(e.target.value))}
-                                className="w-24 accent-indigo-600"
-                            />
-                        </div>
-                    )}
+                    <div className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-1 items-center">
+                        <span className="text-[10px] font-bold text-slate-500 tracking-wider">부품 간격 조절</span>
+                        <input
+                            type="range"
+                            min="0"
+                            max="0.5"
+                            step="0.01"
+                            value={internalGap}
+                            onChange={(e) => setInternalGap(parseFloat(e.target.value))}
+                            className="w-24 accent-indigo-600"
+                        />
+                    </div>
                 </div>
             )}
             {!hideControls && (
@@ -365,7 +350,7 @@ const Mattress3D = forwardRef<Mattress3DHandle, Mattress3DProps>(function Mattre
                 <ambientLight intensity={0.4} />
                 <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
                 <Center>
-                    <MattressModel exploded={isExploded} explodeGap={explodeGap} />
+                    <MattressModel explodeGap={explodeGap} />
                 </Center>
                 <ContactShadows position={[0, -0.01, 0]} opacity={0.4} scale={10} blur={2} far={4} />
             </Canvas>
