@@ -31,17 +31,18 @@ export async function middleware(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // 보호할 경로 (/builder) - 로그인하지 않은 경우 /login으로 이동
-    if (request.nextUrl.pathname.startsWith('/builder') && !user) {
+    // 보호할 경로 (/builder, /hub, /designer) - 로그인하지 않은 경우 /login으로 이동
+    const protectedPaths = ['/builder', '/hub', '/designer'];
+    if (protectedPaths.some(p => request.nextUrl.pathname.startsWith(p)) && !user) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
     }
 
-    // 이미 로그인된 사용자가 로그인 페이지에 접근할 경우 /builder로 이동
+    // 이미 로그인된 사용자가 로그인 페이지에 접근할 경우 /hub로 이동
     if (request.nextUrl.pathname === '/login' && user) {
         const url = request.nextUrl.clone()
-        url.pathname = '/builder'
+        url.pathname = '/hub'
         return NextResponse.redirect(url)
     }
 
