@@ -309,7 +309,7 @@ function GuardBox({ position, args, color, radius = 0.002 }: any) {
 /*  분해도 애니메이션 매니저                    */
 /* ══════════════════════════════════════ */
 
-function ExplodedModel({ isExploded }: { isExploded: boolean }) {
+function ExplodedModel({ isExploded, gaps }: { isExploded: boolean, gaps: any }) {
     const {
         customWidth, customDepth, coreId, isDual, coverId,
         topFoamEnabled, topFoamOptionId, topFoamRadius,
@@ -403,6 +403,7 @@ function ExplodedModel({ isExploded }: { isExploded: boolean }) {
             lowerSideTextureSideUrl={lowerCoverTextures?.side || coverOption?.sideImageSide}
             customCoverImage={coverImg}
             CO={CO}
+            {...gaps}
         />
     );
 }
@@ -413,7 +414,8 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
         isBasic, topFoamEnabled, topFoamOpt, topFoamRadius, bottomFoamEnabled, bottomFoamRadius, guardFoamRadius,
         topTextureUrl, sideTextureFrontUrl, sideTextureSideUrl,
         lowerTopTextureUrl, lowerSideTextureFrontUrl, lowerSideTextureSideUrl,
-        customCoverImage, CO }: any,
+        customCoverImage, CO,
+        gapTopCover, gapTopFoam, gapInnerCore, gapBottomFoam, gapBottomCover }: any,
     ref: any
 ) {
     const bottomCoverRef = useRef<THREE.Group>(null);
@@ -424,8 +426,6 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
 
     useFrame(() => {
         const t = explodeRef.current;
-        // z축 이동량 계산 (gap)
-        const gap = LAYER_GAP * t;
 
         const totalInnerH = botT + coreH + topT;
         const cy = totalInnerH / 2; // 모델의 전체 중심축을 중앙으로 정렬
@@ -438,37 +438,33 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
             coreGroupRef.current.position.y = (coreBaseY - cy);
         }
 
-        // 코어 내부 메쉬 (스트링) - 가드폼 위로 10cm 오프셋 (100mm = 0.1)
+        // 코어 내부 메쉬 (스트링) - 지정된 커스텀 간격 반영
         if (innerCoreRef.current) {
-            innerCoreRef.current.position.y = 0.1 * t; // 분해 정도에 비례하여 10cm 돌출
+            innerCoreRef.current.position.y = (gapInnerCore * SCALE) * t;
         }
 
         // 1. 하단 커버
         if (bottomCoverRef.current) {
             const baseCenterY = (botT + coreH) / 2;
-            // 코어 그룹 하단에서 10cm 간격으로 이격 
-            bottomCoverRef.current.position.y = (baseCenterY - cy) - (0.1 * t);
+            bottomCoverRef.current.position.y = (baseCenterY - cy) - (gapBottomCover * SCALE * t);
         }
 
         // 2. 하단폼
         if (botT > 0 && bottomFoamRef.current) {
             const baseCenterY = botT / 2;
-            // 코어 밑으로 5cm 이격
-            bottomFoamRef.current.position.y = (baseCenterY - cy) - (0.05 * t);
+            bottomFoamRef.current.position.y = (baseCenterY - cy) - (gapBottomFoam * SCALE * t);
         }
 
         // 4. 상단폼
         if (topT > 0 && topFoamRef.current) {
             const baseCenterY = botT + coreH + topT / 2;
-            // 코어 위로 5cm 이격
-            topFoamRef.current.position.y = (baseCenterY - cy) + (0.05 * t);
+            topFoamRef.current.position.y = (baseCenterY - cy) + (gapTopFoam * SCALE * t);
         }
 
         // 5. 상단 커버
         if (topCoverRef.current) {
             const baseCenterY = botT + coreH + topT / 2;
-            // 상단폼 위로 최종 10cm 이격
-            topCoverRef.current.position.y = (baseCenterY - cy) + (0.1 * t);
+            topCoverRef.current.position.y = (baseCenterY - cy) + (gapTopCover * SCALE * t);
         }
     });
 
@@ -660,7 +656,16 @@ export interface MattressExplodedViewProps {
 
 export default function MattressExplodedView({ className }: MattressExplodedViewProps) {
     const [isExploded, setIsExploded] = useState(true);
-    const { customWidth } = useDesignStore();
+    const { customWidth, topFoamEnabled, bottomFoamEnabled, structureType } = useDesignStore();
+
+    // 부품별 이격 거리 (단위: mm)
+    const [gapTopCover, setGapTopCover] = useState(100);
+    const [gapTopFoam, setGapTopFoam] = useState(50);
+    const [gapInnerCore, setGapInnerCore] = useState(100);
+    const [gapBottomFoam, setGapBottomFoam] = useState(50);
+    const [gapBottomCover, setGapBottomCover] = useState(100);
+
+    const isBasic = structureType === 'basic';
 
     return (
         <div
@@ -704,6 +709,23 @@ export default function MattressExplodedView({ className }: MattressExplodedView
                 >
                     {isExploded ? '🔍 분해 상태' : '📦 조립 상태'}
                 </button>
+
+                {/* 개별 슬라이더 패널 (분해 상태일 때만 표시) */}
+                {isExploded && (
+                    <div style={{
+                        background: 'rgba(255, 255, 255, 0.9)', padding: '12px 14px',
+                        borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                        display: 'flex', flexDirection: 'column', gap: 10, backdropFilter: 'blur(8px)', width: 220
+                    }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 2 }}>부품별 이격 간격 (mm)</div>
+
+                        <GapSlider label="상단 커버 간격" value={gapTopCover} onChange={setGapTopCover} max={300} />
+                        {topFoamEnabled && <GapSlider label="상단 폼 간격" value={gapTopFoam} onChange={setGapTopFoam} max={300} />}
+                        <GapSlider label="코어(스트링) 상승" value={gapInnerCore} onChange={setGapInnerCore} max={300} />
+                        {bottomFoamEnabled && <GapSlider label="하단 폼 간격" value={gapBottomFoam} onChange={setGapBottomFoam} max={300} />}
+                        {!isBasic && <GapSlider label="하단 커버 간격" value={gapBottomCover} onChange={setGapBottomCover} max={300} />}
+                    </div>
+                )}
             </div>
 
             {/* Badge */}
@@ -770,9 +792,29 @@ export default function MattressExplodedView({ className }: MattressExplodedView
                 <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1.2} castShadow />
                 <spotLight position={[-5, 8, -5]} angle={0.3} penumbra={1} intensity={0.4} />
                 <Center>
-                    <ExplodedModel isExploded={isExploded} />
+                    <ExplodedModel isExploded={isExploded} gaps={{ gapTopCover, gapTopFoam, gapInnerCore, gapBottomFoam, gapBottomCover }} />
                 </Center>
             </Canvas>
+        </div>
+    );
+}
+
+// 헬퍼: 슬라이더 컴포넌트
+function GapSlider({ label, value, onChange, max = 300 }: { label: string, value: number, onChange: (v: number) => void, max?: number }) {
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#475569', fontWeight: 600 }}>
+                <span>{label}</span>
+                <span style={{ color: '#0ea5e9' }}>{value}mm</span>
+            </div>
+            <input
+                type="range"
+                min="0"
+                max={max}
+                value={value}
+                onChange={(e) => onChange(Number(e.target.value))}
+                style={{ width: '100%', cursor: 'pointer', accentColor: '#0ea5e9' }}
+            />
         </div>
     );
 }

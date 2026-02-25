@@ -1,3 +1,11 @@
+## [Alpha V1.063] - 2026-02-26 01:05:00
+
+### 🔄 Build Update
+- **Summary**: 분해도 부품별 개별 간격 조절 기능(Slider UI) 추가 
+- **Detail** :
+  - **`app/components/MattressExplodedView.tsx` [MODIFY]**: 상단 커버, 상단 폼, 코어(스트링), 하단 폼, 하단 커버 등 각 부품의 분해 이격 거리를 사용자가 개별적으로 0~300mm까지 실시간 조절할 수 있는 슬라이더 UI 패널을 추가했습니다.
+- **Build Time**: 2026-02-26 01:05:00
+
 ## [Alpha V1.062] - 2026-02-26 00:24:00
 
 ### 🔄 Build Update
