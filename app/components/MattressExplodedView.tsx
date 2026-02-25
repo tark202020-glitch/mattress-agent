@@ -17,11 +17,15 @@ const LAYER_GAP = 0.18;  // 레이어 간 분해 간격
 /* ══════════════════════════════════════ */
 
 function FoamBox({ position, args, color, radius = 0.01, roughness = 0.85, opacity = 1 }: any) {
+    const [W, H, D] = args;
+    const maxRadius = Math.min(W / 2, H / 2, D / 2);
+    const safeRadius = Math.max(0.0001, Math.min(radius, maxRadius * 0.95));
+
     return (
         <RoundedBox
             position={position}
             args={args}
-            radius={Math.max(radius, 0.002)}
+            radius={safeRadius}
             smoothness={4}
             castShadow
             receiveShadow
@@ -160,7 +164,7 @@ function CoverBox({ position, args, color, textureUrl, isTop = true, radius = 0.
         img.crossOrigin = 'anonymous';
         img.onload = () => {
             const tex = new THREE.Texture(img);
-            tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
             tex.colorSpace = THREE.SRGBColorSpace;
             tex.needsUpdate = true;
             setTopTex(tex);
@@ -175,7 +179,7 @@ function CoverBox({ position, args, color, textureUrl, isTop = true, radius = 0.
         img.crossOrigin = 'anonymous';
         img.onload = () => {
             const tex = new THREE.Texture(img);
-            tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
             tex.colorSpace = THREE.SRGBColorSpace;
             tex.needsUpdate = true;
             setFrontTex(tex);
@@ -190,7 +194,7 @@ function CoverBox({ position, args, color, textureUrl, isTop = true, radius = 0.
         img.crossOrigin = 'anonymous';
         img.onload = () => {
             const tex = new THREE.Texture(img);
-            tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
             tex.colorSpace = THREE.SRGBColorSpace;
             tex.needsUpdate = true;
             setSideTex(tex);
@@ -231,52 +235,38 @@ function CoverBox({ position, args, color, textureUrl, isTop = true, radius = 0.
     const t = 0.002; // 2mm 두께
     const wOut = W + 2 * t;
     const dOut = D + 2 * t;
+    const hOut = H + t;
 
-    // 모서리 라운딩 적용 시 텍스쳐가 깨지는 것을 방지하기 위해
-    // 5개의 개별 평면(박스)으로 구성된 기존 방식으로 회귀하되,
-    // 필요 시 추후 각 모서리에 원기둥(Cylinder)을 덧대는 방식으로 라운딩을 시뮬레이션 할 수 있습니다.
+    // 모서리 라운딩 시 기하학이 겹쳐서 면이 깨지는 버그 방지를 위한 반경 제한
+    const maxRadius = Math.min(wOut / 2, hOut / 2, dOut / 2);
+    const safeRadius = Math.max(0.0001, Math.min(radius, maxRadius * 0.95));
 
     return (
         <group position={position}>
-            {/* Front Panel (+Z) */}
-            <mesh position={[0, 0, D / 2 + t / 2]} castShadow receiveShadow material={mats[4]}>
-                <boxGeometry args={[wOut, H, t]} />
-            </mesh>
-            {/* Back Panel (-Z) */}
-            <mesh position={[0, 0, -(D / 2 + t / 2)]} castShadow receiveShadow material={mats[5]}>
-                <boxGeometry args={[wOut, H, t]} />
-            </mesh>
-            {/* Right Panel (+X) */}
-            <mesh position={[W / 2 + t / 2, 0, 0]} castShadow receiveShadow material={mats[0]}>
-                <boxGeometry args={[t, H, D]} />
-            </mesh>
-            {/* Left Panel (-X) */}
-            <mesh position={[-(W / 2 + t / 2), 0, 0]} castShadow receiveShadow material={mats[1]}>
-                <boxGeometry args={[t, H, D]} />
-            </mesh>
-
-            {isTop ? (
-                /* Top Panel (+Y) */
-                <mesh position={[0, H / 2 + t / 2, 0]} castShadow receiveShadow material={mats[2]}>
-                    <boxGeometry args={[wOut, t, dOut]} />
-                </mesh>
-            ) : (
-                /* Bottom Panel (-Y) */
-                <mesh position={[0, -(H / 2 + t / 2), 0]} castShadow receiveShadow material={mats[3]}>
-                    <boxGeometry args={[wOut, t, dOut]} />
-                </mesh>
-            )}
+            <RoundedBox
+                position={[0, isTop ? -t / 2 : t / 2, 0]}
+                args={[wOut, hOut, dOut]}
+                radius={safeRadius}
+                smoothness={6}
+                material={mats}
+                castShadow
+                receiveShadow
+            />
         </group>
     );
 }
 
 /* 코어 박스 */
 function CoreBox({ position, args, color }: any) {
+    const [W, H, D] = args;
+    const maxRadius = Math.min(W / 2, H / 2, D / 2);
+    const safeRadius = Math.max(0.0001, Math.min(0.07, maxRadius * 0.95));
+
     return (
         <RoundedBox
             position={position}
             args={args}
-            radius={0.07}
+            radius={safeRadius}
             smoothness={4}
             castShadow
             receiveShadow
@@ -292,11 +282,15 @@ function CoreBox({ position, args, color }: any) {
 
 /* 가드폼 */
 function GuardBox({ position, args, color, radius = 0.002 }: any) {
+    const [W, H, D] = args;
+    const maxRadius = Math.min(Math.abs(W) / 2, Math.abs(H) / 2, Math.abs(D) / 2);
+    const safeRadius = Math.max(0.0001, Math.min(radius, maxRadius * 0.95));
+
     return (
         <RoundedBox
             position={position}
             args={args}
-            radius={Math.max(radius, 0.002)}
+            radius={safeRadius}
             smoothness={2}
             castShadow
             receiveShadow
@@ -430,44 +424,51 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
 
     useFrame(() => {
         const t = explodeRef.current;
+        // z축 이동량 계산 (gap)
         const gap = LAYER_GAP * t;
 
         const totalInnerH = botT + coreH + topT;
         const cy = totalInnerH / 2; // 모델의 전체 중심축을 중앙으로 정렬
 
+        // 기준이 되는 y 센터 (조립 상태일 때의 위치)
+        const coreBaseY = botT + coreH / 2;
+
+        // 3. 코어 + 가드폼
+        if (coreGroupRef.current) {
+            coreGroupRef.current.position.y = (coreBaseY - cy);
+        }
+
+        // 코어 내부 메쉬 (스트링) - 가드폼 위로 10cm 오프셋 (100mm = 0.1)
+        if (innerCoreRef.current) {
+            innerCoreRef.current.position.y = 0.1 * t; // 분해 정도에 비례하여 10cm 돌출
+        }
+
         // 1. 하단 커버
         if (bottomCoverRef.current) {
             const baseCenterY = (botT + coreH) / 2;
-            bottomCoverRef.current.position.y = (baseCenterY - cy) - gap * 2;
+            // 코어 그룹 하단에서 10cm 간격으로 이격 
+            bottomCoverRef.current.position.y = (baseCenterY - cy) - (0.1 * t);
         }
 
         // 2. 하단폼
         if (botT > 0 && bottomFoamRef.current) {
             const baseCenterY = botT / 2;
-            bottomFoamRef.current.position.y = (baseCenterY - cy) - gap * 1;
-        }
-
-        // 3. 코어 + 가드폼
-        if (coreGroupRef.current) {
-            const baseCenterY = botT + coreH / 2;
-            coreGroupRef.current.position.y = (baseCenterY - cy);
-        }
-
-        // 코어 내부 메쉬 (스트링) - 가드폼 위로 10cm 오프셋 (100mm = 0.1)
-        if (innerCoreRef.current) {
-            innerCoreRef.current.position.y = gap * 0.1 / LAYER_GAP; // 분해 정도에 따라 비례
+            // 코어 밑으로 5cm 이격
+            bottomFoamRef.current.position.y = (baseCenterY - cy) - (0.05 * t);
         }
 
         // 4. 상단폼
         if (topT > 0 && topFoamRef.current) {
             const baseCenterY = botT + coreH + topT / 2;
-            topFoamRef.current.position.y = (baseCenterY - cy) + gap * 1;
+            // 코어 위로 5cm 이격
+            topFoamRef.current.position.y = (baseCenterY - cy) + (0.05 * t);
         }
 
         // 5. 상단 커버
         if (topCoverRef.current) {
             const baseCenterY = botT + coreH + topT / 2;
-            topCoverRef.current.position.y = (baseCenterY - cy) + gap * 2;
+            // 상단폼 위로 최종 10cm 이격
+            topCoverRef.current.position.y = (baseCenterY - cy) + (0.1 * t);
         }
     });
 
