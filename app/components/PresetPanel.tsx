@@ -20,6 +20,7 @@ export default function PresetPanel() {
 
     useEffect(() => {
         _hydrate();
+        designStore._hydrateDefaults();
         setMounted(true);
     }, []);
 

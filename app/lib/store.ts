@@ -97,6 +97,8 @@ interface DesignActions {
         sourceImage: { upper: string | null; lower: string | null }
     ) => void;
 
+    _hydrateDefaults: () => void;
+
     nextStep: () => void;
     prevStep: () => void;
     goToStep: (step: number) => void;
@@ -208,16 +210,29 @@ export const useDesignStore = create<DesignState & DesignActions>((set) => ({
     setCoverExtractSourceImage: (type, imageUrl) => set((s) => ({
         coverExtractSourceImage: { ...s.coverExtractSourceImage, [type]: imageUrl }
     })),
-    setDefaultTextures: (style, upper, lower, upperCoords, lowerCoords, sourceImage) => set((s) => ({
-        defaultTextures: {
+    setDefaultTextures: (style, upper, lower, upperCoords, lowerCoords, sourceImage) => set((s) => {
+        const newDefaults = {
             ...s.defaultTextures,
             [style]: { upper, lower, upperCoords, lowerCoords, sourceImage }
+        };
+        if (typeof window !== 'undefined') {
+            try { localStorage.setItem('mattress_default_textures', JSON.stringify(newDefaults)); } catch (e) { console.warn(e); }
         }
-    })),
+        return { defaultTextures: newDefaults };
+    }),
+
+    _hydrateDefaults: () => set((s) => {
+        if (typeof window === 'undefined') return s;
+        try {
+            const raw = localStorage.getItem('mattress_default_textures');
+            if (raw) return { defaultTextures: JSON.parse(raw) };
+        } catch (e) { console.warn(e); }
+        return s;
+    }),
 
     nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 7) })),
     prevStep: () => set((s) => ({ currentStep: Math.max(s.currentStep - 1, 1) })),
     goToStep: (step) => set({ currentStep: step }),
-    reset: () => set(initialState),
-    loadFromPreset: (presetState) => set({ ...presetState, currentStep: 1 }),
+    reset: () => set((s) => ({ ...initialState, defaultTextures: s.defaultTextures })), // preserve defaultTextures on reset
+    loadFromPreset: (presetState) => set((s) => ({ ...presetState, currentStep: 1, defaultTextures: s.defaultTextures })), // preserve defaults
 }));
