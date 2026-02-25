@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
+import { useDesignStore } from '../lib/store';
 
 /* ═══════════════════════════════════ */
 /*  타입 정의                           */
@@ -132,18 +133,34 @@ export default function TextureExtractorModal({
     initialUpperSource, initialLowerSource,
     onSave, onClose
 }: TextureExtractorModalProps) {
+    const structureType = useDesignStore(s => s.structureType) || 'standard';
+    const defaultTextures = useDesignStore(s => s.defaultTextures);
+    const setDefaultTextures = useDesignStore(s => s.setDefaultTextures);
+
+    // Initialize with existing values or defaults for the current structureType
+    const def = defaultTextures[structureType];
+    const hasInitialValues = initialUpperTex?.top || initialUpperTex?.front || initialUpperTex?.side ||
+        initialLowerTex?.top || initialLowerTex?.front || initialLowerTex?.side;
+
+    const startingUpperTex = hasInitialValues ? initialUpperTex : (def?.upper || { top: null, front: null, side: null });
+    const startingLowerTex = hasInitialValues ? initialLowerTex : (def?.lower || { top: null, front: null, side: null });
+    const startingUpperCoords = hasInitialValues ? initialUpperCoords : (def?.upperCoords || null);
+    const startingLowerCoords = hasInitialValues ? initialLowerCoords : (def?.lowerCoords || null);
+    const startingUpperSource = hasInitialValues ? initialUpperSource : (def?.sourceImage?.upper || null);
+    const startingLowerSource = hasInitialValues ? initialLowerSource : (def?.sourceImage?.lower || null);
+
     const [activeCover, setActiveCover] = useState<CoverType>('upper');
-    const [upperSource, setUpperSource] = useState<string | null>(initialUpperSource || null);
-    const [lowerSource, setLowerSource] = useState<string | null>(initialLowerSource || null);
+    const [upperSource, setUpperSource] = useState<string | null>(startingUpperSource || null);
+    const [lowerSource, setLowerSource] = useState<string | null>(startingLowerSource || null);
     const [isDetecting, setIsDetecting] = useState(false);
 
     // 각 커버별 Coords 상태 분리 저장 (에디터 열 때마다 초기화 방지)
-    const [upperCoords, setUpperCoords] = useState<FaceCoords | null>(initialUpperCoords || null);
-    const [lowerCoords, setLowerCoords] = useState<FaceCoords | null>(initialLowerCoords || null);
+    const [upperCoords, setUpperCoords] = useState<FaceCoords | null>(startingUpperCoords || null);
+    const [lowerCoords, setLowerCoords] = useState<FaceCoords | null>(startingLowerCoords || null);
 
     const [progress, setProgress] = useState('');
-    const [upperTex, setUpperTex] = useState<CoverTextures>(initialUpperTex || { top: null, front: null, side: null });
-    const [lowerTex, setLowerTex] = useState<CoverTextures>(initialLowerTex || { top: null, front: null, side: null });
+    const [upperTex, setUpperTex] = useState<CoverTextures>(startingUpperTex || { top: null, front: null, side: null });
+    const [lowerTex, setLowerTex] = useState<CoverTextures>(startingLowerTex || { top: null, front: null, side: null });
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const currentTex = activeCover === 'upper' ? upperTex : lowerTex;
@@ -317,6 +334,12 @@ export default function TextureExtractorModal({
                         {hasAnyTexture ? '✅ 텍스처가 준비되었습니다' : '커버 사진에서 텍스처를 추출하세요'}
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => {
+                            setDefaultTextures(structureType, upperTex, lowerTex, upperCoords, lowerCoords, { upper: upperSource, lower: lowerSource });
+                            alert(`${structureType === 'basic' ? '베이직' : structureType === 'premium' ? '프리미엄' : '스탠다드'} 스타일의 Default 텍스쳐로 저장되었습니다.`);
+                        }} disabled={!hasAnyTexture} style={{ ...btnBase, padding: '8px 20px', background: hasAnyTexture ? '#3b82f6' : '#1e293b', color: hasAnyTexture ? '#fff' : '#475569', cursor: hasAnyTexture ? 'pointer' : 'not-allowed' }}>
+                            Default로 저장
+                        </button>
                         <button onClick={onClose} style={{ ...btnBase, padding: '8px 20px', background: '#1e293b', color: '#94a3b8' }}>취소</button>
                         <button onClick={() => { onSave(upperTex, lowerTex, upperCoords, lowerCoords, upperSource, lowerSource); onClose(); }} disabled={!hasAnyTexture}
                             style={{ ...btnBase, padding: '8px 24px', background: hasAnyTexture ? 'linear-gradient(135deg,#059669,#0d9488)' : '#1e293b', color: hasAnyTexture ? '#fff' : '#475569', cursor: hasAnyTexture ? 'pointer' : 'not-allowed' }}>

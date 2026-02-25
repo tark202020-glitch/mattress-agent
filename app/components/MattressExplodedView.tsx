@@ -145,7 +145,7 @@ function createRibbedTexture(baseColor: string = '#c4b59a'): THREE.CanvasTexture
 }
 
 /* ---- CoverBox: 뚜껑/바구니 형태 지오메트리 & 1:1 텍스처 매핑 ---- */
-function CoverBox({ position, args, color, textureUrl, isTop = true, topTextureUrl, sideTextureFrontUrl, sideTextureSideUrl }: any) {
+function CoverBox({ position, args, color, textureUrl, isTop = true, radius = 0.01, topTextureUrl, sideTextureFrontUrl, sideTextureSideUrl }: any) {
     const [W, H, D] = args as [number, number, number];
     const [topTex, setTopTex] = useState<THREE.Texture | null>(null);
     const [frontTex, setFrontTex] = useState<THREE.Texture | null>(null);
@@ -210,21 +210,21 @@ function CoverBox({ position, args, color, textureUrl, isTop = true, topTextureU
         const topColor = color || (isTop ? '#f5f0eb' : '#6a6a6a');
         const botColor = isTop ? '#d4c5a9' : '#4a4a4a';
 
-        const matSide = new THREE.MeshStandardMaterial({ map: sideTex || fallbacks.ribbed, color: sideTex ? '#ffffff' : sideColor, roughness: 0.75 });
-        const matFront = new THREE.MeshStandardMaterial({ map: frontTex || fallbacks.ribbed, color: frontTex ? '#ffffff' : sideColor, roughness: 0.75 });
-        const matTop = new THREE.MeshStandardMaterial({ map: topTex || fallbacks.quilted, color: topTex || fallbacks.quilted ? '#ffffff' : topColor, roughness: 0.8 });
-        const matBot = new THREE.MeshStandardMaterial({ color: botColor, roughness: 0.85 });
-        const matInside = new THREE.MeshStandardMaterial({ color: isTop ? topColor : sideColor, roughness: 0.85 });
+        const matSide = new THREE.MeshStandardMaterial({ map: sideTex || fallbacks.ribbed, color: sideTex ? '#ffffff' : sideColor, roughness: 0.75, side: THREE.DoubleSide });
+        const matFront = new THREE.MeshStandardMaterial({ map: frontTex || fallbacks.ribbed, color: frontTex ? '#ffffff' : sideColor, roughness: 0.75, side: THREE.DoubleSide });
+        const matTop = new THREE.MeshStandardMaterial({ map: topTex || fallbacks.quilted, color: topTex || fallbacks.quilted ? '#ffffff' : topColor, roughness: 0.8, side: THREE.DoubleSide });
+        const matBot = new THREE.MeshStandardMaterial({ color: botColor, roughness: 0.85, side: THREE.DoubleSide });
+        const matInvisible = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
 
         // BoxGeometry face indices: 0:Right(+X), 1:Left(-X), 2:Top(+Y), 3:Bottom(-Y), 4:Front(+Z), 5:Back(-Z)
-        return {
-            front: [matInside, matInside, matInside, matInside, matFront, matInside],
-            back: [matInside, matInside, matInside, matInside, matInside, matFront],
-            right: [matSide, matInside, matInside, matInside, matInside, matInside],
-            left: [matInside, matSide, matInside, matInside, matInside, matInside],
-            top: [matInside, matInside, matTop, matInside, matInside, matInside],
-            bot: [matInside, matInside, matInside, matBot, matInside, matInside]
-        };
+        return [
+            matSide,   // 0: Right
+            matSide,   // 1: Left
+            isTop ? matTop : matInvisible, // 2: Top
+            isTop ? matInvisible : matBot, // 3: Bottom
+            matFront,  // 4: Front
+            matFront   // 5: Back
+        ];
     }, [topTex, frontTex, sideTex, fallbacks, color, isTop]);
 
     const t = 0.002; // 2mm 두께
@@ -233,34 +233,15 @@ function CoverBox({ position, args, color, textureUrl, isTop = true, topTextureU
 
     return (
         <group position={position}>
-            {/* Front Panel (+Z) */}
-            <mesh position={[0, 0, D / 2 + t / 2]} castShadow receiveShadow material={mats.front}>
-                <boxGeometry args={[wOut, H, t]} />
-            </mesh>
-            {/* Back Panel (-Z) */}
-            <mesh position={[0, 0, -(D / 2 + t / 2)]} castShadow receiveShadow material={mats.back}>
-                <boxGeometry args={[wOut, H, t]} />
-            </mesh>
-            {/* Right Panel (+X) */}
-            <mesh position={[W / 2 + t / 2, 0, 0]} castShadow receiveShadow material={mats.right}>
-                <boxGeometry args={[t, H, D]} />
-            </mesh>
-            {/* Left Panel (-X) */}
-            <mesh position={[-(W / 2 + t / 2), 0, 0]} castShadow receiveShadow material={mats.left}>
-                <boxGeometry args={[t, H, D]} />
-            </mesh>
-
-            {isTop ? (
-                /* Top Panel (+Y) */
-                <mesh position={[0, H / 2 + t / 2, 0]} castShadow receiveShadow material={mats.top}>
-                    <boxGeometry args={[wOut, t, dOut]} />
-                </mesh>
-            ) : (
-                /* Bottom Panel (-Y) */
-                <mesh position={[0, -(H / 2 + t / 2), 0]} castShadow receiveShadow material={mats.bot}>
-                    <boxGeometry args={[wOut, t, dOut]} />
-                </mesh>
-            )}
+            <RoundedBox
+                position={[0, 0, 0]}
+                args={[wOut, H + t, dOut]}
+                radius={Math.max(radius, 0.002)}
+                smoothness={4}
+                material={mats}
+                castShadow
+                receiveShadow
+            />
         </group>
     );
 }
@@ -316,7 +297,7 @@ function ExplodedModel({ isExploded }: { isExploded: boolean }) {
         topFoamEnabled, topFoamOptionId, topFoamRadius,
         guardFoamEnabled, guardFoamThickness, guardFoamRadius,
         bottomFoamEnabled, bottomFoamThickness, bottomFoamRadius,
-        customCoverImages,
+        customCoverImages, structureType,
         upperCoverTextures, lowerCoverTextures,
     } = useDesignStore();
     const customOpts = useCustomOptionsStore();
@@ -389,6 +370,7 @@ function ExplodedModel({ isExploded }: { isExploded: boolean }) {
             topT={topT} botT={botT} topCoverT={topCoverT} botCoverT={botCoverT}
             gfT={gfT} gfEnabled={gfEnabled} gdLen={gdLen}
             isDual={isDual}
+            isBasic={structureType === 'basic'}
             topFoamEnabled={topFoamEnabled}
             topFoamOpt={topFoamOpt}
             topFoamRadius={topFoamRadius}
@@ -410,7 +392,7 @@ function ExplodedModel({ isExploded }: { isExploded: boolean }) {
 /* 애니메이션 적용 그룹 */
 const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
     { explodeRef, W, D, coreH, coreW, coreD, topT, botT, topCoverT, botCoverT, gfT, gfEnabled, gdLen, isDual,
-        topFoamEnabled, topFoamOpt, topFoamRadius, bottomFoamEnabled, bottomFoamRadius, guardFoamRadius,
+        isBasic, topFoamEnabled, topFoamOpt, topFoamRadius, bottomFoamEnabled, bottomFoamRadius, guardFoamRadius,
         topTextureUrl, sideTextureFrontUrl, sideTextureSideUrl,
         lowerTopTextureUrl, lowerSideTextureFrontUrl, lowerSideTextureSideUrl,
         customCoverImage, CO }: any,
@@ -447,6 +429,11 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
             coreGroupRef.current.position.y = (baseCenterY - cy);
         }
 
+        // 코어 내부 메쉬 (스트링) - 가드폼 위로 10cm 오프셋 (100mm = 0.1)
+        if (innerCoreRef.current) {
+            innerCoreRef.current.position.y = gap * 0.1 / LAYER_GAP; // 분해 정도에 따라 비례
+        }
+
         // 4. 상단폼
         if (topT > 0 && topFoamRef.current) {
             const baseCenterY = botT + coreH + topT / 2;
@@ -460,20 +447,25 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
         }
     });
 
+    const innerCoreRef = useRef<THREE.Group>(null);
+
     return (
         <group ref={ref} dispose={null}>
             {/* 1. 하단 커버 */}
-            <group ref={bottomCoverRef}>
-                <CoverBox
-                    position={[0, 0, 0]}
-                    args={[W, coreH + botT > 0 ? coreH + botT : 0.001, D]}
-                    color={CO.coverBot}
-                    topTextureUrl={lowerTopTextureUrl}
-                    sideTextureFrontUrl={lowerSideTextureFrontUrl}
-                    sideTextureSideUrl={lowerSideTextureSideUrl}
-                    isTop={false}
-                />
-            </group>
+            {!isBasic && (
+                <group ref={bottomCoverRef}>
+                    <CoverBox
+                        position={[0, 0, 0]}
+                        args={[W, coreH + botT > 0 ? coreH + botT : 0.001, D]}
+                        color={CO.coverBot}
+                        radius={bottomFoamRadius * SCALE}
+                        topTextureUrl={lowerTopTextureUrl}
+                        sideTextureFrontUrl={lowerSideTextureFrontUrl}
+                        sideTextureSideUrl={lowerSideTextureSideUrl}
+                        isTop={false}
+                    />
+                </group>
+            )}
 
             {/* 2. 하단폼 */}
             {bottomFoamEnabled && botT > 0 && (
@@ -539,27 +531,29 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
                     />
                 )}
 
-                {/* 코어 */}
-                {isDual ? (
-                    <>
+                {/* 코어 영역 (내부 메쉬 10cm 오프셋 용도) */}
+                <group ref={innerCoreRef}>
+                    {isDual ? (
+                        <>
+                            <CoreBox
+                                position={[-(gfT / 2 + coreW / 2), 0, 0]}
+                                args={[coreW, coreH, coreD]}
+                                color={CO.core}
+                            />
+                            <CoreBox
+                                position={[gfT / 2 + coreW / 2, 0, 0]}
+                                args={[coreW, coreH, coreD]}
+                                color={CO.core}
+                            />
+                        </>
+                    ) : (
                         <CoreBox
-                            position={[-(gfT / 2 + coreW / 2), 0, 0]}
+                            position={[0, 0, 0]}
                             args={[coreW, coreH, coreD]}
                             color={CO.core}
                         />
-                        <CoreBox
-                            position={[gfT / 2 + coreW / 2, 0, 0]}
-                            args={[coreW, coreH, coreD]}
-                            color={CO.core}
-                        />
-                    </>
-                ) : (
-                    <CoreBox
-                        position={[0, 0, 0]}
-                        args={[coreW, coreH, coreD]}
-                        color={CO.core}
-                    />
-                )}
+                    )}
+                </group>
             </group>
 
             {/* 4. 상단폼 */}
@@ -618,6 +612,7 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
                     position={[0, 0, 0]}
                     args={[W, topT > 0 ? topT : 0.001, D]}
                     color={CO.coverTop}
+                    radius={topFoamRadius * SCALE}
                     textureUrl={customCoverImage}
                     topTextureUrl={topTextureUrl}
                     sideTextureFrontUrl={sideTextureFrontUrl}
@@ -752,10 +747,6 @@ export default function MattressExplodedView({ className }: MattressExplodedView
                 <Center>
                     <ExplodedModel isExploded={isExploded} />
                 </Center>
-                <ContactShadows position={[0, -0.05, 0]} opacity={0.3} scale={10} blur={2.5} far={4} />
-
-                {/* 바닥 그리드 */}
-                <gridHelper args={[10, 20, '#ddd', '#eee']} position={[0, -0.05, 0]} />
             </Canvas>
         </div>
     );

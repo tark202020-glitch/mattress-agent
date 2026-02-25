@@ -1,3 +1,16 @@
+## [Alpha V1.061] - 2026-02-26 00:03:00
+
+### 🔄 Build Update
+- **Summary**: 매트리스 커버 추출기 Default 설정 및 분해 뷰 렌더링 개선
+- **Detail** :
+  - **`store.ts` & `TextureExtractorModal.tsx` [MODIFY]**: 텍스쳐 추출기에서 설정한 커버 이미지를 스타일(Basic, Standard, Premium)별 Default 값으로 전역 저장하고, 각 스타일 진입 시 기본값으로 자동 불러오도록 연결.
+  - **`MattressExplodedView.tsx` [MODIFY]**: 
+    - 3D 분해도 렌더링 시 외부 환경(지평면, Grid Helper, ContactShadows)을 제거하여 순수한 제품만 출력되도록 개선.
+    - 커버(CoverBox)의 모서리 라운드 값을 내부 폼(상단/하단폼)의 라운드 값과 일치하도록 `RoundedBox` 기반으로 전면 리팩토링 및 투명 재질 혼합 적용.
+    - 분해 애니메이션 재생 중 코어(스트링) 3D 모델이 가드폼 위로 100mm(10cm) 떠오르도록 Y축 애니메이션 오프셋 적용.
+    - Basic 타입 선택 시 하단 커버를 텍스쳐 렌더링 및 모델링에서 제외.
+- **Build Time**: 2026-02-26 00:03:00
+
 ## [Alpha V1.060] - 2026-02-25 23:42:00
 
 ### 🔄 Build Update

@@ -18,6 +18,14 @@ export interface CustomOptionsState {
     controllers: GenericOption[];
     packagings: GenericOption[];
     deliveries: GenericOption[];
+    coverDefaults: Record<string, {
+        upper: any;
+        lower: any;
+        upperCoords: any;
+        lowerCoords: any;
+        upperSource: string | null;
+        lowerSource: string | null;
+    }>;
 }
 
 interface CustomOptionsActions {
@@ -43,6 +51,7 @@ interface CustomOptionsActions {
     removePackaging: (id: string) => void;
     addDelivery: (item: GenericOption) => void;
     removeDelivery: (id: string) => void;
+    setCoverDefaults: (coverId: string, defaults: any) => void;
     _hydrate: () => void;
 }
 
@@ -58,6 +67,7 @@ const emptyState: CustomOptionsState = {
     controllers: [],
     packagings: [],
     deliveries: [],
+    coverDefaults: {},
 };
 
 function loadFromStorage(): CustomOptionsState {
@@ -211,6 +221,13 @@ export const useCustomOptionsStore = create<CustomOptionsState & CustomOptionsAc
     }),
     removeDelivery: (id) => set((s) => {
         const next = { ...s, deliveries: s.deliveries.filter(x => x.id !== id) };
+        saveToStorage(next);
+        return next;
+    }),
+
+    // Cover Defaults
+    setCoverDefaults: (coverId, defaults) => set((s) => {
+        const next = { ...s, coverDefaults: { ...s.coverDefaults, [coverId]: defaults } };
         saveToStorage(next);
         return next;
     }),

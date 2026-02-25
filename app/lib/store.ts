@@ -47,6 +47,15 @@ export interface DesignState {
     // 텍스처 추출기 원본 이미지 (상단/하단 커버별 저장)
     coverExtractSourceImage: { upper: string | null; lower: string | null };
 
+    // 스타일별 Default 텍스처 저장소 (Basic, Standard, Premium)
+    defaultTextures: Record<string, {
+        upper: { top: string | null; front: string | null; side: string | null };
+        lower: { top: string | null; front: string | null; side: string | null };
+        upperCoords: any | null;
+        lowerCoords: any | null;
+        sourceImage: { upper: string | null; lower: string | null };
+    }>;
+
     currentStep: number;
 }
 
@@ -79,6 +88,14 @@ interface DesignActions {
     setUpperCoverCoords: (coords: any | null) => void;
     setLowerCoverCoords: (coords: any | null) => void;
     setCoverExtractSourceImage: (type: 'upper' | 'lower', imageUrl: string | null) => void;
+    setDefaultTextures: (
+        style: string,
+        upper: { top: string | null; front: string | null; side: string | null },
+        lower: { top: string | null; front: string | null; side: string | null },
+        upperCoords: any | null,
+        lowerCoords: any | null,
+        sourceImage: { upper: string | null; lower: string | null }
+    ) => void;
 
     nextStep: () => void;
     prevStep: () => void;
@@ -116,6 +133,7 @@ const initialState: DesignState = {
     upperCoverCoords: null,
     lowerCoverCoords: null,
     coverExtractSourceImage: { upper: null, lower: null },
+    defaultTextures: {},
     currentStep: 1,
 };
 
@@ -189,6 +207,12 @@ export const useDesignStore = create<DesignState & DesignActions>((set) => ({
     setLowerCoverCoords: (coords) => set({ lowerCoverCoords: coords }),
     setCoverExtractSourceImage: (type, imageUrl) => set((s) => ({
         coverExtractSourceImage: { ...s.coverExtractSourceImage, [type]: imageUrl }
+    })),
+    setDefaultTextures: (style, upper, lower, upperCoords, lowerCoords, sourceImage) => set((s) => ({
+        defaultTextures: {
+            ...s.defaultTextures,
+            [style]: { upper, lower, upperCoords, lowerCoords, sourceImage }
+        }
     })),
 
     nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 7) })),
