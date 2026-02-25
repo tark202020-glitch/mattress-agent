@@ -57,6 +57,7 @@ export default function PresetPanel() {
             lowerCoverCoords: designStore.lowerCoverCoords,
             coverExtractSourceImage: designStore.coverExtractSourceImage,
             currentStep: designStore.currentStep,
+            defaultTextures: designStore.defaultTextures,
         };
         const ok = savePreset(saveName.trim(), state);
         if (!ok) {

@@ -1,3 +1,11 @@
+## [Alpha V1.062] - 2026-02-26 00:24:00
+
+### 🔄 Build Update
+- **Summary**: Vercel 빌드 중 발생한 TypeScript 에러(PresetPanel.tsx) 수정
+- **Detail** :
+  - **`app/components/PresetPanel.tsx` [MODIFY]**: `store.ts`의 `DesignState` 인터페이스에 새로 추가되었던 `defaultTextures` 필드가 프리셋 저장 시의 상태 객체 매핑에 누락되어 발생한 TypeScript 컴파일 에러(Type error: Property 'defaultTextures' is missing...)를 해결했습니다.
+- **Build Time**: 2026-02-26 00:24:00
+
 ## [Alpha V1.061] - 2026-02-26 00:03:00
 
 ### 🔄 Build Update
