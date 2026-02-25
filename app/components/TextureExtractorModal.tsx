@@ -153,6 +153,7 @@ export default function TextureExtractorModal({
     const [upperSource, setUpperSource] = useState<string | null>(startingUpperSource || null);
     const [lowerSource, setLowerSource] = useState<string | null>(startingLowerSource || null);
     const [isDetecting, setIsDetecting] = useState(false);
+    const [toastMsg, setToastMsg] = useState('');
 
     // 각 커버별 Coords 상태 분리 저장 (에디터 열 때마다 초기화 방지)
     const [upperCoords, setUpperCoords] = useState<FaceCoords | null>(startingUpperCoords || null);
@@ -244,12 +245,18 @@ export default function TextureExtractorModal({
                 onClick={e => e.stopPropagation()}>
 
                 {/* Header */}
-                <div style={{ padding: '12px 20px', borderBottom: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                <div style={{ padding: '12px 20px', borderBottom: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, position: 'relative' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <span style={{ fontSize: 16 }}>✂️</span>
                         <span style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9' }}>텍스처 추출기</span>
                         <span style={{ fontSize: 11, color: '#64748b' }}>— {coverLabel}</span>
                     </div>
+                    {/* Toast Message */}
+                    {toastMsg && (
+                        <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: '#fff', padding: '6px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700, zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                            {toastMsg}
+                        </div>
+                    )}
                     <button onClick={onClose} style={{ ...btnBase, background: 'transparent', color: '#64748b', padding: '4px 10px', fontSize: 16 }}>✕</button>
                 </div>
 
@@ -336,7 +343,8 @@ export default function TextureExtractorModal({
                     <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => {
                             setDefaultTextures(structureType, upperTex, lowerTex, upperCoords, lowerCoords, { upper: upperSource, lower: lowerSource });
-                            alert(`${structureType === 'basic' ? '베이직' : structureType === 'premium' ? '프리미엄' : '스탠다드'} 스타일의 Default 텍스쳐로 저장되었습니다.`);
+                            setToastMsg(`${structureType === 'basic' ? '베이직' : structureType === 'premium' ? '프리미엄' : '스탠다드'} 스타일 기본 텍스쳐로 저장되었습니다.`);
+                            setTimeout(() => setToastMsg(''), 3000);
                         }} disabled={!hasAnyTexture} style={{ ...btnBase, padding: '8px 20px', background: hasAnyTexture ? '#3b82f6' : '#1e293b', color: hasAnyTexture ? '#fff' : '#475569', cursor: hasAnyTexture ? 'pointer' : 'not-allowed' }}>
                             Default로 저장
                         </button>
@@ -347,7 +355,7 @@ export default function TextureExtractorModal({
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

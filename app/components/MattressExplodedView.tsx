@@ -1,7 +1,7 @@
 'use client';
 
 import * as THREE from 'three';
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Center, Environment, ContactShadows, RoundedBox } from '@react-three/drei';
 import { useDesignStore } from '../lib/store';
@@ -243,16 +243,55 @@ function CoverBox({ position, args, color, textureUrl, isTop = true, radius = 0.
 
     return (
         <group position={position}>
-            <RoundedBox
+            <ProjectedRoundedBox
                 position={[0, isTop ? -t / 2 : t / 2, 0]}
                 args={[wOut, hOut, dOut]}
                 radius={safeRadius}
-                smoothness={6}
-                material={mats}
-                castShadow
-                receiveShadow
+                mats={mats}
             />
         </group>
+    );
+}
+
+// ---- UV Tearing (텍스쳐 깨짐) 방지를 위한 Tri-Planar UV 프로젝션 박스 ----
+function ProjectedRoundedBox({ args, radius, mats, position }: any) {
+    const geomRef = useRef<any>(null);
+    const [W, H, D] = args;
+
+    useLayoutEffect(() => {
+        if (!geomRef.current) return;
+        const geom = geomRef.current;
+        geom.computeVertexNormals();
+        const pos = geom.attributes.position;
+        const norm = geom.attributes.normal;
+        const uv = geom.attributes.uv;
+
+        // 모든 버텍스를 순회하며 법선(Normal) 방향에 따라 직교 투영(Orthographic Projection) 방식으로 UV를 1:1 완벽하게 덮어씌웁니다.
+        // 이렇게 하면 RoundedBox의 곡면에 텍스쳐가 늘어지는 현상(Tearing)을 수학적으로 완벽하게 제거할 수 있습니다.
+        for (let i = 0; i < pos.count; i++) {
+            const x = pos.getX(i);
+            const y = pos.getY(i);
+            const z = pos.getZ(i);
+            const nx = Math.abs(norm.getX(i));
+            const ny = Math.abs(norm.getY(i));
+            const nz = Math.abs(norm.getZ(i));
+
+            if (ny >= nx && ny >= nz) {
+                // 상/하단 면 투영 (Y축)
+                uv.setXY(i, (x + W / 2) / W, (z + D / 2) / D);
+            } else if (nz >= nx && nz >= ny) {
+                // 앞/뒷면 투영 (Z축)
+                uv.setXY(i, (x + W / 2) / W, 1.0 - (y + H / 2) / H);
+            } else {
+                // 좌/우 측면 투영 (X축)
+                uv.setXY(i, (z + D / 2) / D, 1.0 - (y + H / 2) / H);
+            }
+        }
+        uv.needsUpdate = true;
+    }, [W, H, D, radius]);
+
+    return (
+        <RoundedBox ref={geomRef} position={position} args={args} radius={radius} smoothness={6} material={mats} castShadow receiveShadow />
     );
 }
 
