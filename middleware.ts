@@ -32,7 +32,7 @@ export async function middleware(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     // 보호할 경로 (/builder, /hub, /designer) - 로그인하지 않은 경우 /login으로 이동
-    const protectedPaths = ['/builder', '/hub', '/designer'];
+    const protectedPaths = ['/builder', '/hub', '/designer', '/3d-test'];
     if (protectedPaths.some(p => request.nextUrl.pathname.startsWith(p)) && !user) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'

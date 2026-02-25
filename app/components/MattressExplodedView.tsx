@@ -1,7 +1,7 @@
 'use client';
 
 import * as THREE from 'three';
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Center, Environment, ContactShadows, RoundedBox } from '@react-three/drei';
 import { useDesignStore } from '../lib/store';
@@ -144,116 +144,123 @@ function createRibbedTexture(baseColor: string = '#c4b59a'): THREE.CanvasTexture
     return tex;
 }
 
-/* ---- CoverBox: 복합 메쉬 방식 (상단+측면+하단 개별 Plane) ---- */
+/* ---- CoverBox: 뚜껑/바구니 형태 지오메트리 & 1:1 텍스처 매핑 ---- */
 function CoverBox({ position, args, color, textureUrl, isTop = true, topTextureUrl, sideTextureFrontUrl, sideTextureSideUrl }: any) {
     const [W, H, D] = args as [number, number, number];
+    const [topTex, setTopTex] = useState<THREE.Texture | null>(null);
+    const [frontTex, setFrontTex] = useState<THREE.Texture | null>(null);
+    const [sideTex, setSideTex] = useState<THREE.Texture | null>(null);
 
-    // 텍스처 생성 (한 번만)
-    const textures = useMemo(() => {
-        const sideColor = color || '#c4b59a';
-        const topColor = isTop ? '#f5f0eb' : (color || '#d4c5a9');
-        const loader = new THREE.TextureLoader();
+    // 텍스처 우선순위: 추출기 텍스처(topTextureUrl) > AI/커버 이미지(textureUrl)
+    const finalTopUrl = topTextureUrl || textureUrl;
 
-        const loadTex = (url: string | undefined, repeatX: number, repeatY: number) => {
-            if (!url) return null;
-            const tex = loader.load(url);
-            tex.wrapS = THREE.RepeatWrapping;
-            tex.wrapT = THREE.RepeatWrapping;
+    useEffect(() => {
+        if (!finalTopUrl) { setTopTex(null); return; }
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            const tex = new THREE.Texture(img);
+            tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
             tex.colorSpace = THREE.SRGBColorSpace;
-            tex.repeat.set(repeatX, repeatY);
-            return tex;
+            tex.needsUpdate = true;
+            setTopTex(tex);
         };
+        img.onerror = () => { console.warn('[CoverBox] top texture load failed:', finalTopUrl?.substring(0, 60)); setTopTex(null); };
+        img.src = finalTopUrl;
+    }, [finalTopUrl]);
 
-        const finalTopUrl = textureUrl || topTextureUrl;
-        const topTex = isTop ? loadTex(finalTopUrl, W * 1.5, D * 1.5) : null;
-        const sideFrontTex = loadTex(sideTextureFrontUrl, W * 2, 1);
-        const sideSideTex = loadTex(sideTextureSideUrl, D * 2, 1);
+    useEffect(() => {
+        if (!sideTextureFrontUrl) { setFrontTex(null); return; }
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            const tex = new THREE.Texture(img);
+            tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.needsUpdate = true;
+            setFrontTex(tex);
+        };
+        img.onerror = () => { console.warn('[CoverBox] front texture load failed'); setFrontTex(null); };
+        img.src = sideTextureFrontUrl;
+    }, [sideTextureFrontUrl]);
 
+    useEffect(() => {
+        if (!sideTextureSideUrl) { setSideTex(null); return; }
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            const tex = new THREE.Texture(img);
+            tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.needsUpdate = true;
+            setSideTex(tex);
+        };
+        img.onerror = () => { console.warn('[CoverBox] side texture load failed'); setSideTex(null); };
+        img.src = sideTextureSideUrl;
+    }, [sideTextureSideUrl]);
+
+    // fallback textures
+    const fallbacks = useMemo(() => ({
+        quilted: isTop && !topTex ? createQuiltedTexture(isTop ? '#f5f0eb' : '#d4c5a9') : null,
+        ribbed: createRibbedTexture(color || (isTop ? '#c4b59a' : '#5a5a5a'))
+    }), [isTop, topTex, color]);
+
+    const mats = useMemo(() => {
+        const sideColor = color || (isTop ? '#c4b59a' : '#5a5a5a');
+        const topColor = color || (isTop ? '#f5f0eb' : '#6a6a6a');
+        const botColor = isTop ? '#d4c5a9' : '#4a4a4a';
+
+        const matSide = new THREE.MeshStandardMaterial({ map: sideTex || fallbacks.ribbed, color: sideTex ? '#ffffff' : sideColor, roughness: 0.75 });
+        const matFront = new THREE.MeshStandardMaterial({ map: frontTex || fallbacks.ribbed, color: frontTex ? '#ffffff' : sideColor, roughness: 0.75 });
+        const matTop = new THREE.MeshStandardMaterial({ map: topTex || fallbacks.quilted, color: topTex || fallbacks.quilted ? '#ffffff' : topColor, roughness: 0.8 });
+        const matBot = new THREE.MeshStandardMaterial({ color: botColor, roughness: 0.85 });
+        const matInside = new THREE.MeshStandardMaterial({ color: isTop ? topColor : sideColor, roughness: 0.85 });
+
+        // BoxGeometry face indices: 0:Right(+X), 1:Left(-X), 2:Top(+Y), 3:Bottom(-Y), 4:Front(+Z), 5:Back(-Z)
         return {
-            quilted: isTop && !topTex ? createQuiltedTexture(topColor) : null,
-            top: topTex,
-            sideFront: sideFrontTex,
-            sideSide: sideSideTex,
-            ribbed: createRibbedTexture(sideColor),
+            front: [matInside, matInside, matInside, matInside, matFront, matInside],
+            back: [matInside, matInside, matInside, matInside, matInside, matFront],
+            right: [matSide, matInside, matInside, matInside, matInside, matInside],
+            left: [matInside, matSide, matInside, matInside, matInside, matInside],
+            top: [matInside, matInside, matTop, matInside, matInside, matInside],
+            bot: [matInside, matInside, matInside, matBot, matInside, matInside]
         };
-    }, [color, textureUrl, topTextureUrl, sideTextureFrontUrl, sideTextureSideUrl, isTop, W, H, D]);
+    }, [topTex, frontTex, sideTex, fallbacks, color, isTop]);
 
-    const topFaceColor = isTop ? '#f5f0eb' : (color || '#d4c5a9');
-    const sideColor = color || '#c4b59a';
-    const hH = H / 2;
+    const t = 0.002; // 2mm 두께
+    const wOut = W + 2 * t;
+    const dOut = D + 2 * t;
 
     return (
         <group position={position}>
-            {/* 상단면 (퀼팅 또는 AI 이미지) */}
-            <mesh position={[0, hH, 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
-                <planeGeometry args={[W, D]} />
-                <meshStandardMaterial
-                    map={textures.top || textures.quilted || undefined}
-                    color={textures.top || textures.quilted ? '#ffffff' : topFaceColor}
-                    roughness={0.8}
-                    metalness={0.01}
-                    side={THREE.DoubleSide}
-                />
+            {/* Front Panel (+Z) */}
+            <mesh position={[0, 0, D / 2 + t / 2]} castShadow receiveShadow material={mats.front}>
+                <boxGeometry args={[wOut, H, t]} />
+            </mesh>
+            {/* Back Panel (-Z) */}
+            <mesh position={[0, 0, -(D / 2 + t / 2)]} castShadow receiveShadow material={mats.back}>
+                <boxGeometry args={[wOut, H, t]} />
+            </mesh>
+            {/* Right Panel (+X) */}
+            <mesh position={[W / 2 + t / 2, 0, 0]} castShadow receiveShadow material={mats.right}>
+                <boxGeometry args={[t, H, D]} />
+            </mesh>
+            {/* Left Panel (-X) */}
+            <mesh position={[-(W / 2 + t / 2), 0, 0]} castShadow receiveShadow material={mats.left}>
+                <boxGeometry args={[t, H, D]} />
             </mesh>
 
-            {/* 하단면 (무지) */}
-            <mesh position={[0, -hH, 0]} rotation={[Math.PI / 2, 0, 0]} receiveShadow>
-                <planeGeometry args={[W, D]} />
-                <meshStandardMaterial
-                    color={sideColor}
-                    roughness={0.85}
-                    metalness={0.01}
-                    side={THREE.DoubleSide}
-                />
-            </mesh>
-
-            {/* 앞면 (+Z) (리브드 또는 프론트 이미지) */}
-            <mesh position={[0, 0, D / 2]} castShadow receiveShadow>
-                <planeGeometry args={[W, H]} />
-                <meshStandardMaterial
-                    map={textures.sideFront || textures.ribbed}
-                    color={textures.sideFront ? '#ffffff' : '#ffffff'}
-                    roughness={0.75}
-                    metalness={0.02}
-                    side={THREE.DoubleSide}
-                />
-            </mesh>
-
-            {/* 뒷면 (-Z) (리브드 또는 프론트 이미지) */}
-            <mesh position={[0, 0, -D / 2]} rotation={[0, Math.PI, 0]} castShadow receiveShadow>
-                <planeGeometry args={[W, H]} />
-                <meshStandardMaterial
-                    map={textures.sideFront || textures.ribbed}
-                    color={textures.sideFront ? '#ffffff' : '#ffffff'}
-                    roughness={0.75}
-                    metalness={0.02}
-                    side={THREE.DoubleSide}
-                />
-            </mesh>
-
-            {/* 좌측면 (-X) (리브드 또는 사이드 이미지) */}
-            <mesh position={[-W / 2, 0, 0]} rotation={[0, -Math.PI / 2, 0]} castShadow receiveShadow>
-                <planeGeometry args={[D, H]} />
-                <meshStandardMaterial
-                    map={textures.sideSide || textures.ribbed}
-                    color={textures.sideSide ? '#ffffff' : '#ffffff'}
-                    roughness={0.75}
-                    metalness={0.02}
-                    side={THREE.DoubleSide}
-                />
-            </mesh>
-
-            {/* 우측면 (+X) (리브드 또는 사이드 이미지) */}
-            <mesh position={[W / 2, 0, 0]} rotation={[0, Math.PI / 2, 0]} castShadow receiveShadow>
-                <planeGeometry args={[D, H]} />
-                <meshStandardMaterial
-                    map={textures.sideSide || textures.ribbed}
-                    color={textures.sideSide ? '#ffffff' : '#ffffff'}
-                    roughness={0.75}
-                    metalness={0.02}
-                    side={THREE.DoubleSide}
-                />
-            </mesh>
+            {isTop ? (
+                /* Top Panel (+Y) */
+                <mesh position={[0, H / 2 + t / 2, 0]} castShadow receiveShadow material={mats.top}>
+                    <boxGeometry args={[wOut, t, dOut]} />
+                </mesh>
+            ) : (
+                /* Bottom Panel (-Y) */
+                <mesh position={[0, -(H / 2 + t / 2), 0]} castShadow receiveShadow material={mats.bot}>
+                    <boxGeometry args={[wOut, t, dOut]} />
+                </mesh>
+            )}
         </group>
     );
 }
@@ -310,6 +317,7 @@ function ExplodedModel({ isExploded }: { isExploded: boolean }) {
         guardFoamEnabled, guardFoamThickness, guardFoamRadius,
         bottomFoamEnabled, bottomFoamThickness, bottomFoamRadius,
         customCoverImages,
+        upperCoverTextures, lowerCoverTextures,
     } = useDesignStore();
     const customOpts = useCustomOptionsStore();
 
@@ -340,12 +348,17 @@ function ExplodedModel({ isExploded }: { isExploded: boolean }) {
     const coreH_mm = coreOption?.height || 200;
     const topT_mm = topFoamEnabled && topFoamOpt ? topFoamOpt.thickness : 0;
     const botT_mm = bottomFoamEnabled ? bottomFoamThickness : 0;
-    const coverT_mm = 15; // 커버 두께 (고정)
+    // 커버 두께 계산: 내부 폼 레이어 기반
+    // 상단 커버 = 상단폼 두께 + 50
+    const topCoverT_mm = topT_mm + 50;
+    // 하단 커버 = 코어 높이 + 하단폼 두께
+    const botCoverT_mm = coreH_mm + botT_mm;
 
     const coreH = coreH_mm * SCALE;
     const topT = topT_mm * SCALE;
     const botT = botT_mm * SCALE;
-    const coverT = coverT_mm * SCALE;
+    const topCoverT = topCoverT_mm * SCALE;
+    const botCoverT = botCoverT_mm * SCALE;
 
     // 커버 이미지
     const coverImg = (coverId && customCoverImages[coverId]) ? customCoverImages[coverId] : coverOption?.image;
@@ -373,7 +386,7 @@ function ExplodedModel({ isExploded }: { isExploded: boolean }) {
             explodeRef={explodeRef}
             W={W} D={D}
             coreH={coreH} coreW={coreW} coreD={coreD}
-            topT={topT} botT={botT} coverT={coverT}
+            topT={topT} botT={botT} topCoverT={topCoverT} botCoverT={botCoverT}
             gfT={gfT} gfEnabled={gfEnabled} gdLen={gdLen}
             isDual={isDual}
             topFoamEnabled={topFoamEnabled}
@@ -382,9 +395,12 @@ function ExplodedModel({ isExploded }: { isExploded: boolean }) {
             bottomFoamEnabled={bottomFoamEnabled}
             bottomFoamRadius={bottomFoamRadius}
             guardFoamRadius={guardFoamRadius}
-            topTextureUrl={coverOption?.topImage}
-            sideTextureFrontUrl={coverOption?.sideImageFront}
-            sideTextureSideUrl={coverOption?.sideImageSide}
+            topTextureUrl={upperCoverTextures?.top || coverOption?.topImage}
+            sideTextureFrontUrl={upperCoverTextures?.front || coverOption?.sideImageFront}
+            sideTextureSideUrl={upperCoverTextures?.side || coverOption?.sideImageSide}
+            lowerTopTextureUrl={lowerCoverTextures?.top}
+            lowerSideTextureFrontUrl={lowerCoverTextures?.front || coverOption?.sideImageFront}
+            lowerSideTextureSideUrl={lowerCoverTextures?.side || coverOption?.sideImageSide}
             customCoverImage={coverImg}
             CO={CO}
         />
@@ -393,9 +409,11 @@ function ExplodedModel({ isExploded }: { isExploded: boolean }) {
 
 /* 애니메이션 적용 그룹 */
 const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
-    { explodeRef, W, D, coreH, coreW, coreD, topT, botT, coverT, gfT, gfEnabled, gdLen, isDual,
+    { explodeRef, W, D, coreH, coreW, coreD, topT, botT, topCoverT, botCoverT, gfT, gfEnabled, gdLen, isDual,
         topFoamEnabled, topFoamOpt, topFoamRadius, bottomFoamEnabled, bottomFoamRadius, guardFoamRadius,
-        topTextureUrl, sideTextureFrontUrl, sideTextureSideUrl, customCoverImage, CO }: any,
+        topTextureUrl, sideTextureFrontUrl, sideTextureSideUrl,
+        lowerTopTextureUrl, lowerSideTextureFrontUrl, lowerSideTextureSideUrl,
+        customCoverImage, CO }: any,
     ref: any
 ) {
     const bottomCoverRef = useRef<THREE.Group>(null);
@@ -408,36 +426,37 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
         const t = explodeRef.current;
         const gap = LAYER_GAP * t;
 
-        // 레이어 Y 위치 계산 (아래→위)
-        let y = 0;
+        const totalInnerH = botT + coreH + topT;
+        const cy = totalInnerH / 2; // 모델의 전체 중심축을 중앙으로 정렬
 
         // 1. 하단 커버
         if (bottomCoverRef.current) {
-            bottomCoverRef.current.position.y = y - gap * 2;
+            const baseCenterY = (botT + coreH) / 2;
+            bottomCoverRef.current.position.y = (baseCenterY - cy) - gap * 2;
         }
-        y += coverT;
 
         // 2. 하단폼
-        if (bottomFoamRef.current) {
-            bottomFoamRef.current.position.y = y + botT / 2 - gap * 1;
+        if (botT > 0 && bottomFoamRef.current) {
+            const baseCenterY = botT / 2;
+            bottomFoamRef.current.position.y = (baseCenterY - cy) - gap * 1;
         }
-        y += botT > 0 ? botT : 0;
 
-        // 3. 가드폼 + 코어 (중앙 기준)
+        // 3. 코어 + 가드폼
         if (coreGroupRef.current) {
-            coreGroupRef.current.position.y = y + coreH / 2;
+            const baseCenterY = botT + coreH / 2;
+            coreGroupRef.current.position.y = (baseCenterY - cy);
         }
-        y += coreH;
 
         // 4. 상단폼
-        if (topFoamRef.current) {
-            topFoamRef.current.position.y = y + topT / 2 + gap * 1;
+        if (topT > 0 && topFoamRef.current) {
+            const baseCenterY = botT + coreH + topT / 2;
+            topFoamRef.current.position.y = (baseCenterY - cy) + gap * 1;
         }
-        y += topT > 0 ? topT : 0;
 
         // 5. 상단 커버
         if (topCoverRef.current) {
-            topCoverRef.current.position.y = y + coverT / 2 + gap * 2;
+            const baseCenterY = botT + coreH + topT / 2;
+            topCoverRef.current.position.y = (baseCenterY - cy) + gap * 2;
         }
     });
 
@@ -446,11 +465,12 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
             {/* 1. 하단 커버 */}
             <group ref={bottomCoverRef}>
                 <CoverBox
-                    position={[0, coverT / 2, 0]}
-                    args={[W, coverT, D]}
+                    position={[0, 0, 0]}
+                    args={[W, coreH + botT > 0 ? coreH + botT : 0.001, D]}
                     color={CO.coverBot}
-                    sideTextureFrontUrl={sideTextureFrontUrl}
-                    sideTextureSideUrl={sideTextureSideUrl}
+                    topTextureUrl={lowerTopTextureUrl}
+                    sideTextureFrontUrl={lowerSideTextureFrontUrl}
+                    sideTextureSideUrl={lowerSideTextureSideUrl}
                     isTop={false}
                 />
             </group>
@@ -596,7 +616,7 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
             <group ref={topCoverRef}>
                 <CoverBox
                     position={[0, 0, 0]}
-                    args={[W, coverT, D]}
+                    args={[W, topT > 0 ? topT : 0.001, D]}
                     color={CO.coverTop}
                     textureUrl={customCoverImage}
                     topTextureUrl={topTextureUrl}

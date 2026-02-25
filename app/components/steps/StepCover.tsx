@@ -6,6 +6,7 @@ import { COVER_OPTIONS } from '../../lib/constants';
 import { useCustomOptionsStore } from '../../lib/customOptionsStore';
 import AddOptionModal, { AddButton, DeleteBadge, type FieldDef } from '../AddOptionModal';
 import CoverImageGeneratorModal from '../CoverImageGeneratorModal';
+import TextureExtractorModal from '../TextureExtractorModal';
 import Image from 'next/image';
 
 const gradeLabel: Record<string, string> = {
@@ -23,11 +24,16 @@ const gradeColor: Record<string, string> = {
 };
 
 export default function StepCover() {
-    const { coverId, setCover, customCoverImages, setCustomCoverImage, structureType } = useDesignStore();
+    const { coverId, setCover, customCoverImages, setCustomCoverImage, structureType,
+        upperCoverTextures, lowerCoverTextures, setUpperCoverTextures, setLowerCoverTextures,
+        upperCoverCoords, lowerCoverCoords, setUpperCoverCoords, setLowerCoverCoords,
+        coverExtractSourceImage, setCoverExtractSourceImage
+    } = useDesignStore();
     const { covers: customCovers, addCover, removeCover, _hydrate } = useCustomOptionsStore();
     const [showAdd, setShowAdd] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [imageGenTarget, setImageGenTarget] = useState<{ id: string; label: string; description: string; color: string; image?: string } | null>(null);
+    const [textureExtractTarget, setTextureExtractTarget] = useState<{ id: string; label: string } | null>(null);
 
     useEffect(() => { _hydrate(); setMounted(true); }, []);
 
@@ -200,6 +206,29 @@ export default function StepCover() {
                                             >
                                                 <span style={{ fontSize: 12 }}>✨</span> AI 이미지
                                             </span>
+                                            {/* 텍스처 추출 버튼 */}
+                                            <span
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setTextureExtractTarget({ id: cover.id, label: cover.label });
+                                                }}
+                                                style={{
+                                                    fontSize: 11, fontWeight: 700, padding: '4px 10px',
+                                                    borderRadius: 8, letterSpacing: '0.3px',
+                                                    color: '#059669',
+                                                    background: '#d1fae5',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s',
+                                                    whiteSpace: 'nowrap',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 4,
+                                                }}
+                                                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#a7f3d0'; }}
+                                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#d1fae5'; }}
+                                            >
+                                                <span style={{ fontSize: 12 }}>✂️</span> 텍스처 추출
+                                            </span>
                                             <span style={{
                                                 fontSize: 11, fontWeight: 700, color: displayGradeColor,
                                                 background: `${displayGradeColor}15`, padding: '4px 8px', borderRadius: 6,
@@ -272,6 +301,28 @@ export default function StepCover() {
                     coverImage={imageGenTarget.image}
                     onSave={(imageUrl) => setCustomCoverImage(imageGenTarget.id, imageUrl)}
                     onClose={() => setImageGenTarget(null)}
+                />
+            )}
+
+            {/* 텍스처 추출 모달 */}
+            {textureExtractTarget && (
+                <TextureExtractorModal
+                    coverLabel={textureExtractTarget.label}
+                    initialUpperTex={upperCoverTextures}
+                    initialLowerTex={lowerCoverTextures}
+                    initialUpperCoords={upperCoverCoords}
+                    initialLowerCoords={lowerCoverCoords}
+                    initialUpperSource={coverExtractSourceImage.upper}
+                    initialLowerSource={coverExtractSourceImage.lower}
+                    onSave={(upper, lower, upperCoords, lowerCoords, upperSource, lowerSource) => {
+                        setUpperCoverTextures(upper);
+                        setLowerCoverTextures(lower);
+                        setUpperCoverCoords(upperCoords);
+                        setLowerCoverCoords(lowerCoords);
+                        setCoverExtractSourceImage('upper', upperSource);
+                        setCoverExtractSourceImage('lower', lowerSource);
+                    }}
+                    onClose={() => setTextureExtractTarget(null)}
                 />
             )}
         </div>
