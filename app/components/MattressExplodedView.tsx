@@ -212,11 +212,12 @@ function CoverBox({ position, args, color, textureUrl, isTop = true, radius = 0.
 
         const matSide = new THREE.MeshStandardMaterial({ map: sideTex || fallbacks.ribbed, color: sideTex ? '#ffffff' : sideColor, roughness: 0.75, side: THREE.DoubleSide });
         const matFront = new THREE.MeshStandardMaterial({ map: frontTex || fallbacks.ribbed, color: frontTex ? '#ffffff' : sideColor, roughness: 0.75, side: THREE.DoubleSide });
-        const matTop = new THREE.MeshStandardMaterial({ map: topTex || fallbacks.quilted, color: topTex || fallbacks.quilted ? '#ffffff' : topColor, roughness: 0.8, side: THREE.DoubleSide });
+        const matTop = new THREE.MeshStandardMaterial({ map: topTex || fallbacks.quilted, color: topTex ? '#ffffff' : topColor, roughness: 0.8, side: THREE.DoubleSide });
         const matBot = new THREE.MeshStandardMaterial({ color: botColor, roughness: 0.85, side: THREE.DoubleSide });
         const matInvisible = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
 
-        // BoxGeometry face indices: 0:Right(+X), 1:Left(-X), 2:Top(+Y), 3:Bottom(-Y), 4:Front(+Z), 5:Back(-Z)
+        // RoundedBox face indexing is identical to BoxGeometry: 0:Right(+X), 1:Left(-X), 2:Top(+Y), 3:Bottom(-Y), 4:Front(+Z), 5:Back(-Z)
+        // However, UVs might be strictly 0-1 across the entire width/height.
         return [
             matSide,   // 0: Right
             matSide,   // 1: Left
@@ -231,17 +232,40 @@ function CoverBox({ position, args, color, textureUrl, isTop = true, radius = 0.
     const wOut = W + 2 * t;
     const dOut = D + 2 * t;
 
+    // 모서리 라운딩 적용 시 텍스쳐가 깨지는 것을 방지하기 위해
+    // 5개의 개별 평면(박스)으로 구성된 기존 방식으로 회귀하되,
+    // 필요 시 추후 각 모서리에 원기둥(Cylinder)을 덧대는 방식으로 라운딩을 시뮬레이션 할 수 있습니다.
+
     return (
         <group position={position}>
-            <RoundedBox
-                position={[0, 0, 0]}
-                args={[wOut, H + t, dOut]}
-                radius={Math.max(radius, 0.002)}
-                smoothness={4}
-                material={mats}
-                castShadow
-                receiveShadow
-            />
+            {/* Front Panel (+Z) */}
+            <mesh position={[0, 0, D / 2 + t / 2]} castShadow receiveShadow material={mats[4]}>
+                <boxGeometry args={[wOut, H, t]} />
+            </mesh>
+            {/* Back Panel (-Z) */}
+            <mesh position={[0, 0, -(D / 2 + t / 2)]} castShadow receiveShadow material={mats[5]}>
+                <boxGeometry args={[wOut, H, t]} />
+            </mesh>
+            {/* Right Panel (+X) */}
+            <mesh position={[W / 2 + t / 2, 0, 0]} castShadow receiveShadow material={mats[0]}>
+                <boxGeometry args={[t, H, D]} />
+            </mesh>
+            {/* Left Panel (-X) */}
+            <mesh position={[-(W / 2 + t / 2), 0, 0]} castShadow receiveShadow material={mats[1]}>
+                <boxGeometry args={[t, H, D]} />
+            </mesh>
+
+            {isTop ? (
+                /* Top Panel (+Y) */
+                <mesh position={[0, H / 2 + t / 2, 0]} castShadow receiveShadow material={mats[2]}>
+                    <boxGeometry args={[wOut, t, dOut]} />
+                </mesh>
+            ) : (
+                /* Bottom Panel (-Y) */
+                <mesh position={[0, -(H / 2 + t / 2), 0]} castShadow receiveShadow material={mats[3]}>
+                    <boxGeometry args={[wOut, t, dOut]} />
+                </mesh>
+            )}
         </group>
     );
 }
