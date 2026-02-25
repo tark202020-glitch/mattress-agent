@@ -6,13 +6,8 @@ const LOCATION = process.env.GOOGLE_LOCATION || 'us-central1';
 const GEMINI_MODEL = 'gemini-2.0-flash-001'; // or gemini-2.5-flash
 
 export const maxDuration = 60;
-export const config = {
-    api: {
-        bodyParser: {
-            sizeLimit: '10mb',
-        },
-    },
-};
+// Node.js limits apply, but App Router does not support exporting a config object
+
 
 export async function POST(req: Request) {
     try {

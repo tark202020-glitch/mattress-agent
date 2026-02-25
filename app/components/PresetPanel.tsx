@@ -51,6 +51,11 @@ export default function PresetPanel() {
             packagingId: designStore.packagingId,
             deliveryId: designStore.deliveryId,
             customCoverImages: designStore.customCoverImages,
+            upperCoverTextures: designStore.upperCoverTextures,
+            lowerCoverTextures: designStore.lowerCoverTextures,
+            upperCoverCoords: designStore.upperCoverCoords,
+            lowerCoverCoords: designStore.lowerCoverCoords,
+            coverExtractSourceImage: designStore.coverExtractSourceImage,
             currentStep: designStore.currentStep,
         };
         const ok = savePreset(saveName.trim(), state);

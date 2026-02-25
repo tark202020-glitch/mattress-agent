@@ -1,3 +1,13 @@
+## [Alpha V1.060] - 2026-02-25 23:42:00
+
+### 🔄 Build Update
+- **Summary**: Vercel 배포 실패 원인 해결 (Next.js config / TS Type Error 수정)
+- **Detail** :
+  - **`app/api/analyze-image-prompt/route.ts` & `app/api/generate-image/route.ts` [MODIFY]**: Next.js App Router 환경에서 지원하지 않는 `export const config = { api: { bodyParser: ... } }` 구문 삭제 (Vercel Build Error 해결).
+  - **`app/api/generate-face-texture/route.ts` [MODIFY]**: Base64 이미지 용량 초과로 인하여 json 파싱 실패할 경우를 대비하여 `req.json()`에 try-catch 에러 핸들링 추가 적용 (Next.js 500 에러 다운 방지).
+  - **`app/components/PresetPanel.tsx` [MODIFY]**: 프리셋 저장 시 `DesignState` 타입에 새로 추가된 커버 이미지 매핑 관련 필드들(`upperCoverTextures`, `lowerCoverTextures`, `upperCoverCoords`, `lowerCoverCoords`, `coverExtractSourceImage`)이 누락되어 발생한 TypeScript 빌드 에러 해결.
+- **Build Time**: 2026-02-25 23:42:00
+
 ## [Alpha V1.059] - 2026-02-25 23:21:40
 
 ### 🔄 Build Update
