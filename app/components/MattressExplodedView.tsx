@@ -253,7 +253,7 @@ function CoverBox({ position, args, color, textureUrl, isTop = true, radius = 0.
     );
 }
 
-// ---- UV Tearing (텍스쳐 깨짐) 방지를 위한 Tri-Planar UV 프로젝션 박스 ----
+// ---- UV Tearing (텍스쳐 깨짐) 방지를 위한 Face-Group 기반 UV 프로젝션 박스 ----
 function ProjectedRoundedBox({ args, radius, mats, position }: any) {
     const geomRef = useRef<any>(null);
     const [W, H, D] = args;
@@ -264,33 +264,59 @@ function ProjectedRoundedBox({ args, radius, mats, position }: any) {
         const geom = mesh.geometry;
         if (!geom) return;
 
-        if (!geom.attributes.normal) geom.computeVertexNormals();
-
         const pos = geom.attributes.position;
-        const norm = geom.attributes.normal;
         const uv = geom.attributes.uv;
+        if (!pos || !uv) return;
 
-        if (!pos || !norm || !uv) return;
+        // RoundedBox geometry.groups는 face별 인덱스 범위를 정의:
+        // group 0: Right(+X), group 1: Left(-X)
+        // group 2: Top(+Y),   group 3: Bottom(-Y)
+        // group 4: Front(+Z), group 5: Back(-Z)
+        const groups = geom.groups;
+        const idx = geom.index;
 
-        // 모든 버텍스를 순회하며 법선(Normal) 방향에 따라 직교 투영(Orthographic Projection) 방식으로 UV를 1:1 완벽하게 덮어씌웁니다.
-        // 이렇게 하면 RoundedBox의 곡면에 텍스쳐가 늘어지는 현상(Tearing)을 수학적으로 완벽하게 제거할 수 있습니다.
-        for (let i = 0; i < pos.count; i++) {
-            const x = pos.getX(i);
-            const y = pos.getY(i);
-            const z = pos.getZ(i);
-            const nx = Math.abs(norm.getX(i));
-            const ny = Math.abs(norm.getY(i));
-            const nz = Math.abs(norm.getZ(i));
+        if (!groups || groups.length < 6 || !idx) {
+            // groups가 없는 비정상 케이스 fallback: 기존 normal 기반
+            if (!geom.attributes.normal) geom.computeVertexNormals();
+            const norm = geom.attributes.normal;
+            if (!norm) return;
+            for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+                const nx = Math.abs(norm.getX(i)), ny = Math.abs(norm.getY(i)), nz = Math.abs(norm.getZ(i));
+                if (ny >= nx && ny >= nz) {
+                    uv.setXY(i, (x + W / 2) / W, (z + D / 2) / D);
+                } else if (nz >= nx && nz >= ny) {
+                    uv.setXY(i, (x + W / 2) / W, 1.0 - (y + H / 2) / H);
+                } else {
+                    uv.setXY(i, (z + D / 2) / D, 1.0 - (y + H / 2) / H);
+                }
+            }
+        } else {
+            // Group 기반 UV 계산 — 같은 면의 모든 정점에 동일 투영축을 사용하여 깨짐(tearing) 제거
+            // 각 group의 해당 정점들을 Set으로 모음
+            const vertexProjection = new Uint8Array(pos.count); // 0=unset, 1=X(side), 2=Y(top/bot), 3=Z(front/back)
+            for (let gi = 0; gi < groups.length; gi++) {
+                const g = groups[gi];
+                const projType = (gi <= 1) ? 1 : (gi <= 3 ? 2 : 3); // 0,1→X  2,3→Y  4,5→Z
+                const end = g.start + g.count;
+                for (let j = g.start; j < end; j++) {
+                    vertexProjection[idx.getX(j)] = projType;
+                }
+            }
 
-            if (ny >= nx && ny >= nz) {
-                // 상/하단 면 투영 (Y축)
-                uv.setXY(i, (x + W / 2) / W, (z + D / 2) / D);
-            } else if (nz >= nx && nz >= ny) {
-                // 앞/뒷면 투영 (Z축)
-                uv.setXY(i, (x + W / 2) / W, 1.0 - (y + H / 2) / H);
-            } else {
-                // 좌/우 측면 투영 (X축)
-                uv.setXY(i, (z + D / 2) / D, 1.0 - (y + H / 2) / H);
+            for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+                const proj = vertexProjection[i];
+                if (proj === 2) {
+                    // Y축 투영 (상/하단 면)
+                    uv.setXY(i, (x + W / 2) / W, (z + D / 2) / D);
+                } else if (proj === 3) {
+                    // Z축 투영 (앞/뒷면)
+                    uv.setXY(i, (x + W / 2) / W, 1.0 - (y + H / 2) / H);
+                } else {
+                    // X축 투영 (좌/우 측면) 또는 unset → 측면으로 fallback
+                    uv.setXY(i, (z + D / 2) / D, 1.0 - (y + H / 2) / H);
+                }
             }
         }
         uv.needsUpdate = true;

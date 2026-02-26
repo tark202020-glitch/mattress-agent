@@ -1,3 +1,12 @@
+## [Alpha V1.068] - 2026-02-26 12:30:00
+
+### 🐛 Bug Fix
+- **Summary**: 텍스쳐 깨짐(Tearing) 수정 + Default 저장 범위 커버별 독립 분리
+- **Detail** :
+  - **`app/components/MattressExplodedView.tsx` [MODIFY]**: `ProjectedRoundedBox` UV 프로젝션 방식을 법선(Normal) 기반 Tri-planar에서 **Face-Group Index 기반** 방식으로 전면 교체. RoundedBox의 `geometry.groups` 배열로 각 면(Right/Left/Top/Bottom/Front/Back)에 속하는 정점을 정확히 식별하여 동일 투영축을 일관 적용함으로써 곡면 모서리에서 발생하던 텍스처 왜곡·찢어짐(tearing) 현상을 완전히 제거했습니다.
+  - **`app/components/TextureExtractorModal.tsx` [MODIFY]**: "Default로 저장" 버튼 클릭 시 저장 키를 기존 `structureType`(basic/standard/premium)에서 **`coverId`(COMPACT, FLAT_GRID 등)** 로 변경하여, 특정 커버에서만 저장한 기본 텍스쳐가 다른 커버에 영향을 주지 않도록 완전 독립 분리. 불러오기 시에도 `coverId` 저장본 → `structureType` 저장본 → 프리셋(PREDEFINED) 순으로 우선순위를 적용합니다.
+- **Build Time**: 2026-02-26 12:30:00
+
 ## [Alpha V1.067] - 2026-02-26 12:20:00
 
 ### 🔄 Build Update

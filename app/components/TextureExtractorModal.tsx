@@ -138,8 +138,10 @@ export default function TextureExtractorModal({
     const defaultTextures = useDesignStore(s => s.defaultTextures);
     const setDefaultTextures = useDesignStore(s => s.setDefaultTextures);
 
-    // Initialize with existing values or defaults for the current structureType
-    const def = defaultTextures[structureType];
+    // Initialize with existing values or defaults - coverId별로 먼저 조회, 없으면 structureType 조회
+    const coverDef = coverId ? defaultTextures[coverId] : null;
+    const styleDef = defaultTextures[structureType];
+    const def = coverDef || styleDef;
     const hasInitialValues = initialUpperTex?.top || initialUpperTex?.front || initialUpperTex?.side ||
         initialLowerTex?.top || initialLowerTex?.front || initialLowerTex?.side;
 
@@ -147,10 +149,10 @@ export default function TextureExtractorModal({
 
     const startingUpperTex = hasInitialValues ? initialUpperTex : (def?.upper || { top: null, front: null, side: null });
     const startingLowerTex = hasInitialValues ? initialLowerTex : (def?.lower || { top: null, front: null, side: null });
-    const startingUpperCoords = hasInitialValues ? initialUpperCoords : ((specificExtractData ? specificExtractData.coords : null) || def?.upperCoords || null);
-    const startingLowerCoords = hasInitialValues ? initialLowerCoords : ((specificExtractData ? specificExtractData.coords : null) || def?.lowerCoords || null);
-    const startingUpperSource = hasInitialValues ? initialUpperSource : ((specificExtractData ? specificExtractData.image : null) || def?.sourceImage?.upper || null);
-    const startingLowerSource = hasInitialValues ? initialLowerSource : ((specificExtractData ? specificExtractData.image : null) || def?.sourceImage?.lower || null);
+    const startingUpperCoords = hasInitialValues ? initialUpperCoords : (def?.upperCoords || (specificExtractData ? specificExtractData.coords : null) || null);
+    const startingLowerCoords = hasInitialValues ? initialLowerCoords : (def?.lowerCoords || (specificExtractData ? specificExtractData.coords : null) || null);
+    const startingUpperSource = hasInitialValues ? initialUpperSource : (def?.sourceImage?.upper || (specificExtractData ? specificExtractData.image : null) || null);
+    const startingLowerSource = hasInitialValues ? initialLowerSource : (def?.sourceImage?.lower || (specificExtractData ? specificExtractData.image : null) || null);
 
     const [activeCover, setActiveCover] = useState<CoverType>('upper');
     const [upperSource, setUpperSource] = useState<string | null>(startingUpperSource || null);
@@ -380,8 +382,9 @@ export default function TextureExtractorModal({
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => {
-                            setDefaultTextures(structureType, upperTex, lowerTex, upperCoords, lowerCoords, { upper: upperSource, lower: lowerSource });
-                            setToastMsg(`${structureType === 'basic' ? '베이직' : structureType === 'premium' ? '프리미엄' : '스탠다드'} 스타일 기본 텍스쳐로 저장되었습니다.`);
+                            const saveKey = coverId || structureType;
+                            setDefaultTextures(saveKey, upperTex, lowerTex, upperCoords, lowerCoords, { upper: upperSource, lower: lowerSource });
+                            setToastMsg(`"${coverLabel}" 커버 기본 텍스쳐로 저장되었습니다.`);
                             setTimeout(() => setToastMsg(''), 3000);
                         }} disabled={!hasAnyTexture} style={{ ...btnBase, padding: '8px 20px', background: hasAnyTexture ? '#3b82f6' : '#1e293b', color: hasAnyTexture ? '#fff' : '#475569', cursor: hasAnyTexture ? 'pointer' : 'not-allowed' }}>
                             Default로 저장
