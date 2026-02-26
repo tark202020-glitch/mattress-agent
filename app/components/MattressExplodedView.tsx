@@ -260,11 +260,17 @@ function ProjectedRoundedBox({ args, radius, mats, position }: any) {
 
     useLayoutEffect(() => {
         if (!geomRef.current) return;
-        const geom = geomRef.current;
-        geom.computeVertexNormals();
+        const mesh = geomRef.current;
+        const geom = mesh.geometry;
+        if (!geom) return;
+
+        if (!geom.attributes.normal) geom.computeVertexNormals();
+
         const pos = geom.attributes.position;
         const norm = geom.attributes.normal;
         const uv = geom.attributes.uv;
+
+        if (!pos || !norm || !uv) return;
 
         // 모든 버텍스를 순회하며 법선(Normal) 방향에 따라 직교 투영(Orthographic Projection) 방식으로 UV를 1:1 완벽하게 덮어씌웁니다.
         // 이렇게 하면 RoundedBox의 곡면에 텍스쳐가 늘어지는 현상(Tearing)을 수학적으로 완벽하게 제거할 수 있습니다.
@@ -462,6 +468,7 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
     const coreGroupRef = useRef<THREE.Group>(null);
     const topFoamRef = useRef<THREE.Group>(null);
     const topCoverRef = useRef<THREE.Group>(null);
+    const innerCoreRef = useRef<THREE.Group>(null);
 
     useFrame(() => {
         const t = explodeRef.current;
@@ -506,8 +513,6 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
             topCoverRef.current.position.y = (baseCenterY - cy) + (gapTopCover * SCALE * t);
         }
     });
-
-    const innerCoreRef = useRef<THREE.Group>(null);
 
     return (
         <group ref={ref} dispose={null}>

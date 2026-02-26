@@ -1,3 +1,12 @@
+## [Alpha V1.064] - 2026-02-26 09:34:00
+
+### 🔄 Build Update
+- **Summary**: 분해도 보기 클릭 시 화면 전체 오류(Client-side exception) 디버깅 및 수정
+- **Detail** :
+  - **`app/components/MattressExplodedView.tsx` [MODIFY]**: 3D 모델 렌더링 시 `ProjectedRoundedBox` 컴포넌트 내부에서 `geomRef.current`가 `THREE.BufferGeometry` 대신 `THREE.Mesh`를 참조하여 `.attributes.position.count`를 읽지 못해 발생하던 런타임 에러(TypeError)를 안전하게 처리하도록 수정.
+  - React Hook의 호출 순서 안정성을 위해 `useRef`(`innerCoreRef`)의 선언문을 `useFrame` 위로 이동.
+- **Build Time**: 2026-02-26 09:34:00
+
 ## [Alpha V1.063] - 2026-02-26 01:05:00
 
 ### 🔄 Build Update
