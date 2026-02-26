@@ -237,12 +237,33 @@ export default function TextureExtractorModal({
     const hasAnyTexture = (upperTex.top || upperTex.front || upperTex.side || lowerTex.top || lowerTex.front || lowerTex.side);
 
     const btnBase: React.CSSProperties = { borderRadius: 8, border: 'none', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', fontSize: 12 };
+    const zoomBtnStyle: React.CSSProperties = { ...btnBase, background: '#1e293b', color: '#e2e8f0', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 };
+
+    const [scale, setScale] = useState(1);
+    const [pan, setPan] = useState({ x: 0, y: 0 });
+    const [isDraggingPan, setIsDraggingPan] = useState(false);
+
+    const handlePanDown = useCallback((e: React.PointerEvent) => {
+        setIsDraggingPan(true);
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    }, []);
+    const handlePanMove = useCallback((e: React.PointerEvent) => {
+        if (isDraggingPan) {
+            setPan(prev => ({ x: prev.x + e.movementX, y: prev.y + e.movementY }));
+        }
+    }, [isDraggingPan]);
+    const handlePanUp = useCallback((e: React.PointerEvent) => {
+        setIsDraggingPan(false);
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    }, []);
+    const resetView = useCallback(() => {
+        setScale(1);
+        setPan({ x: 0, y: 0 });
+    }, []);
 
     return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-            onClick={onClose}>
-            <div style={{ width: '90vw', maxWidth: 900, height: '80vh', background: '#0f172a', borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 80px rgba(0,0,0,0.5)' }}
-                onClick={e => e.stopPropagation()}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', background: '#0f172a' }}>
+            <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
 
                 {/* Header */}
                 <div style={{ padding: '12px 20px', borderBottom: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, position: 'relative' }}>
@@ -318,20 +339,34 @@ export default function TextureExtractorModal({
                     </div>
 
                     {/* Image Editor Area */}
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'repeating-conic-gradient(#1a1f2e 0% 25%, #151a28 0% 50%) 0 0 / 30px 30px' }}>
-                        {selectedImage ? (
-                            <div style={{ position: 'relative', maxWidth: '90%', maxHeight: '90%' }}>
-                                <img src={selectedImage} alt="원본" draggable={false} style={{ maxWidth: '100%', maxHeight: 'calc(80vh - 120px)', display: 'block', borderRadius: 8, boxShadow: '0 8px 40px rgba(0,0,0,0.5)' }} />
-                                {faceCoords && <CornerEditor faceCoords={faceCoords} onChange={setFaceCoords} />}
-                                <div style={{ position: 'absolute', top: 8, left: 8, padding: '3px 8px', borderRadius: 4, background: `${COVER_COLORS[activeCover]}cc`, color: '#fff', fontSize: 10, fontWeight: 700 }}>{COVER_LABELS[activeCover]} 편집 중</div>
-                            </div>
-                        ) : (
-                            <div style={{ textAlign: 'center', color: '#334155' }}>
-                                <div style={{ fontSize: 48, marginBottom: 12 }}>📷</div>
-                                <div style={{ fontSize: 14, fontWeight: 600 }}>매트리스 커버 사진을 업로드하세요</div>
-                                <div style={{ fontSize: 12, marginTop: 4 }}>상단/하단 커버의 텍스처를 각각 추출합니다</div>
-                            </div>
-                        )}
+                    <div
+                        style={{ flex: 1, position: 'relative', overflow: 'hidden', background: 'repeating-conic-gradient(#1a1f2e 0% 25%, #151a28 0% 50%) 0 0 / 30px 30px', cursor: isDraggingPan ? 'grabbing' : 'grab' }}
+                        onWheel={e => { e.stopPropagation(); setScale(s => Math.max(0.1, Math.min(10, s - e.deltaY * 0.002))); }}
+                        onPointerDown={handlePanDown}
+                        onPointerMove={handlePanMove}
+                        onPointerUp={handlePanUp}
+                        onPointerCancel={handlePanUp}
+                    >
+                        <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10, display: 'flex', gap: 8, background: 'rgba(15, 23, 42, 0.8)', padding: 6, borderRadius: 8, backdropFilter: 'blur(4px)' }}>
+                            <button onClick={() => setScale(s => Math.max(0.1, s - 0.2))} style={zoomBtnStyle} title="축소">➖</button>
+                            <button onClick={resetView} style={{ ...zoomBtnStyle, width: 'auto', padding: '0 12px', fontSize: 11 }} title="초기화">{Math.round(scale * 100)}%</button>
+                            <button onClick={() => setScale(s => Math.min(10, s + 0.2))} style={zoomBtnStyle} title="확대">➕</button>
+                        </div>
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {selectedImage ? (
+                                <div style={{ position: 'relative', transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`, transformOrigin: 'center', transition: isDraggingPan ? 'none' : 'transform 0.1s' }}>
+                                    <img src={selectedImage} alt="원본" draggable={false} style={{ maxWidth: '80vw', maxHeight: '80vh', display: 'block', borderRadius: 8, boxShadow: '0 8px 40px rgba(0,0,0,0.5)', pointerEvents: 'none' }} />
+                                    {faceCoords && <CornerEditor faceCoords={faceCoords} onChange={setFaceCoords} />}
+                                    <div style={{ position: 'absolute', top: 8, left: 8, padding: '3px 8px', borderRadius: 4, background: `${COVER_COLORS[activeCover]}cc`, color: '#fff', fontSize: 10, fontWeight: 700 }}>{COVER_LABELS[activeCover]} 편집 중</div>
+                                </div>
+                            ) : (
+                                <div style={{ textAlign: 'center', color: '#334155' }}>
+                                    <div style={{ fontSize: 48, marginBottom: 12 }}>📷</div>
+                                    <div style={{ fontSize: 14, fontWeight: 600 }}>매트리스 커버 사진을 업로드하세요</div>
+                                    <div style={{ fontSize: 12, marginTop: 4 }}>상단/하단 커버의 텍스처를 각각 추출합니다</div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
