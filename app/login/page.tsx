@@ -32,7 +32,7 @@ export default function LoginPage() {
             return
         }
 
-        router.push('/builder')
+        router.push('/hub')
         router.refresh()
     }
 

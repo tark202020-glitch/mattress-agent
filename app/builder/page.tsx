@@ -100,6 +100,18 @@ export default function Page() {
                         padding: `0 ${PAD}px`,
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <button
+                                onClick={() => router.push('/hub')}
+                                style={{
+                                    fontSize: 11, fontWeight: 700, padding: '6px 14px', borderRadius: 20,
+                                    background: 'rgba(79,70,229,0.08)', color: '#4f46e5',
+                                    border: '1px solid rgba(79,70,229,0.15)',
+                                    cursor: 'pointer', transition: 'all 0.15s',
+                                    display: 'flex', alignItems: 'center', gap: 4,
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(79,70,229,0.15)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(79,70,229,0.08)'; }}
+                            >🏠 홈</button>
                             <Image src={anssilLogo} alt="ANSSil Logo" style={{ height: 24, width: 'auto', objectFit: 'contain' }} />
                             <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>ANSSil String Mattress Agent</span>
                             <span style={{
