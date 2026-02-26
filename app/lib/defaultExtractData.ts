@@ -11,11 +11,11 @@ export const DEFAULT_EXTRACT_COORDS: FaceCoords = {
 
 // 각 커버 ID별 기본값 매핑
 export const PREDEFINED_EXTRACTION_DATA: Record<string, { image: string, coords: FaceCoords }> = {
-    'COMPACT': { image: '/covers/컴팩트.jpg', coords: DEFAULT_EXTRACT_COORDS },
-    'HEALING_NUMBER': { image: '/covers/힐링넘버.jpg', coords: DEFAULT_EXTRACT_COORDS },
-    'FLAT_GRID': { image: '/covers/플랫그리드.jpg', coords: DEFAULT_EXTRACT_COORDS },
-    'OAK_TWEED': { image: '/covers/오크트위드.jpg', coords: DEFAULT_EXTRACT_COORDS },
-    'ALL_CARE': { image: '/covers/올케어.jpg', coords: DEFAULT_EXTRACT_COORDS },
-    'I5': { image: '/covers/i5.jpg', coords: DEFAULT_EXTRACT_COORDS },
-    'GENTLE_BREED': { image: '/covers/젠틀브리즈.jpg', coords: DEFAULT_EXTRACT_COORDS },
+    'COMPACT': { image: '/covers/컴팩트02.png', coords: DEFAULT_EXTRACT_COORDS },
+    'HEALING_NUMBER': { image: '/covers/힐링넘버02.png', coords: DEFAULT_EXTRACT_COORDS },
+    'FLAT_GRID': { image: '/covers/플랫그리드02.png', coords: DEFAULT_EXTRACT_COORDS },
+    'OAK_TWEED': { image: '/covers/오크트위드02.png', coords: DEFAULT_EXTRACT_COORDS },
+    'ALL_CARE': { image: '/covers/올케어02.jpg', coords: DEFAULT_EXTRACT_COORDS },
+    'I5': { image: '/covers/i502.jpg', coords: DEFAULT_EXTRACT_COORDS },
+    'GENTLE_BREED': { image: '/covers/젠틀브리즈02.jpg', coords: DEFAULT_EXTRACT_COORDS },
 };
