@@ -307,6 +307,7 @@ export default function StepCover() {
             {/* 텍스처 추출 모달 */}
             {textureExtractTarget && (
                 <TextureExtractorModal
+                    coverId={textureExtractTarget.id}
                     coverLabel={textureExtractTarget.label}
                     initialUpperTex={upperCoverTextures}
                     initialLowerTex={lowerCoverTextures}

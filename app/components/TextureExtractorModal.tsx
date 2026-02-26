@@ -13,6 +13,9 @@ interface FaceData { visible: boolean; corners: Corners }
 interface FaceCoords { topSurface: FaceData; frontPanel: FaceData; sidePanel: FaceData }
 interface CoverTextures { top: string | null; front: string | null; side: string | null }
 
+// 외부에서 정의된 PREDEFINED_EXTRACTION_DATA 임포트
+import { PREDEFINED_EXTRACTION_DATA, DEFAULT_EXTRACT_COORDS } from '../lib/defaultExtractData';
+
 type FaceKey = 'topSurface' | 'frontPanel' | 'sidePanel';
 type CornerKey = 'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft';
 type CoverType = 'upper' | 'lower';
@@ -22,11 +25,7 @@ const FACE_LABELS: Record<FaceKey, string> = { topSurface: '상단면', frontPan
 const COVER_COLORS: Record<CoverType, string> = { upper: '#10b981', lower: '#8b5cf6' };
 const COVER_LABELS: Record<CoverType, string> = { upper: '상단 커버', lower: '하단 커버' };
 
-const DEFAULT_COORDS: FaceCoords = {
-    topSurface: { visible: true, corners: { topLeft: { x: 10, y: 10 }, topRight: { x: 90, y: 10 }, bottomRight: { x: 90, y: 55 }, bottomLeft: { x: 10, y: 55 } } },
-    frontPanel: { visible: true, corners: { topLeft: { x: 10, y: 55 }, topRight: { x: 90, y: 55 }, bottomRight: { x: 90, y: 85 }, bottomLeft: { x: 10, y: 85 } } },
-    sidePanel: { visible: false, corners: { topLeft: { x: 0, y: 0 }, topRight: { x: 0, y: 0 }, bottomRight: { x: 0, y: 0 }, bottomLeft: { x: 0, y: 0 } } },
-};
+const DEFAULT_COORDS: FaceCoords = DEFAULT_EXTRACT_COORDS;
 
 /* ═══════════════════════════════════ */
 /*  원근 보정 크롭                      */
@@ -111,6 +110,7 @@ function CornerEditor({ faceCoords, onChange }: { faceCoords: FaceCoords; onChan
 /* ═══════════════════════════════════ */
 
 interface TextureExtractorModalProps {
+    coverId?: string;
     coverLabel: string;
     initialUpperTex?: CoverTextures;
     initialLowerTex?: CoverTextures;
@@ -127,6 +127,7 @@ interface TextureExtractorModalProps {
 }
 
 export default function TextureExtractorModal({
+    coverId,
     coverLabel,
     initialUpperTex, initialLowerTex,
     initialUpperCoords, initialLowerCoords,
@@ -142,12 +143,14 @@ export default function TextureExtractorModal({
     const hasInitialValues = initialUpperTex?.top || initialUpperTex?.front || initialUpperTex?.side ||
         initialLowerTex?.top || initialLowerTex?.front || initialLowerTex?.side;
 
+    const specificExtractData = coverId ? PREDEFINED_EXTRACTION_DATA[coverId] : null;
+
     const startingUpperTex = hasInitialValues ? initialUpperTex : (def?.upper || { top: null, front: null, side: null });
     const startingLowerTex = hasInitialValues ? initialLowerTex : (def?.lower || { top: null, front: null, side: null });
-    const startingUpperCoords = hasInitialValues ? initialUpperCoords : (def?.upperCoords || null);
-    const startingLowerCoords = hasInitialValues ? initialLowerCoords : (def?.lowerCoords || null);
-    const startingUpperSource = hasInitialValues ? initialUpperSource : (def?.sourceImage?.upper || null);
-    const startingLowerSource = hasInitialValues ? initialLowerSource : (def?.sourceImage?.lower || null);
+    const startingUpperCoords = hasInitialValues ? initialUpperCoords : ((specificExtractData ? specificExtractData.coords : null) || def?.upperCoords || null);
+    const startingLowerCoords = hasInitialValues ? initialLowerCoords : ((specificExtractData ? specificExtractData.coords : null) || def?.lowerCoords || null);
+    const startingUpperSource = hasInitialValues ? initialUpperSource : ((specificExtractData ? specificExtractData.image : null) || def?.sourceImage?.upper || null);
+    const startingLowerSource = hasInitialValues ? initialLowerSource : ((specificExtractData ? specificExtractData.image : null) || def?.sourceImage?.lower || null);
 
     const [activeCover, setActiveCover] = useState<CoverType>('upper');
     const [upperSource, setUpperSource] = useState<string | null>(startingUpperSource || null);

@@ -1,3 +1,12 @@
+## [Alpha V1.066] - 2026-02-26 10:25:00
+
+### 🔄 Build Update
+- **Summary**: 텍스쳐 추출기 기본 제품 스펙(이미지/좌표) 데이터 프리셋 구축 및 연결
+- **Detail** :
+  - **`app/lib/defaultExtractData.ts` [NEW]**: 6가지 주요 커버 제품(컴팩트, 힐링넘버, 플랫그리드, 오크트위드, 올케어, i5, 젠틀브리즈) 각각에 대한 원본 이미지와 기본 추출 좌표(Perspective Coordinates) 프리셋을 선언했습니다.
+  - **`app/components/TextureExtractorModal.tsx` & `StepCover.tsx` [MODIFY]**: 텍스쳐 추출기를 최초로 열었을 때, 기존 등록된 `structureType` 기반 전역 설정보다 "커버 제품 고유 프리셋 데이터"를 최우선으로 불러오도록 우선순위 초기화 로직을 변경했습니다. 이를 통해 빈 화면을 방지하고 커버 제품 변경 시 즉각적으로 알맞은 이미지가 에디터에 등록되게 지원합니다.
+- **Build Time**: 2026-02-26 10:25:00
+
 ## [Alpha V1.065] - 2026-02-26 09:45:00
 
 ### 🔄 Build Update
