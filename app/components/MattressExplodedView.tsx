@@ -1,7 +1,7 @@
 'use client';
 
 import * as THREE from 'three';
-import React, { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Center, Environment, ContactShadows, RoundedBox } from '@react-three/drei';
 import { useDesignStore } from '../lib/store';
@@ -148,7 +148,68 @@ function createRibbedTexture(baseColor: string = '#c4b59a'): THREE.CanvasTexture
     return tex;
 }
 
-/* ---- CoverBox: 뚜껑/바구니 형태 지오메트리 & 1:1 텍스처 매핑 ---- */
+/* ══════════════════════════════════════ */
+/*  텍스처 로딩 유틸 (안정적 로딩 + 캐시)     */
+/* ══════════════════════════════════════ */
+
+const textureCache = new Map<string, THREE.Texture>();
+
+function loadTextureFromUrl(url: string): Promise<THREE.Texture | null> {
+    if (!url) return Promise.resolve(null);
+    const cached = textureCache.get(url);
+    if (cached) return Promise.resolve(cached);
+
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            const tex = new THREE.Texture(img);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.generateMipmaps = true;
+            tex.minFilter = THREE.LinearMipmapLinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            tex.needsUpdate = true;
+            textureCache.set(url, tex);
+            resolve(tex);
+        };
+        img.onerror = () => {
+            console.warn('[loadTexture] failed:', url?.substring(0, 80));
+            resolve(null);
+        };
+        img.src = url;
+    });
+}
+
+/* ══════════════════════════════════════ */
+/*  안정적 텍스처 박스 (BoxGeometry 기반)     */
+/* ══════════════════════════════════════ */
+
+/**
+ * StableTexturedBox: BoxGeometry 기반 6면 머티리얼 적용
+ *
+ * BoxGeometry의 면 인덱스는 항상 고정:
+ *   0: +X (Right), 1: -X (Left)
+ *   2: +Y (Top),   3: -Y (Bottom)
+ *   4: +Z (Front),  5: -Z (Back)
+ *
+ * RoundedBox와 달리 groups/정점 공유 문제가 없어 UV가 절대 깨지지 않습니다.
+ */
+function StableTexturedBox({ position, args, mats }: {
+    position: [number, number, number];
+    args: [number, number, number];
+    mats: THREE.Material[];
+}) {
+    return (
+        <mesh position={position} castShadow receiveShadow>
+            <boxGeometry args={args} />
+            {mats.map((mat, i) => (
+                <primitive key={i} object={mat} attach={`material-${i}`} />
+            ))}
+        </mesh>
+    );
+}
+
+/* ---- CoverBox: 뚜껑/바구니 형태 지오메트리 & 안정적 텍스처 매핑 ---- */
 function CoverBox({ position, args, color, textureUrl, isTop = true, radius = 0.01, topTextureUrl, sideTextureFrontUrl, sideTextureSideUrl }: any) {
     const [W, H, D] = args as [number, number, number];
     const [topTex, setTopTex] = useState<THREE.Texture | null>(null);
@@ -158,172 +219,101 @@ function CoverBox({ position, args, color, textureUrl, isTop = true, radius = 0.
     // 텍스처 우선순위: 추출기 텍스처(topTextureUrl) > AI/커버 이미지(textureUrl)
     const finalTopUrl = topTextureUrl || textureUrl;
 
+    // 안정적 텍스처 로딩 (캐시 활용)
     useEffect(() => {
         if (!finalTopUrl) { setTopTex(null); return; }
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            const tex = new THREE.Texture(img);
-            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-            tex.colorSpace = THREE.SRGBColorSpace;
-            tex.needsUpdate = true;
-            setTopTex(tex);
-        };
-        img.onerror = () => { console.warn('[CoverBox] top texture load failed:', finalTopUrl?.substring(0, 60)); setTopTex(null); };
-        img.src = finalTopUrl;
+        let cancelled = false;
+        loadTextureFromUrl(finalTopUrl).then(tex => { if (!cancelled) setTopTex(tex); });
+        return () => { cancelled = true; };
     }, [finalTopUrl]);
 
     useEffect(() => {
         if (!sideTextureFrontUrl) { setFrontTex(null); return; }
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            const tex = new THREE.Texture(img);
-            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-            tex.colorSpace = THREE.SRGBColorSpace;
-            tex.needsUpdate = true;
-            setFrontTex(tex);
-        };
-        img.onerror = () => { console.warn('[CoverBox] front texture load failed'); setFrontTex(null); };
-        img.src = sideTextureFrontUrl;
+        let cancelled = false;
+        loadTextureFromUrl(sideTextureFrontUrl).then(tex => { if (!cancelled) setFrontTex(tex); });
+        return () => { cancelled = true; };
     }, [sideTextureFrontUrl]);
 
     useEffect(() => {
         if (!sideTextureSideUrl) { setSideTex(null); return; }
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            const tex = new THREE.Texture(img);
-            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-            tex.colorSpace = THREE.SRGBColorSpace;
-            tex.needsUpdate = true;
-            setSideTex(tex);
-        };
-        img.onerror = () => { console.warn('[CoverBox] side texture load failed'); setSideTex(null); };
-        img.src = sideTextureSideUrl;
+        let cancelled = false;
+        loadTextureFromUrl(sideTextureSideUrl).then(tex => { if (!cancelled) setSideTex(tex); });
+        return () => { cancelled = true; };
     }, [sideTextureSideUrl]);
 
-    // fallback textures
-    const fallbacks = useMemo(() => ({
-        quilted: isTop && !topTex ? createQuiltedTexture(isTop ? '#f5f0eb' : '#d4c5a9') : null,
-        ribbed: createRibbedTexture(color || (isTop ? '#c4b59a' : '#5a5a5a'))
-    }), [isTop, topTex, color]);
+    // fallback 텍스처 생성 (한 번만 생성, 메모이제이션)
+    const fallbackQuilted = useMemo(() => {
+        return createQuiltedTexture(isTop ? '#f5f0eb' : '#d4c5a9');
+    }, [isTop]);
 
+    const fallbackRibbed = useMemo(() => {
+        return createRibbedTexture(color || (isTop ? '#c4b59a' : '#5a5a5a'));
+    }, [color, isTop]);
+
+    // 6면 머티리얼 배열 (BoxGeometry 고정 인덱스)
     const mats = useMemo(() => {
         const sideColor = color || (isTop ? '#c4b59a' : '#5a5a5a');
         const topColor = color || (isTop ? '#f5f0eb' : '#6a6a6a');
         const botColor = isTop ? '#d4c5a9' : '#4a4a4a';
 
-        const matSide = new THREE.MeshStandardMaterial({ map: sideTex || fallbacks.ribbed, color: sideTex ? '#ffffff' : sideColor, roughness: 0.75, side: THREE.DoubleSide });
-        const matFront = new THREE.MeshStandardMaterial({ map: frontTex || fallbacks.ribbed, color: frontTex ? '#ffffff' : sideColor, roughness: 0.75, side: THREE.DoubleSide });
-        const matTop = new THREE.MeshStandardMaterial({ map: topTex || fallbacks.quilted, color: topTex ? '#ffffff' : topColor, roughness: 0.8, side: THREE.DoubleSide });
-        const matBot = new THREE.MeshStandardMaterial({ color: botColor, roughness: 0.85, side: THREE.DoubleSide });
-        const matInvisible = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+        // 텍스처가 있으면 color를 white로 → 텍스처 원색 유지
+        const matSide = new THREE.MeshStandardMaterial({
+            map: sideTex || fallbackRibbed,
+            color: sideTex ? '#ffffff' : sideColor,
+            roughness: 0.75,
+            side: THREE.DoubleSide
+        });
+        const matFront = new THREE.MeshStandardMaterial({
+            map: frontTex || fallbackRibbed,
+            color: frontTex ? '#ffffff' : sideColor,
+            roughness: 0.75,
+            side: THREE.DoubleSide
+        });
 
-        // RoundedBox face indexing is identical to BoxGeometry: 0:Right(+X), 1:Left(-X), 2:Top(+Y), 3:Bottom(-Y), 4:Front(+Z), 5:Back(-Z)
-        // However, UVs might be strictly 0-1 across the entire width/height.
+        const topMap = topTex || (isTop ? fallbackQuilted : null);
+        const matTop = new THREE.MeshStandardMaterial({
+            map: topMap,
+            color: topTex ? '#ffffff' : topColor,
+            roughness: 0.8,
+            side: THREE.DoubleSide,
+        });
+        const matBot = new THREE.MeshStandardMaterial({
+            color: botColor,
+            roughness: 0.85,
+            side: THREE.DoubleSide
+        });
+        const matInvisible = new THREE.MeshBasicMaterial({
+            transparent: true,
+            opacity: 0,
+            depthWrite: false
+        });
+
+        // BoxGeometry 고정 면 인덱스:
+        // 0: Right(+X), 1: Left(-X), 2: Top(+Y), 3: Bottom(-Y), 4: Front(+Z), 5: Back(-Z)
         return [
-            matSide,   // 0: Right
-            matSide,   // 1: Left
-            isTop ? matTop : matInvisible, // 2: Top
-            isTop ? matInvisible : matBot, // 3: Bottom
-            matFront,  // 4: Front
-            matFront   // 5: Back
+            matSide,                           // 0: Right (+X)
+            matSide,                           // 1: Left (-X)
+            isTop ? matTop : matInvisible,     // 2: Top (+Y)
+            isTop ? matInvisible : matBot,     // 3: Bottom (-Y)
+            matFront,                          // 4: Front (+Z)
+            matFront                           // 5: Back (-Z)
         ];
-    }, [topTex, frontTex, sideTex, fallbacks, color, isTop]);
+    }, [topTex, frontTex, sideTex, fallbackQuilted, fallbackRibbed, color, isTop]);
 
     const t = 0.002; // 2mm 두께
     const wOut = W + 2 * t;
     const dOut = D + 2 * t;
     const hOut = H + t;
 
-    // 모서리 라운딩 시 기하학이 겹쳐서 면이 깨지는 버그 방지를 위한 반경 제한
-    const maxRadius = Math.min(wOut / 2, hOut / 2, dOut / 2);
-    const safeRadius = Math.max(0.0001, Math.min(radius, maxRadius * 0.95));
-
     return (
         <group position={position}>
-            <ProjectedRoundedBox
+            {/* 텍스처 캐리어: 안정적 BoxGeometry */}
+            <StableTexturedBox
                 position={[0, isTop ? -t / 2 : t / 2, 0]}
                 args={[wOut, hOut, dOut]}
-                radius={safeRadius}
                 mats={mats}
             />
         </group>
-    );
-}
-
-// ---- UV Tearing (텍스쳐 깨짐) 방지를 위한 Face-Group 기반 UV 프로젝션 박스 ----
-function ProjectedRoundedBox({ args, radius, mats, position }: any) {
-    const geomRef = useRef<any>(null);
-    const [W, H, D] = args;
-
-    useLayoutEffect(() => {
-        if (!geomRef.current) return;
-        const mesh = geomRef.current;
-        const geom = mesh.geometry;
-        if (!geom) return;
-
-        const pos = geom.attributes.position;
-        const uv = geom.attributes.uv;
-        if (!pos || !uv) return;
-
-        // RoundedBox geometry.groups는 face별 인덱스 범위를 정의:
-        // group 0: Right(+X), group 1: Left(-X)
-        // group 2: Top(+Y),   group 3: Bottom(-Y)
-        // group 4: Front(+Z), group 5: Back(-Z)
-        const groups = geom.groups;
-        const idx = geom.index;
-
-        if (!groups || groups.length < 6 || !idx) {
-            // groups가 없는 비정상 케이스 fallback: 기존 normal 기반
-            if (!geom.attributes.normal) geom.computeVertexNormals();
-            const norm = geom.attributes.normal;
-            if (!norm) return;
-            for (let i = 0; i < pos.count; i++) {
-                const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-                const nx = Math.abs(norm.getX(i)), ny = Math.abs(norm.getY(i)), nz = Math.abs(norm.getZ(i));
-                if (ny >= nx && ny >= nz) {
-                    uv.setXY(i, (x + W / 2) / W, (z + D / 2) / D);
-                } else if (nz >= nx && nz >= ny) {
-                    uv.setXY(i, (x + W / 2) / W, 1.0 - (y + H / 2) / H);
-                } else {
-                    uv.setXY(i, (z + D / 2) / D, 1.0 - (y + H / 2) / H);
-                }
-            }
-        } else {
-            // Group 기반 UV 계산 — 같은 면의 모든 정점에 동일 투영축을 사용하여 깨짐(tearing) 제거
-            // 각 group의 해당 정점들을 Set으로 모음
-            const vertexProjection = new Uint8Array(pos.count); // 0=unset, 1=X(side), 2=Y(top/bot), 3=Z(front/back)
-            for (let gi = 0; gi < groups.length; gi++) {
-                const g = groups[gi];
-                const projType = (gi <= 1) ? 1 : (gi <= 3 ? 2 : 3); // 0,1→X  2,3→Y  4,5→Z
-                const end = g.start + g.count;
-                for (let j = g.start; j < end; j++) {
-                    vertexProjection[idx.getX(j)] = projType;
-                }
-            }
-
-            for (let i = 0; i < pos.count; i++) {
-                const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-                const proj = vertexProjection[i];
-                if (proj === 2) {
-                    // Y축 투영 (상/하단 면)
-                    uv.setXY(i, (x + W / 2) / W, (z + D / 2) / D);
-                } else if (proj === 3) {
-                    // Z축 투영 (앞/뒷면)
-                    uv.setXY(i, (x + W / 2) / W, 1.0 - (y + H / 2) / H);
-                } else {
-                    // X축 투영 (좌/우 측면) 또는 unset → 측면으로 fallback
-                    uv.setXY(i, (z + D / 2) / D, 1.0 - (y + H / 2) / H);
-                }
-            }
-        }
-        uv.needsUpdate = true;
-    }, [W, H, D, radius]);
-
-    return (
-        <RoundedBox ref={geomRef} position={position} args={args} radius={radius} smoothness={6} material={mats} castShadow receiveShadow />
     );
 }
 

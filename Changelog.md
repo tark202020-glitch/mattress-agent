@@ -1,3 +1,14 @@
+## [Alpha V1.069] - 2026-02-26 12:47:00
+
+### 🐛 Bug Fix
+- **Summary**: 텍스처 매핑 깨짐(Tearing) 근본 수정 — RoundedBox → BoxGeometry 전환
+- **Detail** :
+  - **`app/components/MattressExplodedView.tsx` [MODIFY]**: 텍스처가 적용되는 커버 레이어의 3D 지오메트리를 `RoundedBox` + 수동 UV 재계산(`ProjectedRoundedBox`)에서 **표준 `BoxGeometry` 6면 멀티 머티리얼(`StableTexturedBox`)**로 완전 교체. BoxGeometry의 면 인덱스(0:+X, 1:-X, 2:+Y, 3:-Y, 4:+Z, 5:-Z)는 항상 고정이므로 UV 매핑이 절대 깨지지 않습니다.
+  - **텍스처 로딩 시스템 안정화**: 개별 `new Image()` 로딩을 `loadTextureFromUrl()` 캐시 기반 유틸로 교체하여 동일 텍스처 중복 로딩 방지, 컴포넌트 언마운트 시 비동기 콜백 취소(cancel) 처리 추가.
+  - **Fallback 텍스처 메모이제이션 개선**: `createQuiltedTexture`/`createRibbedTexture` fallback을 `isTop`과 `color`에만 의존하도록 분리하여 불필요한 재생성 방지.
+  - **미사용 코드 정리**: `ProjectedRoundedBox` 함수 및 `useLayoutEffect` 임포트 제거.
+- **Build Time**: 2026-02-26 12:47:00
+
 ## [Alpha V1.068] - 2026-02-26 12:30:00
 
 ### 🐛 Bug Fix
