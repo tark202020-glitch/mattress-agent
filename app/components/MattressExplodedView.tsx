@@ -779,11 +779,11 @@ export default function MattressExplodedView({ className }: MattressExplodedView
                     }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 2 }}>부품별 이격 간격 (mm)</div>
 
-                        <GapSlider label="상단 커버 간격" value={gapTopCover} onChange={setGapTopCover} max={300} />
-                        {topFoamEnabled && <GapSlider label="상단 폼 간격" value={gapTopFoam} onChange={setGapTopFoam} max={300} />}
-                        <GapSlider label="코어(스트링) 상승" value={gapInnerCore} onChange={setGapInnerCore} max={300} />
-                        {bottomFoamEnabled && <GapSlider label="하단 폼 간격" value={gapBottomFoam} onChange={setGapBottomFoam} max={300} />}
-                        {!isBasic && <GapSlider label="하단 커버 간격" value={gapBottomCover} onChange={setGapBottomCover} max={300} />}
+                        <GapSlider label="상단 커버 간격" value={gapTopCover} onChange={setGapTopCover} max={600} />
+                        {topFoamEnabled && <GapSlider label="상단 폼 간격" value={gapTopFoam} onChange={setGapTopFoam} max={600} />}
+                        <GapSlider label="코어(스트링) 상승" value={gapInnerCore} onChange={setGapInnerCore} max={600} />
+                        {bottomFoamEnabled && <GapSlider label="하단 폼 간격" value={gapBottomFoam} onChange={setGapBottomFoam} max={600} />}
+                        {!isBasic && <GapSlider label="하단 커버 간격" value={gapBottomCover} onChange={setGapBottomCover} max={600} />}
                     </div>
                 )}
             </div>

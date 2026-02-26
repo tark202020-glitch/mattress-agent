@@ -1,3 +1,12 @@
+## [Alpha V1.070] - 2026-02-26 14:11:00
+
+### 🐛 Bug Fix + 🔄 UI Update
+- **Summary**: Default 텍스처 커버별 독립 관리 수정 + 분해도 간격 슬라이더 최대값 600mm 확장
+- **Detail** :
+  - **`app/components/steps/StepCover.tsx` [MODIFY]**: 커버 변경 시(`coverId` 변경) 해당 커버의 Default 텍스처를 자동으로 불러오는 `useEffect` 추가. 저장된 default가 있으면 해당 커버의 텍스처/좌표/원본이미지를 자동 적용하고, 없으면 텍스처를 초기화하여 이전 커버의 텍스처가 남지 않도록 수정.
+  - **`app/components/MattressExplodedView.tsx` [MODIFY]**: 부품별 이격 간격 슬라이더의 최대값을 300mm에서 **600mm**로 확장.
+- **Build Time**: 2026-02-26 14:11:00
+
 ## [Alpha V1.069] - 2026-02-26 12:47:00
 
 ### 🐛 Bug Fix

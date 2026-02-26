@@ -37,6 +37,32 @@ export default function StepCover() {
 
     useEffect(() => { _hydrate(); setMounted(true); }, []);
 
+    // 커버 변경 시 해당 커버의 default 텍스처를 자동으로 불러오기
+    const defaultTextures = useDesignStore(s => s.defaultTextures);
+    useEffect(() => {
+        if (!coverId) return;
+        const coverDef = defaultTextures[coverId];
+        if (coverDef) {
+            // 저장된 default 텍스처가 있으면 자동 적용
+            setUpperCoverTextures(coverDef.upper || { top: null, front: null, side: null });
+            setLowerCoverTextures(coverDef.lower || { top: null, front: null, side: null });
+            setUpperCoverCoords(coverDef.upperCoords || null);
+            setLowerCoverCoords(coverDef.lowerCoords || null);
+            if (coverDef.sourceImage) {
+                setCoverExtractSourceImage('upper', coverDef.sourceImage.upper);
+                setCoverExtractSourceImage('lower', coverDef.sourceImage.lower);
+            }
+        } else {
+            // 저장된 default가 없으면 텍스처 초기화
+            setUpperCoverTextures({ top: null, front: null, side: null });
+            setLowerCoverTextures({ top: null, front: null, side: null });
+            setUpperCoverCoords(null);
+            setLowerCoverCoords(null);
+            setCoverExtractSourceImage('upper', null);
+            setCoverExtractSourceImage('lower', null);
+        }
+    }, [coverId]);
+
     const allCovers = [...COVER_OPTIONS, ...customCovers];
     const isCustom = (id: string) => customCovers.some(c => c.id === id);
 
