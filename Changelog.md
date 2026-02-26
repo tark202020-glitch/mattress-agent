@@ -1,3 +1,27 @@
+## [Alpha V1.072] - 2026-02-26 16:14:00
+
+### 🚀 Feature + 🐛 Bug Fix
+- **Summary**: 커버별 정교한 크롭 좌표 프리셋 적용 + 베이직 커버 모델링 수정
+- **Detail** :
+  - **`app/lib/defaultExtractData.ts` [MODIFY]**: 7개 커버(컴팩트, 힐링넘버, 플랫그리드, 오크트위드, 올케어, i5, 젠틀브리즈)의 정교한 크롭 좌표를 사용자가 직접 설정한 값으로 하드코딩. 데이터 구조를 `coords` → `upperCoords`/`lowerCoords` 분리 체계로 개편하여 상단/하단 커버의 독립 좌표 지원.
+  - **`app/lib/autoInitTextures.ts` [MODIFY]**: 상단/하단 커버 분리 크롭을 지원하도록 업데이트. 하단 커버 좌표가 있는 경우(스탠다드/프리미엄) 자동으로 하단 크롭도 실행.
+  - **`app/components/TextureExtractorModal.tsx` [MODIFY]**: 새 데이터 구조(`upperCoords`/`lowerCoords`)에 맞게 프리셋 좌표 참조 방식 수정.
+  - **`app/components/MattressExplodedView.tsx` [MODIFY]**: 베이직 커버(컴팩트/힐링넘버) 모델링 수정:
+    - 하단 커버 제거 (botCoverT = 0)
+    - 상단 커버 높이 = 코어(200mm) + 상단폼 두께 (전체를 감싸는 단일 커버)
+    - 상단 커버 Y축 위치를 코어 중앙 기준으로 배치
+- **Build Time**: 2026-02-26 16:14:00
+
+## [Alpha V1.071] - 2026-02-26 15:03:00
+
+### 🚀 Feature
+- **Summary**: 프리셋 커버 텍스처 자동 초기화 — 프로그램 시작 시 모든 커버의 텍스처 추출이 자동 완료
+- **Detail** :
+  - **`app/lib/autoInitTextures.ts` [NEW]**: 앱 시작 시 `PREDEFINED_EXTRACTION_DATA`에 등록된 7개 커버(컴팩트, 힐링넘버, 플랫그리드, 오크트위드, 올케어, i5, 젠틀브리즈)의 원본 이미지를 자동으로 perspectiveCrop하여 default 텍스처로 저장하는 `useAutoInitTextures` 훅 구현.
+  - **`app/designer/page.tsx` [MODIFY]**: 디자이너 페이지 진입 시 `useAutoInitTextures()` 호출 연결. localStorage에 이미 저장된 default가 있으면 중복 실행을 방지합니다.
+  - 프로그램을 처음 시작해도 모든 커버에 기본 텍스처가 적용된 상태로 분해도가 표시됩니다.
+- **Build Time**: 2026-02-26 15:03:00
+
 ## [Alpha V1.070] - 2026-02-26 14:11:00
 
 ### 🐛 Bug Fix + 🔄 UI Update

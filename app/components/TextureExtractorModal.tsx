@@ -149,10 +149,10 @@ export default function TextureExtractorModal({
 
     const startingUpperTex = hasInitialValues ? initialUpperTex : (def?.upper || { top: null, front: null, side: null });
     const startingLowerTex = hasInitialValues ? initialLowerTex : (def?.lower || { top: null, front: null, side: null });
-    const startingUpperCoords = hasInitialValues ? initialUpperCoords : (def?.upperCoords || (specificExtractData ? specificExtractData.coords : null) || null);
-    const startingLowerCoords = hasInitialValues ? initialLowerCoords : (def?.lowerCoords || (specificExtractData ? specificExtractData.coords : null) || null);
+    const startingUpperCoords = hasInitialValues ? initialUpperCoords : (def?.upperCoords || (specificExtractData ? specificExtractData.upperCoords : null) || null);
+    const startingLowerCoords = hasInitialValues ? initialLowerCoords : (def?.lowerCoords || (specificExtractData ? specificExtractData.lowerCoords : null) || null);
     const startingUpperSource = hasInitialValues ? initialUpperSource : (def?.sourceImage?.upper || (specificExtractData ? specificExtractData.image : null) || null);
-    const startingLowerSource = hasInitialValues ? initialLowerSource : (def?.sourceImage?.lower || (specificExtractData ? specificExtractData.image : null) || null);
+    const startingLowerSource = hasInitialValues ? initialLowerSource : (def?.sourceImage?.lower || (specificExtractData ? (specificExtractData.lowerImage || specificExtractData.image) : null) || null);
 
     const [activeCover, setActiveCover] = useState<CoverType>('upper');
     const [upperSource, setUpperSource] = useState<string | null>(startingUpperSource || null);
@@ -321,6 +321,56 @@ export default function TextureExtractorModal({
                                         {faceCoords[f].visible ? '✓' : '○'} {FACE_LABELS[f]}
                                     </button>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* 실시간 좌표값 표시 */}
+                        {faceCoords && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, background: '#0f172a', borderRadius: 6, padding: 6, border: '1px solid #1e293b' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700 }}>📍 좌표값 ({COVER_LABELS[activeCover]})</span>
+                                    <button
+                                        onClick={() => {
+                                            const coordData: Record<string, any> = {};
+                                            (['topSurface', 'frontPanel', 'sidePanel'] as FaceKey[]).forEach(f => {
+                                                const fd = faceCoords[f];
+                                                coordData[f] = {
+                                                    visible: fd.visible,
+                                                    corners: {
+                                                        topLeft: { x: Math.round(fd.corners.topLeft.x * 10) / 10, y: Math.round(fd.corners.topLeft.y * 10) / 10 },
+                                                        topRight: { x: Math.round(fd.corners.topRight.x * 10) / 10, y: Math.round(fd.corners.topRight.y * 10) / 10 },
+                                                        bottomRight: { x: Math.round(fd.corners.bottomRight.x * 10) / 10, y: Math.round(fd.corners.bottomRight.y * 10) / 10 },
+                                                        bottomLeft: { x: Math.round(fd.corners.bottomLeft.x * 10) / 10, y: Math.round(fd.corners.bottomLeft.y * 10) / 10 },
+                                                    }
+                                                };
+                                            });
+                                            const json = JSON.stringify(coordData, null, 2);
+                                            navigator.clipboard.writeText(json);
+                                            setToastMsg('📋 좌표가 클립보드에 복사되었습니다!');
+                                            setTimeout(() => setToastMsg(''), 2000);
+                                        }}
+                                        style={{ ...btnBase, padding: '2px 8px', fontSize: 9, background: '#334155', color: '#e2e8f0' }}
+                                    >
+                                        📋 복사
+                                    </button>
+                                </div>
+                                {(['topSurface', 'frontPanel', 'sidePanel'] as FaceKey[]).map(f => {
+                                    const fd = faceCoords[f];
+                                    if (!fd.visible) return null;
+                                    return (
+                                        <div key={f} style={{ fontSize: 9, color: FACE_COLORS[f], fontFamily: 'monospace', lineHeight: 1.5 }}>
+                                            <div style={{ fontWeight: 700, marginBottom: 1 }}>{FACE_LABELS[f]}:</div>
+                                            <div style={{ color: '#cbd5e1', paddingLeft: 4 }}>
+                                                TL({fd.corners.topLeft.x.toFixed(1)}, {fd.corners.topLeft.y.toFixed(1)})
+                                                TR({fd.corners.topRight.x.toFixed(1)}, {fd.corners.topRight.y.toFixed(1)})
+                                            </div>
+                                            <div style={{ color: '#cbd5e1', paddingLeft: 4 }}>
+                                                BL({fd.corners.bottomLeft.x.toFixed(1)}, {fd.corners.bottomLeft.y.toFixed(1)})
+                                                BR({fd.corners.bottomRight.x.toFixed(1)}, {fd.corners.bottomRight.y.toFixed(1)})
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
 

@@ -409,10 +409,12 @@ function ExplodedModel({ isExploded, gaps }: { isExploded: boolean, gaps: any })
     const topT_mm = topFoamEnabled && topFoamOpt ? topFoamOpt.thickness : 0;
     const botT_mm = bottomFoamEnabled ? bottomFoamThickness : 0;
     // 커버 두께 계산: 내부 폼 레이어 기반
-    // 상단 커버 = 상단폼 두께 + 50
-    const topCoverT_mm = topT_mm + 50;
-    // 하단 커버 = 코어 높이 + 하단폼 두께
-    const botCoverT_mm = coreH_mm + botT_mm;
+    const isBasic = structureType === 'basic';
+    // 베이직: 상단 커버 = 코어(200mm) + 상단폼 두께 (전체를 감싸는 단일 커버)
+    // 스탠다드/프리미엄: 상단 커버 = 상단폼 두께 + 50mm (뚜껑 형태)
+    const topCoverT_mm = isBasic ? (coreH_mm + topT_mm) : (topT_mm + 50);
+    // 하단 커버 = 코어 높이 + 하단폼 두께 (베이직은 하단 커버 없음)
+    const botCoverT_mm = isBasic ? 0 : (coreH_mm + botT_mm);
 
     const coreH = coreH_mm * SCALE;
     const topT = topT_mm * SCALE;
@@ -525,7 +527,11 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
 
         // 5. 상단 커버
         if (topCoverRef.current) {
-            const baseCenterY = botT + coreH + topT / 2;
+            // 베이직: 코어+상단폼 전체를 감싸므로 코어 중앙에 배치
+            // 스탠다드/프리미엄: 상단폼 중앙에 배치 (뚜껑 형태)
+            const baseCenterY = isBasic
+                ? (botT + (coreH + topT) / 2)
+                : (botT + coreH + topT / 2);
             topCoverRef.current.position.y = (baseCenterY - cy) + (gapTopCover * SCALE * t);
         }
     });
@@ -691,7 +697,7 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
             <group ref={topCoverRef}>
                 <CoverBox
                     position={[0, 0, 0]}
-                    args={[W, topT > 0 ? topT : 0.001, D]}
+                    args={[W + 10 * SCALE, isBasic ? (topCoverT > 0 ? topCoverT : 0.001) : (topT > 0 ? topT : 0.001), D + 10 * SCALE]}
                     color={CO.coverTop}
                     radius={topFoamRadius * SCALE}
                     textureUrl={customCoverImage}

@@ -13,6 +13,7 @@ import StepFoam from '../components/steps/StepFoam';
 import StepCore from '../components/steps/StepCore';
 import StepCover from '../components/steps/StepCover';
 import MattressExplodedView from '../components/MattressExplodedView';
+import { useAutoInitTextures } from '../lib/autoInitTextures';
 
 /* ══════════ 디자이너 전용 스텝 ══════════ */
 const DESIGNER_STEPS = [
@@ -35,6 +36,9 @@ export default function DesignerPage() {
     const supabase = createClient();
 
     useEffect(() => { setMounted(true); }, []);
+
+    // 앱 시작 시 프리셋 커버 텍스처 자동 크롭 초기화
+    useAutoInitTextures();
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
