@@ -159,9 +159,9 @@ function MattressModel({ explodeGap }: { explodeGap: number }) {
         bot: '#0d9488',
     };
 
-    // 추가: 3D 모델 자체에도 약간의 기본 간격을 줍니다 (0.05 등)
     let currentY = 0;
-    const baseGap = 0.05; // 3D 부품간 기본 이격 거리
+    // 추가: 3D 모델 기본 간격을 0으로 설정
+    const baseGap = 0; // 3D 부품간 기본 이격 거리
     const actualGap = explodeGap + baseGap; // 슬라이더 값 + 기본 간격
 
     const botY = currentY + botT / 2;
@@ -305,62 +305,6 @@ export interface Mattress3DProps {
     hideControls?: boolean;    // 버튼 숨기기 (개발요청서용)
 }
 
-// ── 이미지 파이핑(경계선) Y축 퍼센트 스캔 헬퍼 ──
-async function detectSplitRatio(imageUrl: string): Promise<number> {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return resolve(46); // fallback
-
-            // 이미지를 작게 리사이즈하여 스캔 영역 및 연산 축소
-            const W = 100;
-            const H = 200;
-            canvas.width = W;
-            canvas.height = H;
-            ctx.drawImage(img, 0, 0, W, H);
-
-            const imgData = ctx.getImageData(0, 0, W, H);
-            const data = imgData.data;
-
-            let maxDiff = 0;
-            let bestY = Math.floor(H * 0.46); // default 46% near center
-
-            // 가장 대비(Contrast)가 큰 가로줄(경계선/파이핑)을 탐색합니다. (대략 35% ~ 60% 높이 사이 중앙 영역)
-            const startY = Math.floor(H * 0.35);
-            const endY = Math.floor(H * 0.60);
-
-            for (let y = startY; y < endY; y++) {
-                let diffSum = 0;
-                for (let x = 0; x < W; x++) {
-                    const idx1 = (y * W + x) * 4;
-                    const idx2 = ((y + 1) * W + x) * 4;
-                    // 위 픽셀과 아래 픽셀의 밝기 차이 누적
-                    const luma1 = 0.299 * data[idx1] + 0.587 * data[idx1 + 1] + 0.114 * data[idx1 + 2];
-                    const luma2 = 0.299 * data[idx2] + 0.587 * data[idx2 + 1] + 0.114 * data[idx2 + 2];
-                    diffSum += Math.abs(luma1 - luma2);
-                }
-                if (diffSum > maxDiff) {
-                    maxDiff = diffSum;
-                    bestY = y;
-                }
-            }
-
-            // 구한 bestY를 퍼센트로 환산 (위에서부터 픽셀 Y 위치)
-            const percentage = (bestY / H) * 100;
-            // 상식적인 범위를 벗어나면 기본값 46 사용
-            if (percentage < 30 || percentage > 70) {
-                resolve(46);
-            } else {
-                resolve(percentage);
-            }
-        };
-        img.onerror = () => resolve(46);
-        img.src = imageUrl;
-    });
-}
 
 const Mattress3D = forwardRef<Mattress3DHandle, Mattress3DProps>(function Mattress3D(
     { className, forcedExploded, hideControls },
@@ -370,23 +314,7 @@ const Mattress3D = forwardRef<Mattress3DHandle, Mattress3DProps>(function Mattre
     const explodeGap = forcedExploded ? 0.225 : internalGap;
     const glRef = useRef<THREE.WebGLRenderer | null>(null);
 
-    const { coverId, customCoverImages } = useDesignStore();
-    const customOpts = useCustomOptionsStore();
-    const [splitRatio, setSplitRatio] = useState(46);
-    const [showCover, setShowCover] = useState(true);
 
-    const coverOption = [...COVER_OPTIONS, ...customOpts.covers].find(c => c.id === coverId);
-    // AI 생성된 이미지가 있다면 최우선, 아니면 기본 커버 이미지 경로
-    const currentCoverImg = (coverId && customCoverImages[coverId]) ? customCoverImages[coverId] : coverOption?.image;
-
-    // 커버 이미지가 변경될 때마다 경계선(Split Ratio) 동적 스캔
-    useEffect(() => {
-        if (currentCoverImg) {
-            detectSplitRatio(currentCoverImg).then((ratio) => {
-                setSplitRatio(ratio);
-            });
-        }
-    }, [currentCoverImg]);
 
     useImperativeHandle(ref, () => ({
         capture: async () => {
@@ -435,33 +363,6 @@ const Mattress3D = forwardRef<Mattress3DHandle, Mattress3DProps>(function Mattre
                     <ContactShadows position={[0, -0.01, 0]} opacity={0.4} scale={10} blur={2} far={4} />
                 </Canvas>
             </div>
-
-            {/* 상하단 커버 이미지 오버레이 */}
-            {showCover && currentCoverImg && (
-                <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden flex items-center justify-center">
-                    {/* 상단 이미지 (Top Cover) */}
-                    <div
-                        className="absolute inset-0 transition-transform duration-300 ease-out flex items-center justify-center"
-                        style={{
-                            clipPath: `inset(0 0 ${100 - splitRatio}% 0)`,
-                            transform: `translateY(-${explodeGap * 400}px) scale(0.95)`,
-                        }}
-                    >
-                        <img src={currentCoverImg} alt="Top Cover" className="max-w-[120%] max-h-[120%] object-contain drop-shadow-2xl" />
-                    </div>
-
-                    {/* 하단 이미지 (Bottom Cover) */}
-                    <div
-                        className="absolute inset-0 transition-transform duration-300 ease-out flex items-center justify-center"
-                        style={{
-                            clipPath: `inset(${splitRatio}% 0 0 0)`,
-                            transform: `translateY(${explodeGap * 150}px) scale(0.95)`,
-                        }}
-                    >
-                        <img src={currentCoverImg} alt="Bottom Cover" className="max-w-[120%] max-h-[120%] object-contain drop-shadow-xl" />
-                    </div>
-                </div>
-            )}
         </div>
     );
 });

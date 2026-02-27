@@ -1,3 +1,13 @@
+## [Alpha V1.075] - 2026-02-28 00:43:24
+
+### 🔄 Build Update
+- **Summary**: 커버 선택 기능 및 3D/2D 프리뷰 뷰어 UI 간소화
+- **Detail** : 
+  - **`app/components/Mattress3D.tsx` [MODIFY]**: 3D 프리뷰에서 부품 간격 조절 슬라이더 사용 시, 3D 모델간 설정된 `baseGap`을 0 으로 없애서, 최소값이 완벽히 '0'(다 붙은 상태)이 될 수 있도록 렌더링 수정.
+  - **`app/components/Mattress3D.tsx` [MODIFY]**: 커버 선택 시 3D 프리뷰 오버레이로 렌더링되던 커버 단면 이미지 기능을 완전히 삭제 (샌드위치 뷰 제거).
+  - **`app/components/steps/StepCover.tsx` [MODIFY]**: 커버 선택 단계의 각 스타일 카드 우측의 "✨ AI이미지", "✂️ 텍스쳐추출" 버튼 삭제 및 이와 연결된 모달 컴포넌트 호출 삭제.
+- **Build Time**: 2026-02-28 00:43:24
+
 ## [Alpha V1.074] - 2026-02-28 00:36:06
 
 ### 🔄 Build Update
