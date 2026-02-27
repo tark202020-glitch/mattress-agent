@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../lib/supabase/client';
 import { useDesignStore } from '../lib/store';
-import { SIZE_PRESETS, CORE_OPTIONS, COVER_OPTIONS } from '../lib/constants';
-import { useCustomOptionsStore } from '../lib/customOptionsStore';
 import Image from 'next/image';
 import anssilLogo from '../../resource/ANSSil_logo_final_B.png';
 import StepSize from '../components/steps/StepSize';
@@ -59,7 +57,7 @@ export default function DesignerPage() {
 
     if (!mounted) return null;
 
-    const isExplodedStep = designerStep === 5;
+    const isExplodedStep = designerStep === 4;
 
     return (
         <div style={{
@@ -176,15 +174,13 @@ export default function DesignerPage() {
                 {/* ════════ Body ════════ */}
                 <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
-                    {/* Left Sidebar - 사이드바 (분해도 스텝에서는 숨김) */}
+                    {/* Step Content (옵션 선택 화면) */}
                     {!isExplodedStep && (
-                        <aside style={{
-                            width: SIDEBAR_W,
+                        <div style={{
+                            flex: 1,
                             display: 'flex',
                             flexDirection: 'column',
-                            borderRight: '1px solid #e2e8f0',
                             background: '#fafbfc',
-                            flexShrink: 0,
                         }}>
                             <div style={{
                                 padding: `${PAD}px ${PAD}px 12px ${PAD}px`,
@@ -204,191 +200,80 @@ export default function DesignerPage() {
                             <div style={{
                                 flex: 1,
                                 overflowY: 'auto',
-                                padding: `${PAD}px ${PAD}px 24px ${PAD}px`,
+                                padding: `0 ${PAD}px 24px ${PAD}px`,
+                                display: 'flex',
+                                justifyContent: 'center',
                             }}>
-                                <div className="animate-in" key={designerStep}>
-                                    {renderStepContent(designerStep)}
+                                <div style={{ width: '100%', maxWidth: 1400 }}>
+                                    <div className="animate-in" key={designerStep}>
+                                        {renderStepContent(designerStep)}
+                                    </div>
                                 </div>
                             </div>
 
                             <div style={{
-                                padding: `12px ${PAD}px`,
-                                borderTop: '1px solid #f1f5f9',
+                                padding: `16px ${PAD}px`,
+                                borderTop: '1px solid #e2e8f0',
                                 background: '#ffffff',
                                 flexShrink: 0,
+                                display: 'flex',
+                                justifyContent: 'center',
                             }}>
-                                <div style={{ display: 'flex', gap: 10 }}>
+                                <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 1400 }}>
                                     <button
                                         onClick={() => setDesignerStep(Math.max(1, designerStep - 1))}
                                         disabled={designerStep === 1}
                                         className="btn-secondary"
-                                        style={{ flex: 1, opacity: designerStep === 1 ? 0.5 : 1 }}
+                                        style={{ flex: 1, opacity: designerStep === 1 ? 0.5 : 1, padding: '16px', fontSize: 16 }}
                                     >이전</button>
                                     <button
                                         onClick={() => setDesignerStep(Math.min(DESIGNER_STEPS.length, designerStep + 1))}
                                         className="btn-primary"
-                                        style={{ flex: 2 }}
+                                        style={{ flex: 3, padding: '16px', fontSize: 16 }}
                                     >{designerStep === DESIGNER_STEPS.length - 1 ? '분해도 보기' : '다음 단계'}</button>
                                 </div>
                             </div>
-                        </aside>
+                        </div>
                     )}
 
-                    {/* Right: Preview 또는 분해도 */}
-                    <main style={{
-                        flex: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        background: '#f8fafc',
-                        position: 'relative',
-                        overflow: 'hidden',
-                    }}>
-                        {isExplodedStep ? (
-                            /* 분해도 전체 화면 */
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                <div style={{
-                                    padding: '12px 20px',
-                                    borderBottom: '1px solid #e2e8f0',
-                                    background: '#ffffff',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                        <button
-                                            onClick={() => setDesignerStep(4)}
-                                            className="btn-secondary"
-                                            style={{ fontSize: 12, padding: '6px 14px' }}
-                                        >← 커버 선택으로</button>
-                                        <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
-                                            🔍 매트리스 3D 분해도
-                                        </span>
-                                    </div>
-                                </div>
-                                <div style={{ flex: 1, padding: 16 }}>
-                                    <MattressExplodedView className="w-full h-full" />
-                                </div>
-                            </div>
-                        ) : (
-                            /* 일반 스텝: 선택 사항 요약 프리뷰 */
+                    {/* Exploded View */}
+                    {isExplodedStep && (
+                        <div style={{
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            background: '#f8fafc',
+                            position: 'relative',
+                            overflow: 'hidden',
+                        }}>
                             <div style={{
-                                flex: 1,
+                                padding: '12px 20px',
+                                borderBottom: '1px solid #e2e8f0',
+                                background: '#ffffff',
                                 display: 'flex',
-                                flexDirection: 'column',
                                 alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: 40,
-                                gap: 24,
+                                justifyContent: 'space-between',
                             }}>
-                                <DesignPreviewSummary step={designerStep} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <button
+                                        onClick={() => setDesignerStep(3)} // 커버 스텝은 3번
+                                        className="btn-secondary"
+                                        style={{ fontSize: 13, padding: '6px 14px' }}
+                                    >← 커버 선택으로</button>
+                                    <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
+                                        🔍 매트리스 3D 분해도
+                                    </span>
+                                </div>
                             </div>
-                        )}
-                    </main>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-/* ══════════ 선택 사항 요약 프리뷰 ══════════ */
-function DesignPreviewSummary({ step }: { step: number }) {
-    const store = useDesignStore();
-    const customOpts = useCustomOptionsStore();
-    const allCores = [...CORE_OPTIONS, ...customOpts.cores];
-    const allCovers = [...COVER_OPTIONS, ...customOpts.covers];
-
-    const selectedSize = SIZE_PRESETS.find(s => s.id === store.sizePresetId);
-    const selectedCore = allCores.find(c => c.id === store.coreId);
-    const selectedCover = allCovers.find(c => c.id === store.coverId);
-    const coverImg = store.coverId && store.customCoverImages[store.coverId]
-        ? store.customCoverImages[store.coverId]
-        : selectedCover?.image;
-
-    const items = [
-        {
-            label: '사이즈',
-            value: selectedSize ? `${selectedSize.label} (${store.customWidth}×${store.customDepth}mm)` : (store.customWidth ? `${store.customWidth}×${store.customDepth}mm` : '미선택'),
-            done: !!(store.sizePresetId || store.customWidth > 0),
-            step: 1,
-        },
-        {
-            label: '구조',
-            value: store.structureType ? ({ basic: 'Basic', standard: 'Standard', premium: 'Premium' }[store.structureType]) : '미선택',
-            done: !!store.structureType,
-            step: 2,
-        },
-        {
-            label: '스트링',
-            value: selectedCore?.label || '미선택',
-            done: !!store.coreId,
-            step: 3,
-        },
-        {
-            label: '커버',
-            value: selectedCover?.label || '미선택',
-            done: !!store.coverId,
-            step: 4,
-        },
-    ];
-
-    return (
-        <div style={{
-            width: '100%',
-            maxWidth: 500,
-            background: '#ffffff',
-            borderRadius: 16,
-            padding: 28,
-            boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-            border: '1px solid #e2e8f0',
-        }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 20 }}>
-                📋 설계 현황
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {items.map((item, i) => (
-                    <div key={i} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '10px 14px',
-                        borderRadius: 10,
-                        background: step === item.step ? 'rgba(5,150,105,0.06)' : '#fafbfc',
-                        border: step === item.step ? '1px solid rgba(5,150,105,0.2)' : '1px solid #f1f5f9',
-                        transition: 'all 0.2s',
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <span style={{
-                                width: 22, height: 22, borderRadius: 6,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: 12, fontWeight: 700,
-                                background: item.done ? '#059669' : '#e2e8f0',
-                                color: item.done ? '#fff' : '#94a3b8',
-                            }}>{item.done ? '✓' : i + 1}</span>
-                            <span style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>{item.label}</span>
+                            <div style={{ flex: 1, padding: 16 }}>
+                                <MattressExplodedView className="w-full h-full" />
+                            </div>
                         </div>
-                        <span style={{
-                            fontSize: 13, fontWeight: item.done ? 600 : 400,
-                            color: item.done ? '#059669' : '#94a3b8',
-                        }}>{item.value}</span>
-                    </div>
-                ))}
-            </div>
-
-            {/* 커버 이미지 미리보기 */}
-            {coverImg && (
-                <div style={{
-                    marginTop: 20,
-                    borderRadius: 12,
-                    overflow: 'hidden',
-                    border: '1px solid #e2e8f0',
-                }}>
-                    <img
-                        src={coverImg}
-                        alt="커버 미리보기"
-                        style={{ width: '100%', height: 200, objectFit: 'cover' }}
-                    />
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 }
+
+

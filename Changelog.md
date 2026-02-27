@@ -1,3 +1,11 @@
+## [Alpha V1.077] - 2026-02-28 02:15:30
+
+### 🔄 Build Update
+- **Summary**: 디자이너 페이지 1단(Full width) 레이아웃 변경 적용
+- **Detail** : 
+  - **`app/designer/page.tsx` [MODIFY]**: 기존 2단(좌/우) 분리 구조 제거. 필요 없어진 우측 '설계 현황' 패널(`DesignPreviewSummary`)을 완전 삭제하고, 좌측 옵션 선택 영역이 전체 화면을 가득 채우도록 레이아웃 통합 수정
+- **Build Time**: 2026-02-28 02:15:30
+
 ## [Alpha V1.076] - 2026-02-28 02:00:55
 
 ### 🔄 Build Update
