@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDesignStore } from '../../lib/store';
+import { usePathname } from 'next/navigation';
 import {
     TOP_FOAM_OPTIONS,
     GUARD_FOAM_THICKNESS_OPTIONS,
@@ -31,6 +32,8 @@ export default function StepFoam() {
     } = useDesignStore();
 
     const custom = useCustomOptionsStore();
+    const pathname = usePathname();
+    const isDesigner = pathname === '/designer';
     const [mounted, setMounted] = useState(false);
     const [showAddTop, setShowAddTop] = useState(false);
     const [showAddGuardT, setShowAddGuardT] = useState(false);
@@ -105,8 +108,8 @@ export default function StepFoam() {
                 </div>
             )}
 
-            {/* Single / Dual 선택 추가 (기존 사이즈창에서 이동) */}
-            {(customWidth >= DUAL_MIN_WIDTH) && (
+            {/* Single / Dual 선택 추가 (기존 사이즈창에서 이동, 디자이너 웹 전용) */}
+            {isDesigner && (customWidth >= DUAL_MIN_WIDTH) && (
                 <div className="animate-in" style={{ marginTop: 16 }}>
                     <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 24 }}>
                         <p style={{ fontSize: 13, fontWeight: 700, color: '#7c3aed', marginBottom: 12 }}>

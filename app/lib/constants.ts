@@ -130,12 +130,13 @@ export const DELIVERY_OPTIONS: GenericOption[] = [
 
 // --- 위자드 단계 ---
 export const WIZARD_STEPS = [
-    { id: 1, title: '구조 선택', icon: '🛡️', description: '매트리스 폼의 레이어 구조(Basic, Standard, Premium)를 선택하세요' },
-    { id: 2, title: '스트링', icon: '🔧', description: '스트링 타입을 선택하세요' },
-    { id: 3, title: '커버', icon: '🎨', description: '외부 커버 디자인을 선택하세요' },
-    { id: 4, title: '컨트롤러', icon: '🎮', description: '제어 장치를 선택하세요' },
-    { id: 5, title: '포장', icon: '📦', description: '포장 방식을 선택하세요' },
-    { id: 6, title: '배송', icon: '🚚', description: '배송 방식을 선택하세요' },
+    { id: 1, title: '사이즈 선택', icon: '📏', description: '매트리스 규격을 선택하세요' },
+    { id: 2, title: '구조 선택', icon: '🛡️', description: '매트리스 폼의 레이어 구조(Basic, Standard, Premium)를 선택하세요' },
+    { id: 3, title: '스트링', icon: '🔧', description: '스트링 타입을 선택하세요' },
+    { id: 4, title: '커버', icon: '🎨', description: '외부 커버 디자인을 선택하세요' },
+    { id: 5, title: '컨트롤러', icon: '🎮', description: '제어 장치를 선택하세요' },
+    { id: 6, title: '포장', icon: '📦', description: '포장 방식을 선택하세요' },
+    { id: 7, title: '배송', icon: '🚚', description: '배송 방식을 선택하세요' },
 ] as const;
 
 // --- 도면 상수 ---

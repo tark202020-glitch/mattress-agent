@@ -7,6 +7,7 @@ import { useCustomOptionsStore } from '../../lib/customOptionsStore';
 import AddOptionModal, { AddButton, DeleteBadge, type FieldDef } from '../AddOptionModal';
 import CoverImageGeneratorModal from '../CoverImageGeneratorModal';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 const gradeLabel: Record<string, string> = {
     '저': '베이직',
@@ -29,6 +30,8 @@ export default function StepCover() {
         coverExtractSourceImage, setCoverExtractSourceImage
     } = useDesignStore();
     const { covers: customCovers, addCover, removeCover, _hydrate } = useCustomOptionsStore();
+    const pathname = usePathname();
+    const isDesigner = pathname === '/designer';
     const [showAdd, setShowAdd] = useState(false);
     const [showAiModal, setShowAiModal] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -65,6 +68,7 @@ export default function StepCover() {
     const isCustom = (id: string) => customCovers.some(c => c.id === id);
 
     const isAllowedCover = (id: string, structType: string | null) => {
+        if (isDesigner) return true; // designer 페이지에서는 structureType 무관 전체 노출
         if (id.startsWith('CUSTOM_COV_')) return true;
         if (structType === 'basic') {
             return id === 'HEALING_NUMBER' || id === 'COMPACT';
@@ -80,7 +84,7 @@ export default function StepCover() {
         <div className="animate-in">
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
+                gridTemplateColumns: isDesigner ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
                 gap: 16,
             }}>
                 {allowedCovers.map((cover) => {
@@ -249,32 +253,44 @@ export default function StepCover() {
                 })}
             </div>
 
-            <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
-                <button
-                    onClick={() => {
-                        if (!coverId) {
-                            alert('먼저 스타일을 선택해주세요.');
-                            return;
-                        }
-                        setShowAiModal(true);
-                    }}
-                    style={{
-                        flex: 1, padding: '16px 20px', borderRadius: 12, border: 'none',
-                        background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                        color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        boxShadow: '0 4px 14px rgba(79,70,229,0.3)', transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'none'}
-                >
-                    <span style={{ fontSize: 18 }}>✨</span> AI 이미지 생성하기
-                </button>
-            </div>
-
-            <div style={{ marginTop: 16 }}>
-                <AddButton onClick={() => setShowAdd(true)} label="새 커버 디자인 추가하기" />
-            </div>
+            {isDesigner ? (
+                <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+                    <button
+                        onClick={() => {
+                            if (!coverId) {
+                                alert('먼저 스타일을 선택해주세요.');
+                                return;
+                            }
+                            setShowAiModal(true);
+                        }}
+                        style={{
+                            flex: 1, padding: '16px 20px', borderRadius: 12, border: 'none',
+                            background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                            color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                            boxShadow: '0 4px 14px rgba(79,70,229,0.3)', transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+                    >
+                        <span style={{ fontSize: 18 }}>✨</span> AI 이미지 생성하기
+                    </button>
+                    <button
+                        onClick={() => setShowAdd(true)}
+                        style={{
+                            flex: 1, padding: '16px 20px', borderRadius: 12, border: '1px solid #4f46e5',
+                            background: '#fff',
+                            color: '#4f46e5', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                        }}
+                    >
+                        ➕ 새 디자인(커스텀) 추가하기
+                    </button>
+                </div>
+            ) : (
+                <div style={{ marginTop: 16 }}>
+                    <AddButton onClick={() => setShowAdd(true)} label="새 커버 디자인 추가하기" />
+                </div>
+            )}
 
             {showAiModal && coverId && (
                 <CoverImageGeneratorModal
