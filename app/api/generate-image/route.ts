@@ -111,7 +111,7 @@ export async function POST(req: Request) {
             const parts: any[] = [];
 
             // 텍스트 프롬프트
-            const maxImages = aspectRatio === '1:1' ? 4 : 4; // 항상 4장 요청 (비율 무관)
+            const maxImages = 1; // 3앵글 동시 요청이므로 1장씩만 생성
             let instructions = useSubjectRef
                 ? `You are an expert AI image generator. IMPORTANT: You MUST strictly maintain the visual style, shape, texture, and core product design shown in the provided reference images. The generated mattress must look like the same model as the reference. Please generate exactly ${maxImages} distinct images showing different angles/arrangements of this exact mattress. ${finalPrompt}`
                 : `You are an expert AI image generator. Please generate exactly ${maxImages} distinct images based on this description. ${finalPrompt}`;
@@ -196,7 +196,7 @@ export async function POST(req: Request) {
 
         let vertexRequestBody: any;
         if (useSubjectRef) {
-            const maxImages = aspectRatio === '1:1' ? 4 : 2;
+            const maxImages = 1;
             const refImageObjects = referenceImages.slice(0, maxImages).map((base64: string) => ({
                 referenceType: 'REFERENCE_TYPE_SUBJECT',
                 referenceId: 1,
@@ -205,12 +205,12 @@ export async function POST(req: Request) {
             }));
             vertexRequestBody = {
                 instances: [{ prompt: finalPrompt, referenceImages: refImageObjects }],
-                parameters: { sampleCount: 4, aspectRatio: aspectRatio },
+                parameters: { sampleCount: 1, aspectRatio: aspectRatio },
             };
         } else {
             vertexRequestBody = {
                 instances: [{ prompt: finalPrompt }],
-                parameters: { sampleCount: 4, aspectRatio: aspectRatio, enhancePrompt, personGeneration: 'allow_adult' },
+                parameters: { sampleCount: 1, aspectRatio: aspectRatio, enhancePrompt, personGeneration: 'allow_adult' },
             };
         }
 

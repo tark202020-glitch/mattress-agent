@@ -24,55 +24,12 @@ const COVER_FILE_BASE: Record<string, string[]> = {
     'COMPACT': ['컴팩트.jpg', '컴팩트01.png', '컴팩트02.png'],
 };
 
-/* ── Subject Description ── */
-const SUBJECT_DESC: Record<string, string> = {
-    'HEALING_NUMBER': 'a beige quilted mattress cover with diamond pattern stitching and fabric label',
-    'OAK_TWEED': 'a brown tweed fabric mattress cover with woven texture and edge piping',
-    'FLAT_GRID': 'a grey modern mattress cover with flat grid pattern and clean lines',
-    'ALL_CARE': 'a white and light grey antimicrobial mattress cover with smooth surface and brand label',
-    'GENTLE_BREED': 'a warm beige or light grey premium mattress cover with fine knit texture and gold label',
-    'I5': 'The top surface is white with a subtle diagonal knitted pattern. The side is divided into two sections: a light gray upper band and a dark charcoal gray lower fabric. Minimalist and sleek aesthetics, high-quality fabric texture.',
-    'COMPACT': 'a sage gray compact mattress cover with simple quilted pattern',
-};
-
-/* ── 분위기 프리셋 ── */
-const MOOD_PRESETS = [
-    {
-        id: 'warm_brown', label: '따뜻한 실내 갈색', emoji: '🪵', color: '#92400e', bgColor: '#fef3c7',
-        scene: 'Warm bedroom scene. Empty dark platform bed base. Arranged on top: two white pillows, one light beige pillow, and a rust-orange square accent pillow. A tan fringed throw blanket draped across the lower right. Fluffy beige shag area rug. Left: dark wood side table with a white device. Right: modern black floor lamp with three circular discs. Background wall features pinkish-mauve wainscoting on the lower half and pale yellow above. Warm lighting with soft shadows. High-end interior design aesthetic.'
-    },
-    {
-        id: 'clean_studio', label: '깔끔한 스튜디오', emoji: '✨', color: '#4338ca', bgColor: '#eef2ff',
-        scene: 'A modern bedroom scene. An empty light grey-blue upholstered platform bed frame with a padded headboard and small black cylindrical legs. Arranged on the frame (where the mattress would be) are two large light blue-grey pillows in the back, and two textured, light pink lumbar pillows in the front. A modern gold and frosted glass spherical pendant lamp hangs in the top left corner. A section of a fluffy, textured cream and grey patterned area rug is visible on the floor in the bottom right corner. The background is a seamless light grey wall and white floor. Soft, bright studio lighting casting gentle shadows. High-end interior design aesthetic.'
-    },
-    {
-        id: 'wood_luxury', label: '고급스러운 원목', emoji: '🏨', color: '#78350f', bgColor: '#fef9ee',
-        scene: 'A minimalist bedroom scene with an empty, low-profile upholstered bed frame in a light beige fabric. The frame has a tall, padded headboard against which two large, plain white pillows are leaning. To the left of the bed is a round, sculptural side table made of light wood, holding a small white rounded rectangular object. The background features a light beige wall with subtle vertical paneling details and a large, semi-transparent screen on the right. The floor is made of light wood planks. Soft, warm natural light streams in from the left, casting a shadow of a plant on the wall.'
-    },
-    {
-        id: 'warm_grey', label: '웜 그레이톤', emoji: '🤍', color: '#374151', bgColor: '#f3f4f6',
-        scene: 'A modern bedroom scene. An empty grey upholstered bed frame with a tufted headboard and small black legs. Arranged on the frame are two white pillows, one grey accent pillow, and a brown knit throw blanket. To the left, a small wooden side table holds a white rectangular object. To the right, a chrome and glass side table holds a white rectangular object. Further right, a wooden shelving unit with black legs holds a bowl, books, and a dry branch decoration. A glass pendant lamp hangs from the top right. A white scale is visible on the floor in the bottom left corner. The background is a seamless white wall and light grey floor. Soft, even studio lighting. High-end interior design aesthetic.'
-    },
-    {
-        id: 'cool_tone', label: '차가운 쿨톤', emoji: '❄️', color: '#1e40af', bgColor: '#eff6ff',
-        scene: 'A modern, minimalist studio bedroom scene. An empty black leather Barcelona daybed frame with chrome legs sits in the center. Arranged on the frame are two large white pillows, a blue rectangular accent pillow, and a light grey blanket. To the left, a glass and chrome side table holds a black and white striped ceramic vase and stacked books. To the right, another glass and chrome side table holds a white rectangular object. A tall, thin chrome floor lamp stands behind the right side of the bed frame. A light grey area rug covers the white floor beneath the frame. The background is a seamless white wall. Soft, even studio lighting. High-end interior design aesthetic.'
-    },
-    {
-        id: 'white_isolated', label: '매트리스만 (흰색 배경)', emoji: '🛏️', color: '#0f172a', bgColor: '#f1f5f9',
-        scene: 'Isolated product shot of a mattress cover on an invisible frame. Pure, seamless white background. No props, no furniture, no shadows except subtle drop shadow beneath the mattress. Studio lighting. Clean, minimal, commercial photography aesthetic.'
-    },
-];
-
-/* ── 카메라 앵글 ── */
-const CAMERA_ANGLES = [
-    {
-        id: 'front', label: '정면', emoji: '🖼️', color: '#0f766e', bgColor: '#f0fdf4',
-        scene: 'Straight-on view directly facing the front of the mattress. Eye-level perspective. Symmetrical composition.'
-    },
-    {
-        id: 'perspective', label: '퍼스펙티브', emoji: '📐', color: '#6b21a8', bgColor: '#faf5ff',
-        scene: '3/4 angled perspective view from the corner, showing the top and side of the mattress clearly.'
-    },
+/* ── 고정 프롬프트 데이터 ── */
+const FIXED_SCENE = 'Isolated product shot of a mattress cover on an invisible frame. Pure, seamless white background. No props, no furniture, no shadows except subtle drop shadow beneath the mattress. Studio lighting. Clean, minimal, commercial photography aesthetic.';
+const FIXED_ANGLES = [
+    { id: 'front', label: '정면', prompt: 'Straight-on view directly facing the front of the mattress. Eye-level perspective. Symmetrical composition.' },
+    { id: 'perspective', label: '퍼스펙티브', prompt: '3/4 angled perspective view from the corner, showing the top and side of the mattress clearly.' },
+    { id: 'top', label: '탑 뷰', prompt: 'Top-down bird\'s-eye view directly above the mattress, showing the full top surface.' }
 ];
 
 
@@ -80,6 +37,7 @@ const CAMERA_ANGLES = [
 interface GeneratedImage {
     imageUrl: string;
     base64: string;
+    angleId?: string;
 }
 
 /* ── 이미지 리사이징 헬퍼 ── */
@@ -153,11 +111,13 @@ export default function CoverImageGeneratorModal({
     coverId, coverLabel, coverDescription, coverColor, coverImage, onSave, onClose,
 }: CoverImageGeneratorModalProps) {
 
-    const [scenePrompt, setScenePrompt] = useState('');
-    const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
-
-    const [anglePrompt, setAnglePrompt] = useState('');
-    const [cameraAngle, setCameraAngle] = useState<string | null>(null);
+    // ── 매트리스 디자인 폼 필드 ──
+    const [topColor, setTopColor] = useState('');
+    const [topPattern, setTopPattern] = useState('');
+    const [pipingColor, setPipingColor] = useState('');
+    const [sideColor, setSideColor] = useState('');
+    const [sidePattern, setSidePattern] = useState('');
+    const [labelStyle, setLabelStyle] = useState('');
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -178,12 +138,17 @@ export default function CoverImageGeneratorModal({
     const [inpaintError, setInpaintError] = useState<string | null>(null);
     const [hasStroke, setHasStroke] = useState(false);
 
-    // ── 매트리스 프롬프트 (시스템 사전 정의값 노출 및 수정 가능) ──
-    const [mattressPrompt, setMattressPrompt] = useState('');
-
-    useEffect(() => {
-        setMattressPrompt(SUBJECT_DESC[coverId] || 'a premium mattress cover');
-    }, [coverId]);
+    // ── 매트리스 프롬프트 조합 함수 ──
+    const getMattressDescription = useCallback(() => {
+        return [
+            topColor && `Top Color: ${topColor}`,
+            topPattern && `Top Pattern: ${topPattern}`,
+            pipingColor && `Piping Color: ${pipingColor}`,
+            sideColor && `Side Color: ${sideColor}`,
+            sidePattern && `Side Pattern: ${sidePattern}`,
+            labelStyle && `Label Style: ${labelStyle}`
+        ].filter(Boolean).join(', ');
+    }, [topColor, topPattern, pipingColor, sideColor, sidePattern, labelStyle]);
     const clearCanvas = useCallback(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -263,28 +228,7 @@ export default function CoverImageGeneratorModal({
 
 
     useEffect(() => {
-        if (originalRefImages.length > 0 && mattressPrompt === SUBJECT_DESC[coverId]) {
-            // 기본값이 세팅된 직후라면 이미지 기반 분석 수행
-            // (위의 useEffect와 기능을 합침)
-            const fetchPrompt = async () => {
-                try {
-                    const analyzeRes = await fetch('/api/analyze-image-prompt', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ imageBase64: originalRefImages[0] })
-                    });
-                    if (analyzeRes.ok) {
-                        const data = await analyzeRes.json();
-                        if (data.description) {
-                            setMattressPrompt(data.description);
-                        }
-                    }
-                } catch (err) {
-                    console.error('Failed to auto-generate prompt from image', err);
-                }
-            };
-            fetchPrompt();
-        }
+        // analyze prompt on original reference image load - skipped to prevent overriding structural fields automatically
     }, [originalRefImages, coverId]);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -307,22 +251,7 @@ export default function CoverImageGeneratorModal({
                     setOriginalRefImages(prev => [...prev, ...newImages]);
                     setRefImageLoading(false);
 
-                    // 첫 번째 업로드된 이미지로 프롬프트 자동 생성
-                    try {
-                        const analyzeRes = await fetch('/api/analyze-image-prompt', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ imageBase64: newImages[0] })
-                        });
-                        if (analyzeRes.ok) {
-                            const data = await analyzeRes.json();
-                            if (data.description) {
-                                setMattressPrompt(data.description);
-                            }
-                        }
-                    } catch (err) {
-                        console.error('Failed to auto-generate prompt from image', err);
-                    }
+                    // Auto prompt generation skipped
                 }
             };
             reader.readAsDataURL(file);
@@ -351,15 +280,7 @@ export default function CoverImageGeneratorModal({
         }
     }, [coverId, coverImage]);
 
-    const handlePresetSelect = (p: typeof MOOD_PRESETS[0]) => {
-        if (selectedPreset === p.id) { setSelectedPreset(null); setScenePrompt(''); }
-        else { setSelectedPreset(p.id); setScenePrompt(p.scene); }
-    };
 
-    const handleAngleSelect = (a: typeof CAMERA_ANGLES[0]) => {
-        if (cameraAngle === a.id) { setCameraAngle(null); setAnglePrompt(''); }
-        else { setCameraAngle(a.id); setAnglePrompt(a.scene); }
-    };
 
     function getRefImages(): string[] {
         const maxImages = (aspectRatio === '1:1') ? 4 : 2;
@@ -373,12 +294,11 @@ export default function CoverImageGeneratorModal({
         return refs;
     }
 
-    function buildPrompt(): string {
-        const scene = scenePrompt.trim() || 'in a modern bedroom with neutral tones, photorealistic 4K';
-        const angle = anglePrompt.trim();
-        const mattress = mattressPrompt.trim();
+    function buildPrompt(anglePrompt: string): string {
+        const scene = FIXED_SCENE;
+        const mattress = getMattressDescription();
         let prompt = scene;
-        if (angle) prompt += `.\n${angle}`;
+        if (anglePrompt) prompt += `.\n${anglePrompt}`;
         if (mattress) prompt += `.\nMattress details: ${mattress}`;
         return prompt;
     }
@@ -393,50 +313,67 @@ export default function CoverImageGeneratorModal({
 
         try {
             // 원본 커버 이미지만 참조 (selectedAsRef 제외)
-            const maxRefImages = (aspectRatio === '1:1') ? 4 : 2;
+            const maxRefImages = 2;
             const baseRefs = originalRefImages.slice(0, maxRefImages);
 
-            const body: any = {
-                prompt: buildPrompt(),
-                coverLabel: coverLabel,
-                aspectRatio: aspectRatio,
-            };
-            if (baseRefs.length > 0) {
-                body.referenceImages = baseRefs;
-                body.subjectDescription = mattressPrompt.trim();
-            }
+            // ✅ 3개의 앵글에 대해 동시에 생성 요청 (Promise.all)
+            const requests = FIXED_ANGLES.map(angle => {
+                const body: any = {
+                    prompt: buildPrompt(angle.prompt),
+                    coverLabel: coverLabel,
+                    aspectRatio: '1:1', // 항상 1:1 고정
+                };
+                if (baseRefs.length > 0) {
+                    body.referenceImages = baseRefs;
+                    body.subjectDescription = getMattressDescription() || 'a premium mattress cover';
+                }
 
-            // ✅ 2장을 동시에 생성 (Promise.all 병렬 호출)
-            const requests = Array.from({ length: 2 }, () =>
-                fetch('/api/generate-image', {
+                return fetch('/api/generate-image', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body),
                 }).then(async res => {
                     const text = await res.text();
                     try {
-                        return JSON.parse(text);
+                        const data = JSON.parse(text);
+                        return { angleId: angle.id, data };
                     } catch (e) {
                         throw new Error(`Server returned invalid JSON: ${text.slice(0, 100)}`);
                     }
-                })
-            );
+                });
+            });
 
             const results = await Promise.all(requests);
 
             const allImages: GeneratedImage[] = [];
-            for (const data of results) {
-                if (data.images && data.images.length > 0) {
-                    allImages.push(...data.images);
+            for (const res of results) {
+                if (res.data.images && res.data.images.length > 0) {
+                    const generatedImg = res.data.images[0];
+                    allImages.push(generatedImg);
+
+                    // 💡 자동 저장 API 호출
+                    try {
+                        await fetch('/api/save-image', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                base64: generatedImg.base64,
+                                coverLabel: coverLabel,
+                                angleId: res.angleId
+                            }),
+                        });
+                    } catch (saveErr) {
+                        console.error('Failed to auto-save image:', saveErr);
+                    }
                 }
             }
 
             if (allImages.length > 0) {
-                setGeneratedImages(allImages.slice(0, 2)); // 최대 2장
+                setGeneratedImages(allImages); // 3장 표시
                 setRound((r) => r + 1);
             } else {
-                const firstError = results.find(d => d.error);
-                setError(firstError?.error || '이미지 생성에 실패했습니다.');
+                const firstError = results.find(d => d.data.error);
+                setError(firstError?.data.error || '이미지 생성에 실패했습니다.');
             }
         } catch (err: any) {
             setError(err.message || '네트워크 오류');
@@ -636,110 +573,43 @@ export default function CoverImageGeneratorModal({
                                 </div>
                             </div>
 
-                            {/* 배경/분위기 */}
+                            {/* 매트리스 (디자인 및 색상) 추가 설명 레이아웃 */}
                             {!finalImage && (
-                                <div style={{ marginBottom: 10, padding: 10, background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 9 }}>
-                                    <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 5 }}>🎬 배경/분위기</div>
-                                    <textarea
-                                        value={scenePrompt}
-                                        onChange={(e) => { setScenePrompt(e.target.value); setSelectedPreset(null); }}
-                                        rows={2}
-                                        placeholder="예: in a warm modern bedroom with oak furniture, photorealistic 4K"
-                                        style={{ width: '100%', padding: 7, border: '1px solid #bae6fd', borderRadius: 7, fontSize: 11, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.5 }}
-                                    />
-                                    <div style={{ marginTop: 5, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                                        {MOOD_PRESETS.map((p) => {
-                                            const active = selectedPreset === p.id;
-                                            return (
-                                                <button key={p.id} onClick={() => handlePresetSelect(p)} style={{
-                                                    display: 'flex', alignItems: 'center', gap: 3,
-                                                    padding: '3px 7px', borderRadius: 6,
-                                                    border: `1.5px solid ${active ? p.color : '#e2e8f0'}`,
-                                                    background: active ? p.bgColor : '#fff',
-                                                    color: active ? p.color : '#64748b',
-                                                    fontSize: 10, fontWeight: active ? 700 : 500, cursor: 'pointer',
-                                                }}>
-                                                    <span style={{ fontSize: 11 }}>{p.emoji}</span>{p.label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* 카메라 앵글 */}
-                            {!finalImage && (
-                                <div style={{ marginBottom: 10, padding: 10, background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 9 }}>
-                                    <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 5 }}>🎥 카메라 앵글</div>
-                                    <textarea
-                                        value={anglePrompt}
-                                        onChange={(e) => { setAnglePrompt(e.target.value); setCameraAngle(null); }}
-                                        rows={2}
-                                        placeholder="예: Straight-on view directly facing the front"
-                                        style={{ width: '100%', padding: 7, border: '1px solid #ddd6fe', borderRadius: 7, fontSize: 11, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.5 }}
-                                    />
-                                    <div style={{ marginTop: 5, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                                        {CAMERA_ANGLES.map((a) => {
-                                            const active = cameraAngle === a.id;
-                                            return (
-                                                <button key={a.id} onClick={() => handleAngleSelect(a)} style={{
-                                                    display: 'flex', alignItems: 'center', gap: 3,
-                                                    padding: '3px 7px', borderRadius: 6,
-                                                    border: `1.5px solid ${active ? a.color : '#e2e8f0'}`,
-                                                    background: active ? a.bgColor : '#fff',
-                                                    color: active ? a.color : '#64748b',
-                                                    fontSize: 10, fontWeight: active ? 700 : 500, cursor: 'pointer',
-                                                }}>
-                                                    <span style={{ fontSize: 11 }}>{a.emoji}</span>{a.label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* 매트리스 추가 설명 */}
-                            {!finalImage && (
-                                <div style={{ marginBottom: 10, padding: 10, background: '#fefce8', border: '1px solid #fde68a', borderRadius: 9 }}>
-                                    <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e', marginBottom: 4 }}>
+                                <div style={{ marginBottom: 12, padding: 12, background: '#fefce8', border: '1px solid #fde68a', borderRadius: 9, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: '#92400e', marginBottom: 2 }}>
                                         🛏️ 매트리스 (디자인 및 색상)
                                     </div>
-                                    <textarea
-                                        value={mattressPrompt} onChange={(e) => setMattressPrompt(e.target.value)} rows={3}
-                                        placeholder="예: with thick pillow-top quilting and blue piping"
-                                        style={{ width: '100%', padding: 7, border: '1px solid #fde68a', borderRadius: 7, fontSize: 11, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box', background: '#fffbeb' }}
-                                    />
-                                    {mattressPrompt.trim() && <div style={{ marginTop: 5, fontSize: 10, color: '#78350f' }}>🔍 최종 프롬프트 (배경 + 앵글 + 매트리스 조합): <br /><em style={{ color: '#4f46e5', whiteSpace: 'pre-wrap' }}>{buildPrompt()}</em></div>}
-                                </div>
-                            )}
-
-                            {/* 비율 선택 */}
-                            {!finalImage && (
-                                <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                                    <span style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginRight: 2 }}>📐 비율:</span>
-                                    {(['1:1', '3:4', '4:3', '16:9', '9:16'] as const).map((ratio) => {
-                                        const active = aspectRatio === ratio;
-                                        const dims: Record<string, { w: number; h: number }> = {
-                                            '1:1': { w: 16, h: 16 },
-                                            '3:4': { w: 12, h: 16 },
-                                            '4:3': { w: 16, h: 12 },
-                                            '16:9': { w: 18, h: 10 },
-                                            '9:16': { w: 10, h: 18 },
-                                        };
-                                        const d = dims[ratio];
-                                        return (
-                                            <button key={ratio} onClick={() => setAspectRatio(ratio)} style={{
-                                                display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 7,
-                                                border: `1.5px solid ${active ? '#4f46e5' : '#e2e8f0'}`,
-                                                background: active ? '#eef2ff' : '#fff',
-                                                color: active ? '#4f46e5' : '#64748b',
-                                                fontSize: 10, fontWeight: active ? 700 : 500, cursor: 'pointer',
-                                            }}>
-                                                <div style={{ width: d.w, height: d.h, border: `1.5px solid ${active ? '#4f46e5' : '#94a3b8'}`, borderRadius: 2 }} />
-                                                {ratio}
-                                            </button>
-                                        );
-                                    })}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                        <div>
+                                            <label style={{ fontSize: 10, color: '#78350f', fontWeight: 600 }}>Top Cover Color</label>
+                                            <input type="text" value={topColor} onChange={(e) => setTopColor(e.target.value)} placeholder="예: Beige" style={{ width: '100%', padding: '6px 8px', fontSize: 11, borderRadius: 6, border: '1px solid #fcd34d' }} />
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: 10, color: '#78350f', fontWeight: 600 }}>Top Cover Quilting Pattern</label>
+                                            <input type="text" value={topPattern} onChange={(e) => setTopPattern(e.target.value)} placeholder="예: Diamond" style={{ width: '100%', padding: '6px 8px', fontSize: 11, borderRadius: 6, border: '1px solid #fcd34d' }} />
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: 10, color: '#78350f', fontWeight: 600 }}>Piping (zipper) Fabric Color</label>
+                                            <input type="text" value={pipingColor} onChange={(e) => setPipingColor(e.target.value)} placeholder="예: Brown" style={{ width: '100%', padding: '6px 8px', fontSize: 11, borderRadius: 6, border: '1px solid #fcd34d' }} />
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: 10, color: '#78350f', fontWeight: 600 }}>Side Fabric Color</label>
+                                            <input type="text" value={sideColor} onChange={(e) => setSideColor(e.target.value)} placeholder="예: Light Grey" style={{ width: '100%', padding: '6px 8px', fontSize: 11, borderRadius: 6, border: '1px solid #fcd34d' }} />
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: 10, color: '#78350f', fontWeight: 600 }}>Side Fabric Quilting Pattern</label>
+                                            <input type="text" value={sidePattern} onChange={(e) => setSidePattern(e.target.value)} placeholder="예: Vertical lines" style={{ width: '100%', padding: '6px 8px', fontSize: 11, borderRadius: 6, border: '1px solid #fcd34d' }} />
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: 10, color: '#78350f', fontWeight: 600 }}>Logo Label Style</label>
+                                            <input type="text" value={labelStyle} onChange={(e) => setLabelStyle(e.target.value)} placeholder="예: Gold tag" style={{ width: '100%', padding: '6px 8px', fontSize: 11, borderRadius: 6, border: '1px solid #fcd34d' }} />
+                                        </div>
+                                    </div>
+                                    {getMattressDescription() && (
+                                        <div style={{ marginTop: 4, fontSize: 11, color: '#78350f' }}>
+                                            🔍 최종 생성 설명: <em style={{ color: '#4f46e5' }}>{getMattressDescription()}</em>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -752,7 +622,7 @@ export default function CoverImageGeneratorModal({
                                     fontSize: 13, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
                                     marginBottom: 12, boxShadow: loading ? 'none' : '0 4px 14px rgba(79,70,229,0.35)',
                                 }}>
-                                    {loading ? '⏳ 2장 생성 중... (약 10-25초)' : round === 0 ? '🎯 2장 생성하기' : `🔄 다시 2장 생성하기 (라운드 ${round + 1})`}
+                                    {loading ? '⏳ 3장 생성 중... (약 10-25초)' : round === 0 ? '🎯 앵글별 3장 생성하기' : `🔄 다시 3장 생성하기 (라운드 ${round + 1})`}
                                 </button>
                             )}
                             {error && <div style={{ padding: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 7, marginBottom: 10, fontSize: 11, color: '#991b1b', wordBreak: 'break-all' }}>❌ {error}</div>}
@@ -814,19 +684,16 @@ export default function CoverImageGeneratorModal({
                         </div>
                     )}
 
-                    {/* 생성된 이미지 그리드 (2장) */}
+                    {/* 생성된 이미지 그리드 (3장) */}
                     {!loading && generatedImages.length > 0 && !finalImage && (
                         <div style={{
                             display: 'grid',
-                            gridTemplateColumns: aspectRatio === '9:16' ? '1fr 1fr' : aspectRatio === '16:9' ? '1fr' : '1fr 1fr',
+                            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)',
                             gap: 12,
                         }}>
                             {generatedImages.map((img: GeneratedImage, idx: number) => {
                                 const isSelected = selectedIndex === idx;
-                                const arMap: Record<string, string> = {
-                                    '1:1': '1/1', '3:4': '3/4', '4:3': '4/3', '16:9': '16/9', '9:16': '9/16',
-                                };
-                                const ar = arMap[aspectRatio] || '1/1';
+                                const angleMeta = FIXED_ANGLES.find(a => a.id === img.angleId);
                                 return (
                                     <div key={idx} onClick={() => setSelectedIndex(idx)} style={{
                                         position: 'relative', borderRadius: 12, overflow: 'hidden',

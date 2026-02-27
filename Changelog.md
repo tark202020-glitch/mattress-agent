@@ -1,3 +1,17 @@
+## [Alpha V1.078] - 2026-02-28 02:40:15
+
+### 🔄 Build Update
+- **Summary**: AI 커버 이미지 생성 페이지 최적화 및 3앵글 자동 저장 기능 추가
+- **Detail** : 
+  - **`app/api/save-image/route.ts` [NEW]**: 생성된 3장의 이미지를 `mattress-agent/resource/AI-cover/`에 자동 저장(타임스탬프, 앵글 포함)하는 엔드포인트 신설
+  - **`app/api/generate-image/route.ts` [MODIFY]**: 3장 동시 생성을 위해 API 1회 호출당 생성 개수 1개로 요청 최적화 (Nano Banana, Vertex AI 모두)
+  - **`app/components/CoverImageGeneratorModal.tsx` [MODIFY]**:
+    - 매트리스 설명(프롬프트) 입력 구조를 6개 속성(Top Cover Color, Piping 등)으로 명료하게 분리
+    - 배경 프리셋 및 앵글 수동 지정 UI 제거 (고정 상수 사용)
+    - 3개의 앵글에 대해 `Promise.all` 동시 호출로 각각 이미지 1장씩 총 3장 동시 생성
+    - 생성 결과 1:1 비율을 3열 그리드 형태로 표출하도록 UI 개선
+- **Build Time**: 2026-02-28 02:40:15
+
 ## [Alpha V1.077] - 2026-02-28 02:15:30
 
 ### 🔄 Build Update
