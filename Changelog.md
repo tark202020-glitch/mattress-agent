@@ -1,3 +1,17 @@
+## [Alpha V1.076] - 2026-02-28 02:00:55
+
+### 🔄 Build Update
+- **Summary**: 디자이너 페이지 2차 UI/UX 전면 개편
+- **Detail** : 
+  - **`app/lib/store.ts, constants.ts` [MODIFY]**: 사이즈 선택 스텝 제거, 기본 K 1800(LK)으로 초기값 세팅 및 탭 인덱스 1~4번 당겨 맞춤
+  - **`app/designer/page.tsx` [MODIFY]**: 레이아웃 전체 단계 축소 및 StepSize 삭제
+  - **`app/components/steps/StepFoam.tsx` [MODIFY]**: 구조 및 옵션 선택 화면 하단 영역에 삭제된 Single/Dual 옵션 선택 카드 UI 복붙 및 탑재
+  - **`app/components/steps/StepCover.tsx` [MODIFY]**: 
+    1) 구조에 따른 노출 제약 삭제 (항상 4개 커버 전시)
+    2) 커버 그리드 4열로 조정, 제목·설명 레퍼런스와 동일하게 수정  
+    3) 커버 하단 목록에 **AI 이미지 생성 모달로 넘어가기 (버튼)** 추가 및 클릭 액션 구현
+- **Build Time**: 2026-02-28 02:00:55
+
 ## [Alpha V1.075] - 2026-02-28 00:43:24
 
 ### 🔄 Build Update

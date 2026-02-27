@@ -118,7 +118,7 @@ export default function Page() {
                                 fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
                                 background: 'rgba(79,70,229,0.06)', color: '#4f46e5',
                                 border: '1px solid rgba(79,70,229,0.12)',
-                            }}>ALPHA V1.075</span>
+                            }}>Alpha V1.076</span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

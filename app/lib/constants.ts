@@ -100,13 +100,10 @@ export interface CoverOption {
 }
 
 export const COVER_OPTIONS: CoverOption[] = [
-    { id: 'COMPACT', label: '컴팩트 스타일', grade: '저', color: '#7C8C72', description: '심플 컴팩트 디자인', coverTopThickness: 30, image: '/covers/컴팩트.jpg', topImage: '/covers/컴팩트01.png', sideImageFront: '/covers/컴팩트02.png', sideImageSide: '/covers/컴팩트02.png' },
-    { id: 'HEALING_NUMBER', label: '힐링넘버 스타일', grade: '저', color: '#D4C5A9', description: '기본형 커버', coverTopThickness: 30, image: '/covers/힐링넘버.jpg', topImage: '/covers/힐링넘버01.png', sideImageFront: '/covers/힐링넘버02.png', sideImageSide: '/covers/힐링넘버02.png' },
-    { id: 'FLAT_GRID', label: '플랫그리드 스타일', grade: '중', color: '#A0A0A0', description: '모던 그리드 패턴', coverTopThickness: 30, image: '/covers/플랫그리드.jpg', topImage: '/covers/플랫그리드01.png', sideImageFront: '/covers/플랫그리드02.png', sideImageSide: '/covers/플랫그리드02.png' },
-    { id: 'OAK_TWEED', label: '오크트위드 스타일', grade: '중', color: '#8B7355', description: '트위드 패브릭 감각', coverTopThickness: 30, image: '/covers/오크트위드.jpg', topImage: '/covers/오크트위드01.png', sideImageFront: '/covers/오크트위드02.png', sideImageSide: '/covers/오크트위드02.png' },
-    { id: 'ALL_CARE', label: '올케어 스타일', grade: '중', color: '#B8D4E3', description: '항균 기능성 원단', coverTopThickness: 30, image: '/covers/올케어.jpg', topImage: '/covers/올케어01.jpg', sideImageFront: '/covers/올케어02.jpg', sideImageSide: '/covers/올케어02.jpg' },
-    { id: 'I5', label: 'i5 스타일', grade: '고', color: '#1A1A2E', description: '최고급 프리미엄 라인', coverTopThickness: 30, image: '/covers/i5.jpg', topImage: '/covers/i501.jpg', sideImageFront: '/covers/i502.jpg', sideImageSide: '/covers/i502.jpg' },
-    { id: 'GENTLE_BREED', label: '젠틀브리즈 스타일', grade: '고', color: '#2C3E50', description: '프리미엄 고급 원단', coverTopThickness: 30, image: '/covers/젠틀브리즈.jpg', topImage: '/covers/젠틀브리즈01.jpg', sideImageFront: '/covers/젠틀브리즈02.jpg', sideImageSide: '/covers/젠틀브리즈02.jpg' },
+    { id: 'HEALING_NUMBER', label: 'Tight top style', grade: '저', color: '#D4C5A9', description: '(basic : 힐링넘버 스타일)', coverTopThickness: 30, image: '/covers/힐링넘버.jpg', topImage: '/covers/힐링넘버01.png', sideImageFront: '/covers/힐링넘버02.png', sideImageSide: '/covers/힐링넘버02.png' },
+    { id: 'FLAT_GRID', label: 'Euro top style', grade: '중', color: '#A0A0A0', description: '(standard : 플랫그리드 스타일)', coverTopThickness: 30, image: '/covers/플랫그리드.jpg', topImage: '/covers/플랫그리드01.png', sideImageFront: '/covers/플랫그리드02.png', sideImageSide: '/covers/플랫그리드02.png' },
+    { id: 'GENTLE_BREED', label: 'Euro top style', grade: '고', color: '#2C3E50', description: '(Premium : 젠틀브리즈 스타일)', coverTopThickness: 30, image: '/covers/젠틀브리즈.jpg', topImage: '/covers/젠틀브리즈01.jpg', sideImageFront: '/covers/젠틀브리즈02.jpg', sideImageSide: '/covers/젠틀브리즈02.jpg' },
+    { id: 'I5', label: 'Slip Cover style', grade: '고', color: '#1A1A2E', description: '(Premium : 스마트 스타일)', coverTopThickness: 30, image: '/covers/i5.jpg', topImage: '/covers/i501.jpg', sideImageFront: '/covers/i502.jpg', sideImageSide: '/covers/i502.jpg' },
 ];
 
 // --- Step 5~7 ---
@@ -133,13 +130,12 @@ export const DELIVERY_OPTIONS: GenericOption[] = [
 
 // --- 위자드 단계 ---
 export const WIZARD_STEPS = [
-    { id: 1, title: '사이즈', icon: '📐', description: '매트리스 사이즈와 Single/Dual을 선택하세요' },
-    { id: 2, title: '구조 선택', icon: '🛡️', description: '매트리스 폼의 레이어 구조(Basic, Standard, Premium)를 선택하세요' },
-    { id: 3, title: '스트링', icon: '🔧', description: '스트링 타입을 선택하세요' },
-    { id: 4, title: '커버', icon: '🎨', description: '외부 커버 디자인을 선택하세요' },
-    { id: 5, title: '컨트롤러', icon: '🎮', description: '제어 장치를 선택하세요' },
-    { id: 6, title: '포장', icon: '📦', description: '포장 방식을 선택하세요' },
-    { id: 7, title: '배송', icon: '🚚', description: '배송 방식을 선택하세요' },
+    { id: 1, title: '구조 선택', icon: '🛡️', description: '매트리스 폼의 레이어 구조(Basic, Standard, Premium)를 선택하세요' },
+    { id: 2, title: '스트링', icon: '🔧', description: '스트링 타입을 선택하세요' },
+    { id: 3, title: '커버', icon: '🎨', description: '외부 커버 디자인을 선택하세요' },
+    { id: 4, title: '컨트롤러', icon: '🎮', description: '제어 장치를 선택하세요' },
+    { id: 5, title: '포장', icon: '📦', description: '포장 방식을 선택하세요' },
+    { id: 6, title: '배송', icon: '🚚', description: '배송 방식을 선택하세요' },
 ] as const;
 
 // --- 도면 상수 ---

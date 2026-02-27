@@ -8,6 +8,7 @@ import {
     GUARD_FOAM_HARDNESS_OPTIONS,
     BOTTOM_FOAM_THICKNESS_OPTIONS,
     BOTTOM_FOAM_HARDNESS_OPTIONS,
+    DUAL_MIN_WIDTH,
 } from '../../lib/constants';
 import { useCustomOptionsStore } from '../../lib/customOptionsStore';
 import AddOptionModal, { AddButton, DeleteBadge, type FieldDef } from '../AddOptionModal';
@@ -26,7 +27,7 @@ export default function StepFoam() {
         setGuardFoamThickness, setGuardFoamHardness, setGuardFoamRadius,
         bottomFoamEnabled, bottomFoamThickness, bottomFoamHardness, bottomFoamRadius,
         setBottomFoamDetails, setBottomFoamRadius,
-        isDual,
+        isDual, setIsDual, customWidth
     } = useDesignStore();
 
     const custom = useCustomOptionsStore();
@@ -101,6 +102,60 @@ export default function StepFoam() {
             {structureType === 'basic' && (
                 <div style={{ padding: '24px', borderRadius: 8, background: '#f8fafc', color: '#475569', fontSize: 13, textAlign: 'center' }}>
                     Basic 구조는 별도의 폼 옵션 컴포넌트 추가 구성이 없습니다.
+                </div>
+            )}
+
+            {/* Single / Dual 선택 추가 (기존 사이즈창에서 이동) */}
+            {(customWidth >= DUAL_MIN_WIDTH) && (
+                <div className="animate-in" style={{ marginTop: 16 }}>
+                    <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 24 }}>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: '#7c3aed', marginBottom: 12 }}>
+                            🔀 Single / Dual 옵션{' '}
+                            <span style={{ color: '#94a3b8', fontWeight: 500 }}>(Q 사이즈 이상)</span>
+                        </p>
+                        <div style={{ display: 'flex', gap: 12 }}>
+                            {[
+                                { val: false, icon: '🛏️', title: 'Single Type', desc: '스트링 1개 통합형' },
+                                { val: true, icon: '👫', title: 'Dual Type', desc: '스트링 2개 분리형 (좌/우)' },
+                            ].map(({ val, icon, title, desc }) => {
+                                const isSelected = isDual === val;
+                                return (
+                                    <button
+                                        key={String(val)}
+                                        onClick={() => setIsDual(val)}
+                                        className="card"
+                                        style={{
+                                            flex: 1, padding: 20,
+                                            textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s',
+                                            display: 'flex', alignItems: 'flex-start', gap: 14,
+                                            ...(isSelected ? {
+                                                borderColor: '#7c3aed',
+                                                background: 'rgba(124, 58, 237, 0.05)',
+                                                boxShadow: '0 0 0 2px rgba(124, 58, 237, 0.15)',
+                                            } : {}),
+                                        }}
+                                    >
+                                        <div style={{
+                                            fontSize: 24, width: 44, height: 44, borderRadius: 12,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            background: isSelected ? '#fff' : '#f1f5f9',
+                                            boxShadow: isSelected ? '0 2px 8px rgba(0,0,0,0.05)' : 'none',
+                                        }}>
+                                            {icon}
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: 15, fontWeight: 700, color: isSelected ? '#7c3aed' : '#0f172a', marginBottom: 4 }}>
+                                                {title}
+                                            </div>
+                                            <div style={{ fontSize: 12, color: '#64748b' }}>
+                                                {desc}
+                                            </div>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             )}
 

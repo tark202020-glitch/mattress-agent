@@ -17,11 +17,10 @@ import { useAutoInitTextures } from '../lib/autoInitTextures';
 
 /* ══════════ 디자이너 전용 스텝 ══════════ */
 const DESIGNER_STEPS = [
-    { id: 1, title: '사이즈', icon: '📐', description: '매트리스 사이즈와 Single/Dual을 선택하세요' },
-    { id: 2, title: '구조 선택', icon: '🛡️', description: '매트리스 폼의 레이어 구조를 선택하세요' },
-    { id: 3, title: '스트링', icon: '🔧', description: '스트링 타입을 선택하세요' },
-    { id: 4, title: '커버', icon: '🎨', description: '외부 커버 디자인을 선택하세요' },
-    { id: 5, title: '분해도 그리기', icon: '🔍', description: '매트리스 내부 구조를 3D 분해도로 확인하세요' },
+    { id: 1, title: '구조 선택', icon: '🛡️', description: '매트리스 폼의 레이어 구조를 선택하세요' },
+    { id: 2, title: '스트링', icon: '🔧', description: '스트링 타입을 선택하세요' },
+    { id: 3, title: '커버', icon: '🎨', description: '외부 커버 디자인을 선택하세요' },
+    { id: 4, title: '분해도 그리기', icon: '🔍', description: '매트리스 내부 구조를 3D 분해도로 확인하세요' },
 ] as const;
 
 const GAP = 12;
@@ -50,11 +49,10 @@ export default function DesignerPage() {
 
     const renderStepContent = (stepId: number) => {
         switch (stepId) {
-            case 1: return <StepSize />;
-            case 2: return <StepFoam />;
-            case 3: return <StepCore />;
-            case 4: return <StepCover />;
-            case 5: return null; // 분해도는 메인 영역에 표시
+            case 1: return <StepFoam />;
+            case 2: return <StepCore />;
+            case 3: return <StepCover />;
+            case 4: return null; // 분해도는 메인 영역에 표시
             default: return <div>Unknown Step</div>;
         }
     };

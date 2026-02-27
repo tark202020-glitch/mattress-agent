@@ -5,6 +5,7 @@ import { useDesignStore } from '../../lib/store';
 import { COVER_OPTIONS } from '../../lib/constants';
 import { useCustomOptionsStore } from '../../lib/customOptionsStore';
 import AddOptionModal, { AddButton, DeleteBadge, type FieldDef } from '../AddOptionModal';
+import CoverImageGeneratorModal from '../CoverImageGeneratorModal';
 import Image from 'next/image';
 
 const gradeLabel: Record<string, string> = {
@@ -29,6 +30,7 @@ export default function StepCover() {
     } = useDesignStore();
     const { covers: customCovers, addCover, removeCover, _hydrate } = useCustomOptionsStore();
     const [showAdd, setShowAdd] = useState(false);
+    const [showAiModal, setShowAiModal] = useState(false);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => { _hydrate(); setMounted(true); }, []);
@@ -77,9 +79,9 @@ export default function StepCover() {
     return (
         <div className="animate-in">
             <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 16,
             }}>
                 {allowedCovers.map((cover) => {
                     const isSelected = coverId === cover.id;
@@ -129,51 +131,98 @@ export default function StepCover() {
                         >
                             {custom && <DeleteBadge onClick={() => removeCover(cover.id)} />}
 
-                            {/* 이미지 및 정보 컨테이너 (가로 배치) */}
-                            <div style={{ display: 'flex', flexDirection: 'row', width: '100%', alignItems: 'stretch' }}>
-                                {/* 이미지 영역 */}
+                            {/* 이미지 및 정보 컨테이너 (상/하 배치) */}
+                            <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'stretch' }}>
+
+                                {/* 텍스트 영역 (상단) */}
+                                <div style={{ padding: '16px 16px 12px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6, minHeight: 90 }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <span style={{
+                                                fontSize: 10, fontWeight: 700, color: displayGradeColor,
+                                                background: `${displayGradeColor}15`, padding: '4px 8px', borderRadius: 6,
+                                            }}>
+                                                {displayGrade}
+                                            </span>
+                                        </div>
+                                        <div style={{
+                                            fontWeight: 800, fontSize: 16,
+                                            color: isSelected ? '#0f172a' : '#334155',
+                                            lineHeight: 1.2,
+                                            letterSpacing: '-0.3px',
+                                        }}>
+                                            {cover.label}
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.4 }}>
+                                        {cover.description}
+                                    </div>
+                                </div>
+
+                                {/* 이미지 영역 (하단 - 반반 분리) */}
                                 {(customImage || cover.image) ? (
                                     <div style={{
-                                        width: 140, minHeight: 110,
+                                        width: '100%', height: 160,
                                         position: 'relative',
                                         flexShrink: 0,
-                                        borderRight: `1px solid ${isSelected ? `${cover.color}20` : '#f1f5f9'}`,
+                                        borderTop: `1px solid ${isSelected ? `${cover.color}20` : '#f1f5f9'}`,
+                                        display: 'flex',
                                         overflow: 'hidden',
                                     }}>
                                         {customImage ? (
-                                            <img
-                                                src={customImage}
-                                                alt={cover.label}
-                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                            />
-                                        ) : (
-                                            <Image
-                                                src={cover.image!}
-                                                alt={cover.label}
-                                                fill
-                                                style={{ objectFit: 'cover' }}
-                                                sizes="140px"
-                                            />
-                                        )}
-                                        {/* AI 생성 이미지 배지 */}
-                                        {customImage && (
-                                            <div style={{
-                                                position: 'absolute', bottom: 6, left: 6,
-                                                background: 'rgba(15, 23, 42, 0.75)', color: '#fff',
-                                                backdropFilter: 'blur(4px)',
-                                                fontSize: 9, fontWeight: 700, padding: '3px 8px',
-                                                borderRadius: 6, letterSpacing: 0.5,
-                                            }}>
-                                                AI GENERATED
+                                            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                                                <img
+                                                    src={customImage}
+                                                    alt={cover.label}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                />
+                                                <div style={{
+                                                    position: 'absolute', bottom: 6, left: 6,
+                                                    background: 'rgba(15, 23, 42, 0.75)', color: '#fff',
+                                                    backdropFilter: 'blur(4px)',
+                                                    fontSize: 9, fontWeight: 700, padding: '3px 8px',
+                                                    borderRadius: 6, letterSpacing: 0.5,
+                                                }}>
+                                                    AI GENERATED
+                                                </div>
                                             </div>
+                                        ) : (
+                                            <>
+                                                <div style={{ flex: 1, position: 'relative', borderRight: '1px solid rgba(255,255,255,0.2)' }}>
+                                                    {cover.topImage ? (
+                                                        <Image
+                                                            src={cover.topImage}
+                                                            alt={`${cover.label} Top`}
+                                                            fill
+                                                            style={{ objectFit: 'cover' }}
+                                                            sizes="(max-width: 768px) 50vw, 25vw"
+                                                        />
+                                                    ) : (
+                                                        <div style={{ width: '100%', height: '100%', background: cover.color }} />
+                                                    )}
+                                                </div>
+                                                <div style={{ flex: 1, position: 'relative' }}>
+                                                    {cover.sideImageFront ? (
+                                                        <Image
+                                                            src={cover.sideImageFront}
+                                                            alt={`${cover.label} Side`}
+                                                            fill
+                                                            style={{ objectFit: 'cover' }}
+                                                            sizes="(max-width: 768px) 50vw, 25vw"
+                                                        />
+                                                    ) : (
+                                                        <div style={{ width: '100%', height: '100%', background: cover.color }} />
+                                                    )}
+                                                </div>
+                                            </>
                                         )}
                                     </div>
                                 ) : (
                                     <div style={{
-                                        width: 140, minHeight: 110,
+                                        width: '100%', height: 160,
                                         flexShrink: 0,
                                         background: cover.color,
-                                        borderRight: '1px solid #e2e8f0',
+                                        borderTop: '1px solid #e2e8f0',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     }}>
                                         <div style={{
@@ -183,30 +232,6 @@ export default function StepCover() {
                                         }} />
                                     </div>
                                 )}
-
-                                {/* 텍스트 영역 */}
-                                <div style={{ flex: 1, padding: '18px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                                        <div style={{
-                                            fontWeight: 800, fontSize: 17,
-                                            color: isSelected ? '#0f172a' : '#334155',
-                                            letterSpacing: '-0.3px',
-                                        }}>
-                                            {cover.label}
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <span style={{
-                                                fontSize: 11, fontWeight: 700, color: displayGradeColor,
-                                                background: `${displayGradeColor}15`, padding: '4px 8px', borderRadius: 6,
-                                            }}>
-                                                {displayGrade}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.4 }}>
-                                        {cover.description}
-                                    </div>
-                                </div>
                             </div>
                             {isSelected && (
                                 <div style={{
@@ -224,9 +249,46 @@ export default function StepCover() {
                 })}
             </div>
 
-            <div style={{ marginTop: 24 }}>
+            <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+                <button
+                    onClick={() => {
+                        if (!coverId) {
+                            alert('먼저 스타일을 선택해주세요.');
+                            return;
+                        }
+                        setShowAiModal(true);
+                    }}
+                    style={{
+                        flex: 1, padding: '16px 20px', borderRadius: 12, border: 'none',
+                        background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                        color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        boxShadow: '0 4px 14px rgba(79,70,229,0.3)', transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+                >
+                    <span style={{ fontSize: 18 }}>✨</span> AI 이미지 생성하기
+                </button>
+            </div>
+
+            <div style={{ marginTop: 16 }}>
                 <AddButton onClick={() => setShowAdd(true)} label="새 커버 디자인 추가하기" />
             </div>
+
+            {showAiModal && coverId && (
+                <CoverImageGeneratorModal
+                    coverId={coverId}
+                    coverLabel={allCovers.find(c => c.id === coverId)?.label || '커스텀 커버'}
+                    coverDescription={allCovers.find(c => c.id === coverId)?.description || ''}
+                    coverColor={allCovers.find(c => c.id === coverId)?.color || '#64748b'}
+                    coverImage={allCovers.find(c => c.id === coverId)?.image}
+                    onSave={(url) => {
+                        useDesignStore.getState().setCustomCoverImage(coverId, url);
+                    }}
+                    onClose={() => setShowAiModal(false)}
+                />
+            )}
 
             {showAdd && (
                 <AddOptionModal

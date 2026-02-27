@@ -108,9 +108,9 @@ interface DesignActions {
 
 const initialState: DesignState = {
     title: '',
-    sizePresetId: null,
-    customWidth: 0,
-    customDepth: 0,
+    sizePresetId: 'LK',
+    customWidth: 1800,
+    customDepth: 2000,
     isDual: false,
     structureType: null,
     topFoamEnabled: null,
@@ -165,14 +165,6 @@ export const useDesignStore = create<DesignState & DesignActions>((set) => ({
         }
 
         let newCoverId = state.coverId;
-        if (state.coverId && !state.coverId.startsWith('CUSTOM_COV_')) {
-            if (type === 'basic') {
-                if (state.coverId !== 'HEALING_NUMBER' && state.coverId !== 'COMPACT') newCoverId = null;
-            } else if (type === 'premium') {
-                if (state.coverId === 'HEALING_NUMBER' || state.coverId === 'COMPACT') newCoverId = null;
-            }
-        }
-
         return {
             structureType: type,
             topFoamEnabled: topEn,
@@ -230,7 +222,7 @@ export const useDesignStore = create<DesignState & DesignActions>((set) => ({
         return s;
     }),
 
-    nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 7) })),
+    nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 6) })),
     prevStep: () => set((s) => ({ currentStep: Math.max(s.currentStep - 1, 1) })),
     goToStep: (step) => set({ currentStep: step }),
     reset: () => set((s) => ({ ...initialState, defaultTextures: s.defaultTextures })), // preserve defaultTextures on reset
