@@ -401,16 +401,6 @@ const Mattress3D = forwardRef<Mattress3DHandle, Mattress3DProps>(function Mattre
         <div className={`relative ${className || ''}`} style={{ borderRadius: 12, overflow: 'hidden', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
             {!hideControls && (
                 <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2">
-                    <button
-                        onClick={() => setShowCover(!showCover)}
-                        className="px-3 py-1.5 text-xs font-semibold rounded-full shadow-sm transition-all border border-slate-200"
-                        style={{
-                            background: showCover ? 'white' : '#f1f5f9',
-                            color: showCover ? '#475569' : '#94a3b8',
-                        }}
-                    >
-                        {showCover ? '커버 숨기기' : '커버 보기'}
-                    </button>
                     <div className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-1 items-center">
                         <span className="text-[10px] font-bold text-slate-500 tracking-wider">부품 간격 조절</span>
                         <input

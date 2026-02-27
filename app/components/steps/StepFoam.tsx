@@ -52,24 +52,6 @@ export default function StepFoam() {
     const isCustomBotT = (val: number) => custom.bottomThicknesses.includes(val);
     const isCustomBotH = (val: string) => custom.bottomHardnesses.includes(val);
 
-    const renderRadiusSlider = (label: string, value: number, onChange: (v: number) => void) => (
-        <div style={{ marginTop: 24, padding: '16px', background: 'rgba(255,255,255,0.7)', borderRadius: 12, border: '1px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#334155' }}>📐 {label} 테두리 라운드 (R값)</span>
-                <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', background: '#f1f5f9', padding: '2px 8px', borderRadius: 6 }}>{value}mm</span>
-            </div>
-            <input
-                type="range" min="0" max="150" step="5" value={value}
-                onChange={e => onChange(Number(e.target.value))}
-                style={{ width: '100%', cursor: 'pointer', accentColor: '#64748b' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 11, color: '#94a3b8' }}>
-                <span>직각 (0mm)</span>
-                <span>둥글게 (150mm)</span>
-            </div>
-        </div>
-    );
-
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
 
@@ -159,7 +141,6 @@ export default function StepFoam() {
                             ))}
                             <AddButton onClick={() => setShowAddTop(true)} label="상단폼 옵션 추가" />
                         </div>
-                        {renderRadiusSlider('상단폼', topFoamRadius, setTopFoamRadius)}
                     </div>
                 </section>
             )}
@@ -233,7 +214,6 @@ export default function StepFoam() {
                         <div style={{ marginTop: 8 }}>
                             <AddButton onClick={() => setShowAddGuardH(true)} label="경도 추가" />
                         </div>
-                        {renderRadiusSlider('가드폼', guardFoamRadius, setGuardFoamRadius)}
                     </div>
                 </section>
             )}
@@ -295,7 +275,6 @@ export default function StepFoam() {
                             <div style={{ marginTop: 8 }}>
                                 <AddButton onClick={() => setShowAddBotH(true)} label="경도 추가" />
                             </div>
-                            {renderRadiusSlider('하단폼', bottomFoamRadius, setBottomFoamRadius)}
                         </div>
                     </div>
                 </section>

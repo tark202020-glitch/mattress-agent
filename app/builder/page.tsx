@@ -118,7 +118,7 @@ export default function Page() {
                                 fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
                                 background: 'rgba(79,70,229,0.06)', color: '#4f46e5',
                                 border: '1px solid rgba(79,70,229,0.12)',
-                            }}>ALPHA V1.037</span>
+                            }}>ALPHA V1.074</span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -257,7 +257,7 @@ export default function Page() {
                         {/* 2D/3D 토글 */}
                         <div style={{
                             position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
-                            zIndex: 10, display: 'flex', gap: 4,
+                            zIndex: 50, display: 'flex', gap: 4,
                             background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)',
                             borderRadius: 20, padding: 3, boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                             border: '1px solid #e2e8f0',
