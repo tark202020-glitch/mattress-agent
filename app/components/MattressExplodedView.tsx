@@ -5,8 +5,9 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Center, Environment, ContactShadows, RoundedBox } from '@react-three/drei';
 import { useDesignStore } from '../lib/store';
-import { CORE_OPTIONS, TOP_FOAM_OPTIONS, COVER_OPTIONS, calcCoreDimensions } from '../lib/constants';
+import { CORE_OPTIONS, TOP_FOAM_OPTIONS, COVER_OPTIONS, calcCoreDimensions, DESIGNER_COVER_OPTIONS } from '../lib/constants';
 import { useCustomOptionsStore } from '../lib/customOptionsStore';
+import { usePathname } from 'next/navigation';
 
 // --- Constants ---
 const SCALE = 0.001;
@@ -399,7 +400,10 @@ function ExplodedModel({ isExploded, gaps }: { isExploded: boolean, gaps: any })
 
     const allCores = [...CORE_OPTIONS, ...customOpts.cores];
     const allTopFoams = [...TOP_FOAM_OPTIONS, ...customOpts.topFoams];
-    const allCovers = [...COVER_OPTIONS, ...customOpts.covers];
+    const pathname = usePathname();
+    const isDesigner = pathname === '/designer';
+    const activeCovers = isDesigner ? DESIGNER_COVER_OPTIONS : COVER_OPTIONS;
+    const allCovers = [...activeCovers, ...customOpts.covers];
 
     const coreOption = allCores.find(c => c.id === coreId);
     const topFoamOpt = allTopFoams.find(o => o.id === topFoamOptionId);

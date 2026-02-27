@@ -1,3 +1,20 @@
+## [Alpha V1.080] - 2026-02-28 03:09:40
+
+### 🔄 Build Update
+- **Summary**: 빌더 페이지 내 커버 옵션 6종 원상 복구 및 디자이너 종속성 완벽 분리
+- **Detail** : 
+  - **`app/lib/constants.ts` [MODIFY]**: 기존 4종으로 수정되었던 `COVER_OPTIONS`를 원가 계산이 연동된 원래의 6종 커버(HEALING_NUMBER, COMPACT, OAK_TWEED, FLAT_GRID, GENTLE_BREED, I5)로 복원.
+  - **`app/lib/constants.ts` [NEW]**: 디자이너 페이지 전용으로 텍스트가 튜닝된 4종 커버 옵션 리스트는 `DESIGNER_COVER_OPTIONS` 상수로 새롭게 분리 선언.
+  - **`app/components/steps/StepCover.tsx`, `MattressExplodedView.tsx`, `BrochureGenerator.tsx` [MODIFY]**: `usePathname`을 활용하여 현재 진입 경로가 `/designer` 일 때만 `DESIGNER_COVER_OPTIONS`를 참조하고, 나머지 일반/빌더 환경에서는 원본 `COVER_OPTIONS` 6종 리스트를 참조하도록 분기 조건 추가. 이를 통해 빌더의 단가 로직 및 기존 데이터는 그대로 유지되면서 디자이너 페이지의 전용 UI가 동작 가능하도록 함.
+- **Build Time**: 2026-02-28 03:09:40
+
+## [Alpha V1.079] - 2026-02-28 02:59:15
+### 🔄 Build Update
+- **Summary**: 빌더 페이지 포장 6단계에서 7단계 미진입 버그 수정
+- **Detail** : 
+  - **`app/lib/store.ts` [MODIFY]**: 사이즈 단계(1단계)가 복구되면서 총 7단계 구조가 되었으나, 이전 6단계 축소 정책이 `nextStep` 로직의 `Math.min(..., 6)` 최댓값 제한에 남아있어 다음 단계(7단계)로 넘어가지 못했던 버그 해결 (`Math.min(..., 7)` 로 변경)
+- **Build Time**: 2026-02-28 02:59:15
+
 ## [Alpha V1.078] - 2026-02-28 02:40:15
 
 ### 🔄 Build Update

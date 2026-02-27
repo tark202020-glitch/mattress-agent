@@ -4,7 +4,8 @@ import { useDesignStore } from '../lib/store';
 import { convertStateToBrochureData } from '../lib/brochureUtils';
 import { BrochureData } from '../types/brochure';
 import BrochurePreview from './brochure/BrochurePreview';
-import { COVER_OPTIONS } from '../lib/constants';
+import { COVER_OPTIONS, DESIGNER_COVER_OPTIONS } from '../lib/constants';
+import { usePathname } from 'next/navigation';
 
 /* ── 커버 ID → 파일명 베이스 매핑 ── */
 const COVER_FILE_BASE: Record<string, string> = {
@@ -141,7 +142,10 @@ interface BrochureGeneratorProps {
 
 export default function BrochureGenerator({ isOpen, onClose }: BrochureGeneratorProps) {
     const designState = useDesignStore();
-    const cover = COVER_OPTIONS.find(c => c.id === designState.coverId) || COVER_OPTIONS[0];
+    const pathname = usePathname();
+    const isDesigner = pathname === '/designer';
+    const activeCovers = isDesigner ? DESIGNER_COVER_OPTIONS : COVER_OPTIONS;
+    const cover = activeCovers.find(c => c.id === designState.coverId) || activeCovers[0];
     const coverId = cover.id;
     const coverLabel = cover.label;
     const coverColor = cover.color;

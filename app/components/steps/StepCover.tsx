@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDesignStore } from '../../lib/store';
-import { COVER_OPTIONS } from '../../lib/constants';
+import { COVER_OPTIONS, DESIGNER_COVER_OPTIONS } from '../../lib/constants';
 import { useCustomOptionsStore } from '../../lib/customOptionsStore';
 import AddOptionModal, { AddButton, DeleteBadge, type FieldDef } from '../AddOptionModal';
 import CoverImageGeneratorModal from '../CoverImageGeneratorModal';
@@ -64,7 +64,10 @@ export default function StepCover() {
         }
     }, [coverId]);
 
-    const allCovers = [...COVER_OPTIONS, ...customCovers];
+    const allCovers = isDesigner
+        ? [...DESIGNER_COVER_OPTIONS, ...customCovers]
+        : [...COVER_OPTIONS, ...customCovers];
+
     const isCustom = (id: string) => customCovers.some(c => c.id === id);
 
     const isAllowedCover = (id: string, structType: string | null) => {

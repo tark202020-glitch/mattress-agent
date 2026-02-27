@@ -100,6 +100,15 @@ export interface CoverOption {
 }
 
 export const COVER_OPTIONS: CoverOption[] = [
+    { id: 'HEALING_NUMBER', label: '힐링넘버 스타일', grade: '저', color: '#D4C5A9', description: '기본 힐링넘버 베이직 커버', coverTopThickness: 30, image: '/covers/힐링넘버.jpg', topImage: '/covers/힐링넘버01.png', sideImageFront: '/covers/힐링넘버02.png', sideImageSide: '/covers/힐링넘버02.png' },
+    { id: 'COMPACT', label: '컴팩트 스타일', grade: '저', color: '#8b9c78', description: '컴팩트 스타일 베이직 커버', coverTopThickness: 30, image: '/covers/컴팩트.jpg', topImage: '/covers/컴팩트01.png', sideImageFront: '/covers/컴팩트02.png', sideImageSide: '/covers/컴팩트02.png' },
+    { id: 'OAK_TWEED', label: '오크트위드 스타일', grade: '중', color: '#a08365', description: '오크트위드 스탠다드 커버', coverTopThickness: 30, image: '/covers/오크트위드.jpg', topImage: '/covers/오크트위드01.png', sideImageFront: '/covers/오크트위드02.png', sideImageSide: '/covers/오크트위드02.png' },
+    { id: 'FLAT_GRID', label: '플랫그리드 스타일', grade: '중', color: '#A0A0A0', description: '플랫그리드 스탠다드 커버', coverTopThickness: 30, image: '/covers/플랫그리드.jpg', topImage: '/covers/플랫그리드01.png', sideImageFront: '/covers/플랫그리드02.png', sideImageSide: '/covers/플랫그리드02.png' },
+    { id: 'GENTLE_BREED', label: '젠틀브리즈 스타일', grade: '고', color: '#2C3E50', description: '프리미엄 젠틀브리즈 커버', coverTopThickness: 30, image: '/covers/젠틀브리즈.jpg', topImage: '/covers/젠틀브리즈01.jpg', sideImageFront: '/covers/젠틀브리즈02.jpg', sideImageSide: '/covers/젠틀브리즈02.jpg' },
+    { id: 'I5', label: 'i5 스타일', grade: '고', color: '#1A1A2E', description: '스마트 i5 커버', coverTopThickness: 30, image: '/covers/i5.jpg', topImage: '/covers/i501.jpg', sideImageFront: '/covers/i502.jpg', sideImageSide: '/covers/i502.jpg' },
+];
+
+export const DESIGNER_COVER_OPTIONS: CoverOption[] = [
     { id: 'HEALING_NUMBER', label: 'Tight top style', grade: '저', color: '#D4C5A9', description: '(basic : 힐링넘버 스타일)', coverTopThickness: 30, image: '/covers/힐링넘버.jpg', topImage: '/covers/힐링넘버01.png', sideImageFront: '/covers/힐링넘버02.png', sideImageSide: '/covers/힐링넘버02.png' },
     { id: 'FLAT_GRID', label: 'Euro top style', grade: '중', color: '#A0A0A0', description: '(standard : 플랫그리드 스타일)', coverTopThickness: 30, image: '/covers/플랫그리드.jpg', topImage: '/covers/플랫그리드01.png', sideImageFront: '/covers/플랫그리드02.png', sideImageSide: '/covers/플랫그리드02.png' },
     { id: 'GENTLE_BREED', label: 'Euro top style', grade: '고', color: '#2C3E50', description: '(Premium : 젠틀브리즈 스타일)', coverTopThickness: 30, image: '/covers/젠틀브리즈.jpg', topImage: '/covers/젠틀브리즈01.jpg', sideImageFront: '/covers/젠틀브리즈02.jpg', sideImageSide: '/covers/젠틀브리즈02.jpg' },
