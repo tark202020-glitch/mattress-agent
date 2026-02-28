@@ -1,11 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useDesignStore } from '../lib/store';
-import { handleDownloadQuote } from '../lib/quoteHandlers';
-import { usePricingStore } from '../lib/pricingStore';
-import { useCustomOptionsStore } from '../lib/customOptionsStore';
-import BrochureGenerator from './BrochureGenerator';
+import QuoteConditionModal from './QuoteConditionModal';
 
 interface CompletionModalProps {
     onClose: () => void;
@@ -13,13 +9,7 @@ interface CompletionModalProps {
 }
 
 export default function CompletionModal({ onClose, onOpenDevRequest }: CompletionModalProps) {
-    const designState = useDesignStore();
-    const custom = useCustomOptionsStore();
-    const { calculateSummary } = usePricingStore();
-
-    const [showBrochureGen, setShowBrochureGen] = useState(false);
-
-    const summary = calculateSummary(designState);
+    const [showQuoteCondition, setShowQuoteCondition] = useState(false);
 
     return (
         <div style={{
@@ -96,27 +86,7 @@ export default function CompletionModal({ onClose, onOpenDevRequest }: Completio
                     </button>
 
                     <button
-                        onClick={() => setShowBrochureGen(true)}
-                        style={{
-                            flex: 1,
-                            aspectRatio: '1/1',
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12,
-                            background: '#f0f9ff',
-                            border: '1px solid #bae6fd',
-                            borderRadius: 16,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            color: '#0369a1'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#e0f2fe'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#f0f9ff'}
-                    >
-                        <span style={{ fontSize: 32 }}>📖</span>
-                        <span style={{ fontSize: 14, fontWeight: 600 }}>브로셔 만들기 (AI)</span>
-                    </button>
-
-                    <button
-                        onClick={() => handleDownloadQuote(designState, custom, summary, calculateSummary)}
+                        onClick={() => setShowQuoteCondition(true)}
                         style={{
                             flex: 1,
                             aspectRatio: '1/1',
@@ -138,10 +108,9 @@ export default function CompletionModal({ onClose, onOpenDevRequest }: Completio
                 </div>
             </div>
 
-            {showBrochureGen && (
-                <BrochureGenerator isOpen={showBrochureGen} onClose={() => setShowBrochureGen(false)} />
+            {showQuoteCondition && (
+                <QuoteConditionModal onClose={() => setShowQuoteCondition(false)} />
             )}
         </div>
     );
 }
-

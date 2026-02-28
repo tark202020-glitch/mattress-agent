@@ -65,18 +65,12 @@ export default function DevelopmentRequestModal({ onClose }: DevelopmentRequestM
         : null;
 
     // 3D 캡처
-    const normalRef = useRef<Mattress3DHandle>(null);
     const explodedRef = useRef<Mattress3DHandle>(null);
-    const [normalImg, setNormalImg] = useState<string>('');
     const [explodedImg, setExplodedImg] = useState<string>('');
     const [capturing, setCapturing] = useState(true);
 
     const captureImages = useCallback(async () => {
         await new Promise(r => setTimeout(r, 2000));
-        if (normalRef.current) {
-            const img = await normalRef.current.capture();
-            setNormalImg(img);
-        }
         if (explodedRef.current) {
             const img = await explodedRef.current.capture();
             setExplodedImg(img);
@@ -270,24 +264,43 @@ export default function DevelopmentRequestModal({ onClose }: DevelopmentRequestM
                         <h2 style={SECTION_TITLE}>1. 디자인 컨셉 (Design Concept)</h2>
 
                         <div style={{ padding: '0 8px' }}>
-                            {/* 커버 이미지 — 전체 너비 크게 */}
+                            {/* 커버 이미지 — 메인 + 01, 02 이미지 */}
                             <div style={{
-                                width: '100%', maxHeight: 360,
-                                border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden',
-                                background: '#f8fafc',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                width: '100%',
+                                display: 'flex', gap: 8,
                             }}>
-                                {coverImageUrl ? (
-                                    <img
-                                        src={coverImageUrl}
-                                        alt="커버 디자인"
-                                        style={{ width: '100%', maxHeight: 360, objectFit: 'cover', display: 'block' }}
-                                    />
-                                ) : (
-                                    <div style={{ color: '#94a3b8', fontSize: 12, textAlign: 'center', padding: 40 }}>
-                                        커버 이미지 없음
-                                    </div>
-                                )}
+                                {/* 메인 커버 이미지 */}
+                                <div style={{
+                                    flex: 2, maxHeight: 300,
+                                    border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden',
+                                    background: '#f8fafc',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}>
+                                    {coverImageUrl ? (
+                                        <img src={coverImageUrl} alt="커버 디자인" style={{ width: '100%', maxHeight: 300, objectFit: 'cover', display: 'block' }} />
+                                    ) : (
+                                        <div style={{ color: '#94a3b8', fontSize: 12, textAlign: 'center', padding: 40 }}>커버 이미지 없음</div>
+                                    )}
+                                </div>
+                                {/* 01, 02 이미지 (topImage, sideImageFront) */}
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    {cover?.topImage && (
+                                        <div style={{
+                                            flex: 1, border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden',
+                                            background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        }}>
+                                            <img src={cover.topImage} alt="커버 상단면" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                        </div>
+                                    )}
+                                    {cover?.sideImageFront && (
+                                        <div style={{
+                                            flex: 1, border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden',
+                                            background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        }}>
+                                            <img src={cover.sideImageFront} alt="커버 측면" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Design Keywords — 이미지 하단 */}
@@ -420,51 +433,26 @@ export default function DevelopmentRequestModal({ onClose }: DevelopmentRequestM
                     <section style={{ marginBottom: 24 }}>
                         <h2 style={SECTION_TITLE}>3. 3D 프리뷰 (3D Preview)</h2>
 
-                        <div style={{ display: 'flex', gap: 8 }}>
-                            {/* Normal View */}
-                            <div style={{ flex: 1 }}>
-                                <h3 style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 6, paddingLeft: 2 }}>
-                                    ▸ 일반 뷰
-                                </h3>
-                                <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: 4, background: '#f8fafc', minHeight: 180 }}>
-                                    {capturing ? (
-                                        <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <div style={{ textAlign: 'center', color: '#94a3b8' }}>
-                                                <div style={{ fontSize: 24, marginBottom: 6 }}>⏳</div>
-                                                <p style={{ fontSize: 11 }}>캡처 중...</p>
-                                            </div>
+                        {/* 분해 뷰 — 크게 단독 표시 */}
+                        <div>
+                            <h3 style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 6, paddingLeft: 2 }}>
+                                ▸ 분해 뷰 (Exploded View)
+                            </h3>
+                            <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: 6, background: '#f8fafc', minHeight: 320 }}>
+                                {capturing ? (
+                                    <div style={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <div style={{ textAlign: 'center', color: '#94a3b8' }}>
+                                            <div style={{ fontSize: 24, marginBottom: 6 }}>⏳</div>
+                                            <p style={{ fontSize: 11 }}>캡처 중...</p>
                                         </div>
-                                    ) : normalImg ? (
-                                        <img src={normalImg} alt="3D Normal View" style={{ width: '100%', borderRadius: 4, display: 'block' }} />
-                                    ) : (
-                                        <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 11 }}>
-                                            캡처 실패
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Exploded View */}
-                            <div style={{ flex: 1 }}>
-                                <h3 style={{ fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 6, paddingLeft: 2 }}>
-                                    ▸ 분해 뷰
-                                </h3>
-                                <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: 4, background: '#f8fafc', minHeight: 180 }}>
-                                    {capturing ? (
-                                        <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <div style={{ textAlign: 'center', color: '#94a3b8' }}>
-                                                <div style={{ fontSize: 24, marginBottom: 6 }}>⏳</div>
-                                                <p style={{ fontSize: 11 }}>캡처 중...</p>
-                                            </div>
-                                        </div>
-                                    ) : explodedImg ? (
-                                        <img src={explodedImg} alt="3D Exploded View" style={{ width: '100%', borderRadius: 4, display: 'block' }} />
-                                    ) : (
-                                        <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 11 }}>
-                                            캡처 실패
-                                        </div>
-                                    )}
-                                </div>
+                                    </div>
+                                ) : explodedImg ? (
+                                    <img src={explodedImg} alt="3D Exploded View" style={{ width: '100%', borderRadius: 4, display: 'block' }} />
+                                ) : (
+                                    <div style={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 11 }}>
+                                        캡처 실패
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </section>
@@ -553,9 +541,6 @@ export default function DevelopmentRequestModal({ onClose }: DevelopmentRequestM
 
 
                 {/* ── 3D 캡처용 숨겨진 Canvas ── */}
-                <div className="no-print" style={{ position: 'fixed', left: -9999, top: -9999, width: 800, height: 600 }}>
-                    <Mattress3D ref={normalRef} forcedExploded={false} hideControls className="w-full h-full" />
-                </div>
                 <div className="no-print" style={{ position: 'fixed', left: -9999, top: -9999, width: 800, height: 600 }}>
                     <Mattress3D ref={explodedRef} forcedExploded={true} hideControls className="w-full h-full" />
                 </div>

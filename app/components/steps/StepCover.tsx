@@ -113,13 +113,13 @@ export default function StepCover() {
                                 flexDirection: 'row',
                                 alignItems: 'stretch',
                                 borderRadius: 16,
-                                border: '1px solid',
-                                borderColor: isSelected ? cover.color : '#e2e8f0',
-                                backgroundColor: isSelected ? `${cover.color}08` : '#ffffff',
+                                border: isSelected ? '3px solid' : '1px solid',
+                                borderColor: isSelected ? '#4f46e5' : '#e2e8f0',
+                                backgroundColor: isSelected ? '#eef2ff' : '#ffffff',
                                 boxShadow: isSelected
-                                    ? `0 4px 12px ${cover.color}15, 0 0 0 1px ${cover.color}40`
+                                    ? '0 0 0 4px rgba(79,70,229,0.15), 0 8px 24px rgba(79,70,229,0.2)'
                                     : '0 2px 8px rgba(0,0,0,0.04)',
-                                transform: isSelected ? 'translateY(-2px)' : 'none',
+                                transform: isSelected ? 'translateY(-3px) scale(1.02)' : 'none',
                             }}
                             onMouseEnter={e => {
                                 if (!isSelected) {
@@ -242,53 +242,102 @@ export default function StepCover() {
                             </div>
                             {isSelected && (
                                 <div style={{
-                                    position: 'absolute', top: 14, right: 14,
+                                    position: 'absolute', top: 10, right: 10,
                                 }}>
                                     <div style={{
-                                        width: 12, height: 12, borderRadius: '50%',
-                                        background: cover.color,
-                                        boxShadow: `0 0 0 4px ${cover.color}20`,
-                                    }} />
+                                        width: 28, height: 28, borderRadius: '50%',
+                                        background: '#4f46e5',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        boxShadow: '0 2px 8px rgba(79,70,229,0.4)',
+                                    }}>
+                                        <span style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>✓</span>
+                                    </div>
+                                </div>
+                            )}
+                            {/* AI 이미지 생성 버튼 - 선택된 카드 중앙에 오버레이 */}
+                            {isSelected && isDesigner && (
+                                <div
+                                    onClick={(e) => { e.stopPropagation(); setShowAiModal(true); }}
+                                    style={{
+                                        position: 'absolute', inset: 0,
+                                        background: 'rgba(15, 23, 42, 0.45)',
+                                        backdropFilter: 'blur(2px)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        borderRadius: 14,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                    }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.55)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.45)';
+                                    }}
+                                >
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                                        color: '#fff',
+                                        padding: '12px 24px',
+                                        borderRadius: 12,
+                                        fontSize: 14, fontWeight: 800,
+                                        display: 'flex', alignItems: 'center', gap: 8,
+                                        boxShadow: '0 4px 20px rgba(79,70,229,0.5)',
+                                        letterSpacing: '-0.3px',
+                                    }}>
+                                        <span style={{ fontSize: 18 }}>✨</span> AI 이미지 생성하기
+                                    </div>
                                 </div>
                             )}
                         </button>
                     );
                 })}
-            </div>
 
-            {isDesigner ? (
-                <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
-                    <button
-                        onClick={() => {
-                            if (!coverId) {
-                                alert('먼저 스타일을 선택해주세요.');
-                                return;
-                            }
-                            setShowAiModal(true);
-                        }}
-                        style={{
-                            flex: 1, padding: '16px 20px', borderRadius: 12, border: 'none',
-                            background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                            color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                            boxShadow: '0 4px 14px rgba(79,70,229,0.3)', transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'none'}
-                    >
-                        <span style={{ fontSize: 18 }}>✨</span> AI 이미지 생성하기
-                    </button>
+                {/* +새 디자인 추가 그리드 카드 */}
+                {isDesigner && (
                     <button
                         onClick={() => setShowAdd(true)}
                         style={{
-                            flex: 1, padding: '16px 20px', borderRadius: 12, border: '1px solid #4f46e5',
-                            background: '#fff',
-                            color: '#4f46e5', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                            padding: 0, textAlign: 'center',
+                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: 16,
+                            border: '2px dashed #cbd5e1',
+                            backgroundColor: '#f8fafc',
+                            minHeight: 280,
+                            gap: 12,
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.borderColor = '#4f46e5';
+                            e.currentTarget.style.backgroundColor = '#eef2ff';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.borderColor = '#cbd5e1';
+                            e.currentTarget.style.backgroundColor = '#f8fafc';
+                            e.currentTarget.style.transform = 'none';
                         }}
                     >
-                        ➕ 새 디자인(커스텀) 추가하기
+                        <div style={{
+                            width: 56, height: 56, borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                            <span style={{ fontSize: 28, color: '#4f46e5', fontWeight: 300 }}>+</span>
+                        </div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#4f46e5' }}>새 디자인 추가</div>
+                        <div style={{ fontSize: 11, color: '#94a3b8' }}>커스텀 커버를 만들어보세요</div>
                     </button>
-                </div>
+                )}
+            </div>
+
+            {isDesigner ? (
+                null
             ) : (
                 <div style={{ marginTop: 16 }}>
                     <AddButton onClick={() => setShowAdd(true)} label="새 커버 디자인 추가하기" />

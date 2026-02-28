@@ -21,6 +21,7 @@ import SpecSummary from '../components/SpecSummary';
 import PresetPanel from '../components/PresetPanel';
 import Image from 'next/image';
 import anssilLogo from '../../resource/ANSSil_logo_final_B.png';
+import { useAutoInitTextures } from '../lib/autoInitTextures';
 
 
 /* ══════════ 통일 여백 상수 ══════════ */
@@ -37,7 +38,14 @@ export default function Page() {
     const router = useRouter();
     const supabase = createClient();
 
-    useEffect(() => { setMounted(true); }, []);
+    useEffect(() => {
+        setMounted(true);
+        // localStorage에서 기존에 저장된 default 텍스쳐 복원
+        useDesignStore.getState()._hydrateDefaults();
+    }, []);
+
+    // 프리셋 커버들의 텍스쳐를 자동으로 크롭하여 defaultTextures에 저장
+    useAutoInitTextures();
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();

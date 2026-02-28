@@ -12,6 +12,7 @@ import StepCore from '../components/steps/StepCore';
 import StepCover from '../components/steps/StepCover';
 import MattressExplodedView from '../components/MattressExplodedView';
 import { useAutoInitTextures } from '../lib/autoInitTextures';
+import ConceptImageGeneratorModal from '../components/ConceptImageGeneratorModal';
 
 /* ══════════ 디자이너 전용 스텝 ══════════ */
 const DESIGNER_STEPS = [
@@ -29,6 +30,7 @@ export default function DesignerPage() {
     const store = useDesignStore();
     const [mounted, setMounted] = useState(false);
     const [designerStep, setDesignerStep] = useState(1);
+    const [showConceptModal, setShowConceptModal] = useState(false);
     const router = useRouter();
     const supabase = createClient();
 
@@ -58,8 +60,9 @@ export default function DesignerPage() {
     if (!mounted) return null;
 
     const isExplodedStep = designerStep === 4;
+    const hasAiImage = !!(store.customCoverImages && store.customCoverImages[store.coverId || '']);
 
-    return (
+    const mainContent = (
         <div style={{
             height: '100vh',
             padding: GAP,
@@ -227,10 +230,24 @@ export default function DesignerPage() {
                                         style={{ flex: 1, opacity: designerStep === 1 ? 0.5 : 1, padding: '16px', fontSize: 16 }}
                                     >이전</button>
                                     <button
-                                        onClick={() => setDesignerStep(Math.min(DESIGNER_STEPS.length, designerStep + 1))}
+                                        onClick={() => {
+                                            if (designerStep === DESIGNER_STEPS.length - 1) {
+                                                if (hasAiImage) setShowConceptModal(true);
+                                            } else {
+                                                setDesignerStep(Math.min(DESIGNER_STEPS.length, designerStep + 1));
+                                            }
+                                        }}
                                         className="btn-primary"
-                                        style={{ flex: 3, padding: '16px', fontSize: 16 }}
-                                    >{designerStep === DESIGNER_STEPS.length - 1 ? '분해도 보기' : '다음 단계'}</button>
+                                        disabled={designerStep === DESIGNER_STEPS.length - 1 && !hasAiImage}
+                                        style={{
+                                            flex: 3, padding: '16px', fontSize: 16,
+                                            opacity: (designerStep === DESIGNER_STEPS.length - 1 && !hasAiImage) ? 0.5 : 1,
+                                            cursor: (designerStep === DESIGNER_STEPS.length - 1 && !hasAiImage) ? 'not-allowed' : 'pointer',
+                                        }}
+                                    >{designerStep === DESIGNER_STEPS.length - 1
+                                        ? (hasAiImage ? '컨셉이미지 생성' : '컨셉이미지 생성 (AI 이미지 필요)')
+                                        : '다음 단계'
+                                        }</button>
                                 </div>
                             </div>
                         </div>
@@ -273,6 +290,17 @@ export default function DesignerPage() {
                 </div>
             </div>
         </div>
+    );
+
+    return (
+        <>
+            {mainContent}
+            <ConceptImageGeneratorModal
+                isOpen={showConceptModal}
+                onClose={() => setShowConceptModal(false)}
+                aiCoverImageUrl={store.customCoverImages?.[store.coverId || ''] || undefined}
+            />
+        </>
     );
 }
 

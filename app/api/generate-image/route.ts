@@ -53,6 +53,7 @@ export async function POST(req: Request) {
             referenceImages,      // Base64 string[] — 복수 참고 이미지
             subjectDescription,   // Subject description
             coverLabel,           // 프론트에서 넘겨준 커버 분류명
+            imageSize,            // 요청 해상도 (예: 2048)
         } = body;
 
         if (!prompt) {
@@ -117,6 +118,9 @@ export async function POST(req: Request) {
                 : `You are an expert AI image generator. Please generate exactly ${maxImages} distinct images based on this description. ${finalPrompt}`;
 
             instructions += `\nThe requested aspect ratio is ${aspectRatio}.`;
+            if (imageSize) {
+                instructions += `\nGenerate the image at ${imageSize}x${imageSize} pixel resolution for high quality output.`;
+            }
             parts.push({ text: instructions });
 
             // 참조 이미지

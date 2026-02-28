@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import dynamic from 'next/dynamic';
+import { useDesignStore } from '../lib/store';
+
+const TextureExtractorModal = dynamic(() => import('./TextureExtractorModal'), { ssr: false });
 
 interface CoverImageGeneratorModalProps {
     coverId: string;
@@ -25,11 +29,11 @@ const COVER_FILE_BASE: Record<string, string[]> = {
 };
 
 /* ── 고정 프롬프트 데이터 ── */
-const FIXED_SCENE = 'Isolated product shot of a mattress cover on an invisible frame. Pure, seamless white background. No props, no furniture, no shadows except subtle drop shadow beneath the mattress. Studio lighting. Clean, minimal, commercial photography aesthetic.';
+const FIXED_SCENE = 'Isolated product shot of a mattress cover on an invisible frame. The mattress has a rectangular shape with width 1500mm and depth 2000mm (the depth/length is longer than the width — it must NOT look like a square). Pure, seamless white background. No props, no furniture, no shadows except subtle drop shadow beneath the mattress. Studio lighting. Clean, minimal, commercial photography aesthetic.';
 const FIXED_ANGLES = [
-    { id: 'front', label: '정면', prompt: 'Straight-on view directly facing the front of the mattress. Eye-level perspective. Symmetrical composition.' },
-    { id: 'perspective', label: '퍼스펙티브', prompt: '3/4 angled perspective view from the corner, showing the top and side of the mattress clearly.' },
-    { id: 'top', label: '탑 뷰', prompt: 'Top-down bird\'s-eye view directly above the mattress, showing the full top surface.' }
+    { id: 'front', label: '정면', prompt: 'Straight-on view directly facing the front of the mattress. Eye-level perspective. Symmetrical composition. The mattress should clearly appear longer in depth than in width.' },
+    { id: 'perspective', label: '퍼스펙티브', prompt: '3/4 angled perspective view from the corner, showing the top and side of the mattress clearly. The mattress depth should visibly extend further than its width.' },
+    { id: 'detail', label: '디테일', prompt: 'Extreme close-up of ONLY the right front corner of a mattress, cropped tightly so the full mattress is NOT visible — just the corner filling most of the frame. ORTHOGRAPHIC flat projection, NO perspective distortion, all parallel edges remain parallel. The camera looks down at roughly 45 degrees from above-right. Clearly show the top quilting texture, piping/zipper seam, side fabric ribbing, and corner stitching detail. White background. Studio lighting. Premium product photography.' }
 ];
 
 
@@ -38,6 +42,39 @@ interface GeneratedImage {
     imageUrl: string;
     base64: string;
     angleId?: string;
+}
+
+/* ── 이미지를 정사각형 2048×2048로 리사이징 ── */
+async function resizeToSquare(base64Data: string, size: number = 2048): Promise<string> {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d')!;
+            // 흰색 배경
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+            // 중앙 정렬로 이미지를 맞춤
+            const scale = Math.min(size / img.width, size / img.height);
+            const w = img.width * scale;
+            const h = img.height * scale;
+            const x = (size - w) / 2;
+            const y = (size - h) / 2;
+            ctx.drawImage(img, x, y, w, h);
+            // base64 추출 (prefix 없이)
+            const dataUrl = canvas.toDataURL('image/png');
+            resolve(dataUrl.split(',')[1]);
+        };
+        img.onerror = () => resolve(base64Data);
+        // base64에 prefix가 없으면 추가
+        if (base64Data.startsWith('data:')) {
+            img.src = base64Data;
+        } else {
+            img.src = `data:image/png;base64,${base64Data}`;
+        }
+    });
 }
 
 /* ── 이미지 리사이징 헬퍼 ── */
@@ -111,6 +148,9 @@ export default function CoverImageGeneratorModal({
     coverId, coverLabel, coverDescription, coverColor, coverImage, onSave, onClose,
 }: CoverImageGeneratorModalProps) {
 
+    // ── localStorage 키 (커버ID별 고유) ──
+    const SETTINGS_KEY = `ai-cover-settings-${coverId}`;
+
     // ── 매트리스 디자인 폼 필드 ──
     const [topColor, setTopColor] = useState('');
     const [topPattern, setTopPattern] = useState('');
@@ -118,12 +158,39 @@ export default function CoverImageGeneratorModal({
     const [sideColor, setSideColor] = useState('');
     const [sidePattern, setSidePattern] = useState('');
     const [labelStyle, setLabelStyle] = useState('');
+    const [savedRefImages, setSavedRefImages] = useState<string[]>([]);
+    const [settingsLoaded, setSettingsLoaded] = useState(false);
+    const [showTextureModal, setShowTextureModal] = useState(false);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => setMounted(true), []);
+
+    // ── 저장된 설정 로드 (커버ID별) ──
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(SETTINGS_KEY);
+            if (raw) {
+                const saved = JSON.parse(raw);
+                if (saved.topColor) setTopColor(saved.topColor);
+                if (saved.topPattern) setTopPattern(saved.topPattern);
+                if (saved.pipingColor) setPipingColor(saved.pipingColor);
+                if (saved.sideColor) setSideColor(saved.sideColor);
+                if (saved.sidePattern) setSidePattern(saved.sidePattern);
+                if (saved.labelStyle) setLabelStyle(saved.labelStyle);
+                if (saved.refImages && saved.refImages.length > 0) {
+                    setSavedRefImages(saved.refImages);
+                }
+                console.log(`[AI Cover] ✅ 저장된 설정 로드: ${coverId}`);
+            }
+        } catch (e) {
+            console.warn('[AI Cover] 설정 로드 실패:', e);
+        }
+        setSettingsLoaded(true);
+    }, [coverId, SETTINGS_KEY]);
+
 
     // ── 탭 상태 ──
     const [activeTab, setActiveTab] = useState<'bgswap' | 'inpaint'>('bgswap');
@@ -225,6 +292,22 @@ export default function CoverImageGeneratorModal({
     const [refImageLoading, setRefImageLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // ── 설정 저장 함수 (originalRefImages 선언 후) ──
+    const handleSaveSettings = useCallback(() => {
+        try {
+            const settings = {
+                topColor, topPattern, pipingColor, sideColor, sidePattern, labelStyle,
+                refImages: originalRefImages.slice(0, 5),
+                savedAt: new Date().toISOString(),
+            };
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            alert(`✅ "${coverLabel}" 설정이 저장되었습니다.\n다음에 이 디자인을 선택하면 자동으로 복원됩니다.`);
+        } catch (e) {
+            console.error('[AI Cover] 설정 저장 실패:', e);
+            alert('설정 저장 실패 (저장 용량 초과 가능)');
+        }
+    }, [topColor, topPattern, pipingColor, sideColor, sidePattern, labelStyle, originalRefImages, SETTINGS_KEY, coverLabel]);
+
 
 
     useEffect(() => {
@@ -275,10 +358,21 @@ export default function CoverImageGeneratorModal({
         if (coverImage) {
             setRefImageLoading(true);
             loadCoverImages(coverId, coverImage)
-                .then((imgs) => { setOriginalRefImages(imgs); setRefImageLoading(false); })
+                .then((imgs) => {
+                    // 저장된 참고이미지가 있으면 기존 이미지 뒤에 추가
+                    if (savedRefImages.length > 0) {
+                        setOriginalRefImages([...imgs, ...savedRefImages]);
+                    } else {
+                        setOriginalRefImages(imgs);
+                    }
+                    setRefImageLoading(false);
+                })
                 .catch(() => setRefImageLoading(false));
+        } else if (savedRefImages.length > 0) {
+            // coverImage 없지만 저장된 참고이미지가 있는 경우 (커스텀 디자인)
+            setOriginalRefImages(savedRefImages);
         }
-    }, [coverId, coverImage]);
+    }, [coverId, coverImage, settingsLoaded]);
 
 
 
@@ -321,7 +415,8 @@ export default function CoverImageGeneratorModal({
                 const body: any = {
                     prompt: buildPrompt(angle.prompt),
                     coverLabel: coverLabel,
-                    aspectRatio: '1:1', // 항상 1:1 고정
+                    aspectRatio: '1:1',
+                    imageSize: 2048,
                 };
                 if (baseRefs.length > 0) {
                     body.referenceImages = baseRefs;
@@ -351,19 +446,28 @@ export default function CoverImageGeneratorModal({
                     const generatedImg = res.data.images[0];
                     allImages.push(generatedImg);
 
-                    // 💡 자동 저장 API 호출
+                    // 💡 자동 저장 API 호출 (2048×2048 리사이징 후 저장)
                     try {
-                        await fetch('/api/save-image', {
+                        console.log(`[AutoSave] Saving ${res.angleId} image for ${coverLabel}... (original base64 length: ${generatedImg.base64?.length || 0})`);
+                        const resizedBase64 = await resizeToSquare(generatedImg.base64, 2048);
+                        console.log(`[AutoSave] Resized to 2048×2048 (base64 length: ${resizedBase64.length})`);
+                        const saveRes = await fetch('/api/save-image', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                base64: generatedImg.base64,
+                                base64: resizedBase64,
                                 coverLabel: coverLabel,
                                 angleId: res.angleId
                             }),
                         });
+                        const saveData = await saveRes.json();
+                        if (saveRes.ok) {
+                            console.log(`[AutoSave] ✅ Saved: ${saveData.filename}`);
+                        } else {
+                            console.error(`[AutoSave] ❌ Save failed (${saveRes.status}):`, saveData);
+                        }
                     } catch (saveErr) {
-                        console.error('Failed to auto-save image:', saveErr);
+                        console.error('[AutoSave] ❌ Network error saving image:', saveErr);
                     }
                 }
             }
@@ -407,7 +511,14 @@ export default function CoverImageGeneratorModal({
 
     if (!mounted) return null;
 
-    return createPortal(
+    // 텍스쳐 작업 모달용 변수 (선언 위치: mainModal 이전)
+    const defaultTextures = useDesignStore.getState().defaultTextures;
+    const hasTextureForCover = !!(defaultTextures[coverId]?.upper?.top || defaultTextures[coverId]?.upper?.front || defaultTextures[coverId]?.upper?.side);
+    const selectedImageUrl = selectedIndex !== null && generatedImages[selectedIndex]
+        ? generatedImages[selectedIndex].imageUrl
+        : (defaultTextures[coverId]?.sourceImage?.upper || null);
+
+    const mainModal = createPortal(
         <div style={{
             position: 'fixed', inset: 0, zIndex: 9999,
             display: 'flex', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)',
@@ -437,11 +548,26 @@ export default function CoverImageGeneratorModal({
                             {coverLabel} · 라운드 {round}
                         </div>
                     </div>
-                    <button onClick={onClose} style={{
-                        width: 32, height: 32, borderRadius: 8, border: 'none',
-                        background: 'rgba(255,255,255,0.1)', color: '#e2e8f0',
-                        fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>✕</button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button onClick={() => setShowTextureModal(true)} style={{
+                            padding: '6px 14px', borderRadius: 8, border: 'none',
+                            background: hasTextureForCover
+                                ? 'linear-gradient(135deg, #8b5cf6, #6d28d9)'
+                                : 'rgba(255,255,255,0.1)',
+                            color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: 4,
+                            boxShadow: hasTextureForCover ? '0 2px 8px rgba(139,92,246,0.4)' : 'none',
+                            transition: 'all 0.2s',
+                        }}>
+                            ✂️ 텍스쳐 작업
+                            {hasTextureForCover && <span style={{ fontSize: 9, background: 'rgba(255,255,255,0.2)', padding: '1px 5px', borderRadius: 4 }}>저장됨</span>}
+                        </button>
+                        <button onClick={onClose} style={{
+                            width: 32, height: 32, borderRadius: 8, border: 'none',
+                            background: 'rgba(255,255,255,0.1)', color: '#e2e8f0',
+                            fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>✕</button>
+                    </div>
                 </div>
 
                 {/* 탭 */}
@@ -613,6 +739,20 @@ export default function CoverImageGeneratorModal({
                                 </div>
                             )}
 
+                            {/* 설정 저장 버튼 */}
+                            {!finalImage && (
+                                <button onClick={handleSaveSettings} style={{
+                                    width: '100%', padding: '10px',
+                                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                    color: '#fff', border: 'none', borderRadius: 10,
+                                    fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                                    marginBottom: 8,
+                                    boxShadow: '0 2px 8px rgba(245,158,11,0.25)',
+                                }}>
+                                    💾 참고이미지 + 프롬프트 설정 저장
+                                </button>
+                            )}
+
                             {/* 생성 버튼 */}
                             {!finalImage && (
                                 <button onClick={handleGenerate} disabled={loading || refImageLoading} style={{
@@ -663,6 +803,9 @@ export default function CoverImageGeneratorModal({
                     </span>
                     {generatedImages.length > 0 && !finalImage && selectedIndex !== null && (
                         <div style={{ display: 'flex', gap: 8 }}>
+                            <button onClick={() => setShowTextureModal(true)} style={{ padding: '6px 14px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', border: 'none', borderRadius: 7, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                                ✂️ 텍스쳐 작업
+                            </button>
                             <button onClick={handleSelectAsRef} style={{ padding: '6px 14px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', border: 'none', borderRadius: 7, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                                 🔄 참고 이미지로 등록 &amp; 재생성
                             </button>
@@ -687,9 +830,9 @@ export default function CoverImageGeneratorModal({
                     {/* 생성된 이미지 그리드 (3장) */}
                     {!loading && generatedImages.length > 0 && !finalImage && (
                         <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)',
-                            gap: 12,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 16,
                         }}>
                             {generatedImages.map((img: GeneratedImage, idx: number) => {
                                 const isSelected = selectedIndex === idx;
@@ -701,6 +844,7 @@ export default function CoverImageGeneratorModal({
                                         boxShadow: isSelected ? '0 0 0 3px rgba(99,102,241,0.3)' : 'none',
                                         cursor: 'pointer', transition: 'all 0.15s',
                                         background: '#1e293b',
+                                        width: '100%',
                                     }}>
                                         <img src={img.imageUrl} alt={`생성 ${idx + 1}`} style={{ width: '100%', height: 'auto', display: 'block' }} />
                                         {isSelected && (
@@ -751,5 +895,30 @@ export default function CoverImageGeneratorModal({
             </div>
         </div>,
         document.body
+    );
+
+    return (
+        <>
+            {mainModal}
+            {showTextureModal && selectedImageUrl && createPortal(
+                <div style={{ position: 'fixed', inset: 0, zIndex: 10000 }}>
+                    <TextureExtractorModal
+                        coverId={coverId}
+                        coverLabel={coverLabel}
+                        initialUpperSource={selectedImageUrl}
+                        onSave={(upper, lower, upperCoords, lowerCoords, upperSource, lowerSource) => {
+                            useDesignStore.getState().setDefaultTextures(
+                                coverId,
+                                upper, lower,
+                                upperCoords, lowerCoords,
+                                { upper: upperSource, lower: lowerSource }
+                            );
+                        }}
+                        onClose={() => setShowTextureModal(false)}
+                    />
+                </div>,
+                document.body
+            )}
+        </>
     );
 }
