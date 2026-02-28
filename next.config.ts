@@ -8,8 +8,8 @@ const nextConfig: NextConfig = {
   },
   outputFileTracingExcludes: {
     "*": [
-      "resource/AI-cover/**/*",
-      "resource/AI-concept/**/*",
+      "public/resource/AI-cover/**/*",
+      "public/resource/AI-concept/**/*",
     ],
   },
 };

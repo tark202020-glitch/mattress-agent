@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         const timestamp = `${year}${month}${day}_${hours}${minutes}${seconds}`;
         const filename = `${coverLabel}_${timestamp}_${angleId}.png`.replace(/\s+/g, '_');
 
-        const targetDir = path.join(process.cwd(), 'resource', folder);
+        const targetDir = path.join(process.cwd(), 'public', 'resource', folder);
 
         // Ensure directory exists
         if (!fs.existsSync(targetDir)) {
