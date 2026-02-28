@@ -178,6 +178,16 @@ export default function ConceptImageGeneratorModal({ isOpen, onClose, aiCoverIma
     const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
     // 카메라 앵글
     const [selectedAngles, setSelectedAngles] = useState<string[]>(['front', 'perspective', 'detail']);
+    const [customAnglePrompts, setCustomAnglePrompts] = useState<Record<string, string>>(() => {
+        const init: Record<string, string> = {};
+        CAMERA_ANGLES.forEach(a => init[a.id] = a.prompt);
+        return init;
+    });
+
+    const handleAnglePromptChange = (id: string, value: string) => {
+        setCustomAnglePrompts(prev => ({ ...prev, [id]: value }));
+    };
+
     // 매트리스 추가 설명
     const [userMattressPrompt, setUserMattressPrompt] = useState('');
     // 라운드
@@ -217,6 +227,7 @@ export default function ConceptImageGeneratorModal({ isOpen, onClose, aiCoverIma
                     const parsed = JSON.parse(saved);
                     if (parsed.scenePrompt) { setScenePrompt(parsed.scenePrompt); setSelectedPreset(parsed.selectedPreset || null); }
                     if (parsed.selectedAngles) setSelectedAngles(parsed.selectedAngles);
+                    if (parsed.customAnglePrompts) setCustomAnglePrompts(parsed.customAnglePrompts);
                     if (parsed.userMattressPrompt) setUserMattressPrompt(parsed.userMattressPrompt);
                     if (parsed.refImages && parsed.refImages.length > 0) {
                         setOriginalRefImages(parsed.refImages);
@@ -302,6 +313,7 @@ export default function ConceptImageGeneratorModal({ isOpen, onClose, aiCoverIma
             selectedAngles,
             userMattressPrompt,
             refImages: originalRefImages.slice(0, 5),
+            customAnglePrompts,
         };
         try {
             localStorage.setItem(settingsKey, JSON.stringify(settings));
@@ -310,7 +322,7 @@ export default function ConceptImageGeneratorModal({ isOpen, onClose, aiCoverIma
             alert('❌ 저장에 실패했습니다.');
             console.error(err);
         }
-    }, [coverId, scenePrompt, selectedPreset, selectedAngles, userMattressPrompt, originalRefImages]);
+    }, [coverId, scenePrompt, selectedPreset, selectedAngles, userMattressPrompt, originalRefImages, customAnglePrompts]);
 
     const handlePresetSelect = (p: typeof MOOD_PRESETS[0]) => {
         if (selectedPreset === p.id) { setSelectedPreset(null); setScenePrompt(''); }
@@ -349,8 +361,9 @@ export default function ConceptImageGeneratorModal({ isOpen, onClose, aiCoverIma
             const baseRefs = originalRefImages.slice(0, maxRefImages);
 
             const requests = anglesToGenerate.map(angle => {
+                const promptToUse = customAnglePrompts[angle.id] || angle.prompt;
                 const body: any = {
-                    prompt: buildPrompt(angle.prompt),
+                    prompt: buildPrompt(promptToUse),
                     coverLabel: coverLabel,
                     aspectRatio: '1:1',
                     imageSize: 2048,
@@ -598,9 +611,19 @@ export default function ConceptImageGeneratorModal({ isOpen, onClose, aiCoverIma
                                 {CAMERA_ANGLES.filter(a => selectedAngles.includes(a.id)).map((a) => (
                                     <div key={a.id} style={{ background: '#ede9fe', borderRadius: 6, padding: '5px 7px' }}>
                                         <div style={{ fontSize: 9, fontWeight: 700, color: a.color, marginBottom: 2 }}>{a.emoji} {a.label}</div>
-                                        <div style={{ fontSize: 9, color: '#4c1d95', fontFamily: 'monospace', lineHeight: 1.3, wordBreak: 'break-word' }}>
-                                            {a.prompt}
-                                        </div>
+                                        <textarea
+                                            value={customAnglePrompts[a.id] || ''}
+                                            onChange={(e) => handleAnglePromptChange(a.id, e.target.value)}
+                                            rows={2}
+                                            style={{
+                                                width: '100%', padding: '4px 6px',
+                                                border: `1px solid ${a.color}40`, borderRadius: 4,
+                                                fontSize: 10, fontFamily: 'monospace',
+                                                resize: 'vertical', boxSizing: 'border-box',
+                                                background: '#fff', color: '#4c1d95',
+                                                lineHeight: 1.3,
+                                            }}
+                                        />
                                     </div>
                                 ))}
                             </div>

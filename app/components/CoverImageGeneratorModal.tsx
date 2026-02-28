@@ -33,7 +33,7 @@ const FIXED_SCENE = '보이지 않는 프레임 위에 올려진 매트리스 �
 const FIXED_ANGLES = [
     { id: 'front', label: '정면', prompt: '매트리스 정면을 살짝 위쪽 눈높이에서 보여주는 정면 뷰. 대칭 구도. 매트리스의 가로보다 세로(깊이)가 길어 보여야 합니다.' },
     { id: 'perspective', label: '퍼스펙티브', prompt: '모서리에서 바라본 3/4 각도 퍼스펙티브 뷰. 매트리스의 윗면과 측면이 모두 선명하게 보여야 합니다. 매트리스의 세로 깊이가 가로 폭보다 시각적으로 길게 확장되어야 합니다.' },
-    { id: 'detail', label: '디테일', prompt: '매트리스의 우측 전면 모서리만 매우 가깝게 클로즈업. 매트리스 전체 모습이 보이지 않도록 화면을 모서리로만 가득 채웁니다. 원근 왜곡이 없는 직교(Orthographic) 평면 투영 방식이며, 모든 평행선은 평행하게 유지됩니다. 평면 위에서 우측 45도 각도로 내려다보는 시점. 상단의 퀼팅 텍스처, 파이핑/지퍼 스티치, 측면 원단 디테일, 모서리 박음질이 선명하게 보여야 합니다. 흰색 배경. 스튜디오 조명. 프리미엄 제품 사진 미학.' }
+    { id: 'detail', label: '디테일', prompt: '매트리스의 우측 전면 모서리만 매우 가깝게 클로즈업. 매트리스 전체 모습이 보이지 않도록 화면을 모서리로만 가득 채웁니다. 원근 왜곡이 없는 직교(Orthographic) 평면 투영 방식이며, 모든 평행선은 평행하게 유지됩니다. 평면 위에서 우측 45도 각도로 내려다보는 시점. 상단의 퀼팅 텍스처, 파이핑/지퍼 스티치, 측면 원단 디테일, 모서리 박음질이 선명하게 보여야 합니다.' }
 ];
 
 
@@ -161,6 +161,16 @@ export default function CoverImageGeneratorModal({
     const [savedRefImages, setSavedRefImages] = useState<string[]>([]);
     const [settingsLoaded, setSettingsLoaded] = useState(false);
     const [showTextureModal, setShowTextureModal] = useState(false);
+    // 앵글 커스텀 프롬프트 상태
+    const [customAnglePrompts, setCustomAnglePrompts] = useState<Record<string, string>>(() => {
+        const init: Record<string, string> = {};
+        FIXED_ANGLES.forEach(a => init[a.id] = a.prompt);
+        return init;
+    });
+
+    const handleAnglePromptChange = (id: string, value: string) => {
+        setCustomAnglePrompts(prev => ({ ...prev, [id]: value }));
+    };
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -182,6 +192,9 @@ export default function CoverImageGeneratorModal({
                 if (saved.labelStyle) setLabelStyle(saved.labelStyle);
                 if (saved.refImages && saved.refImages.length > 0) {
                     setSavedRefImages(saved.refImages);
+                }
+                if (saved.customAnglePrompts) {
+                    setCustomAnglePrompts(saved.customAnglePrompts);
                 }
                 console.log(`[AI Cover] ✅ 저장된 설정 로드: ${coverId}`);
             }
@@ -298,6 +311,7 @@ export default function CoverImageGeneratorModal({
             const settings = {
                 topColor, topPattern, pipingColor, sideColor, sidePattern, labelStyle,
                 refImages: originalRefImages.slice(0, 5),
+                customAnglePrompts,
                 savedAt: new Date().toISOString(),
             };
             localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -306,7 +320,7 @@ export default function CoverImageGeneratorModal({
             console.error('[AI Cover] 설정 저장 실패:', e);
             alert('설정 저장 실패 (저장 용량 초과 가능)');
         }
-    }, [topColor, topPattern, pipingColor, sideColor, sidePattern, labelStyle, originalRefImages, SETTINGS_KEY, coverLabel]);
+    }, [topColor, topPattern, pipingColor, sideColor, sidePattern, labelStyle, originalRefImages, customAnglePrompts, SETTINGS_KEY, coverLabel]);
 
 
 
@@ -412,8 +426,9 @@ export default function CoverImageGeneratorModal({
 
             // ✅ 3개의 앵글에 대해 동시에 생성 요청 (Promise.all)
             const requests = FIXED_ANGLES.map(angle => {
+                const promptToUse = customAnglePrompts[angle.id] || angle.prompt;
                 const body: any = {
-                    prompt: buildPrompt(angle.prompt),
+                    prompt: buildPrompt(promptToUse),
                     coverLabel: coverLabel,
                     aspectRatio: '1:1',
                     imageSize: 2048,
@@ -457,7 +472,8 @@ export default function CoverImageGeneratorModal({
                             body: JSON.stringify({
                                 base64: resizedBase64,
                                 coverLabel: coverLabel,
-                                angleId: res.angleId
+                                angleId: res.angleId,
+                                folder: 'AI-cover'
                             }),
                         });
                         const saveData = await saveRes.json();
@@ -736,6 +752,35 @@ export default function CoverImageGeneratorModal({
                                             🔍 최종 생성 설명: <em style={{ color: '#4f46e5' }}>{getMattressDescription()}</em>
                                         </div>
                                     )}
+                                </div>
+                            )}
+
+                            {/* 개별 앵글 프롬프트 뷰어 및 편집기 추가 */}
+                            {!finalImage && (
+                                <div style={{ marginBottom: 12, padding: 12, background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 9, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: '#4c1d95', marginBottom: 2 }}>
+                                        🎥 카메라 앵글 프롬프트
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                        {FIXED_ANGLES.map((a) => (
+                                            <div key={a.id} style={{ background: '#ede9fe', borderRadius: 6, padding: '6px 8px' }}>
+                                                <div style={{ fontSize: 10, fontWeight: 700, color: '#5b21b6', marginBottom: 3 }}>{a.label}</div>
+                                                <textarea
+                                                    value={customAnglePrompts[a.id] || ''}
+                                                    onChange={(e) => handleAnglePromptChange(a.id, e.target.value)}
+                                                    rows={2}
+                                                    style={{
+                                                        width: '100%', padding: '5px 7px',
+                                                        border: '1px solid #c4b5fd', borderRadius: 5,
+                                                        fontSize: 10, fontFamily: 'monospace',
+                                                        resize: 'vertical', boxSizing: 'border-box',
+                                                        background: '#fff', color: '#4c1d95',
+                                                        lineHeight: 1.3,
+                                                    }}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 

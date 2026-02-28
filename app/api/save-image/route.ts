@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Request body parse failed. Image may be too large.' }, { status: 413 });
         }
 
-        const { base64, coverLabel, angleId } = body;
+        const { base64, coverLabel, angleId, folder = 'AI-cover' } = body;
 
         if (!base64 || !coverLabel || !angleId) {
             console.error('[SaveImage] Missing fields:', { hasBase64: !!base64, coverLabel, angleId });
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         const timestamp = `${year}${month}${day}_${hours}${minutes}${seconds}`;
         const filename = `${coverLabel}_${timestamp}_${angleId}.png`.replace(/\s+/g, '_');
 
-        const targetDir = path.join(process.cwd(), 'resource', 'AI-cover');
+        const targetDir = path.join(process.cwd(), 'resource', folder);
 
         // Ensure directory exists
         if (!fs.existsSync(targetDir)) {
