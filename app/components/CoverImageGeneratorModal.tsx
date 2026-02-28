@@ -161,6 +161,9 @@ export default function CoverImageGeneratorModal({
     const [savedRefImages, setSavedRefImages] = useState<string[]>([]);
     const [settingsLoaded, setSettingsLoaded] = useState(false);
     const [showTextureModal, setShowTextureModal] = useState(false);
+    // 📁 (핵심) 사용자 PC 로컬 저장 폴더 핸들 상태 (File System Access API)
+    const [saveDirectory, setSaveDirectory] = useState<FileSystemDirectoryHandle | null>(null);
+
     // 앵글 커스텀 프롬프트 상태
     const [customAnglePrompts, setCustomAnglePrompts] = useState<Record<string, string>>(() => {
         const init: Record<string, string> = {};
@@ -412,6 +415,11 @@ export default function CoverImageGeneratorModal({
     }
 
     const handleGenerate = async () => {
+        if (!saveDirectory) {
+            const proceed = window.confirm("📁 내 PC의 다운로드(저장) 대상 폴더가 지정되지 않았습니다.\n(지정하지 않으시면 자동 저장이 이루어지지 않습니다)\n\n이대로 이미지 생성만 진행하시겠습니까?");
+            if (!proceed) return;
+        }
+
         setLoading(true);
         setError(null);
         setGeneratedImages([]);
@@ -461,11 +469,30 @@ export default function CoverImageGeneratorModal({
                     const generatedImg = res.data.images[0];
                     allImages.push(generatedImg);
 
-                    // 💡 자동 저장 API 호출 (2048×2048 리사이징 후 저장)
+                    // 💡 자동 저장 로직 (브라우저 직접 저장 + 기존 API Fallback)
                     try {
-                        console.log(`[AutoSave] Saving ${res.angleId} image for ${coverLabel}... (original base64 length: ${generatedImg.base64?.length || 0})`);
+                        console.log(`[AutoSave] Saving ${res.angleId} image for ${coverLabel}...`);
                         const resizedBase64 = await resizeToSquare(generatedImg.base64, 2048);
-                        console.log(`[AutoSave] Resized to 2048×2048 (base64 length: ${resizedBase64.length})`);
+
+                        // 1) 사용자가 로컬 폴더(saveDirectory)를 지정해둔 경우 (File System API 실행)
+                        if (saveDirectory) {
+                            try {
+                                const now = new Date();
+                                const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+                                const filename = `${coverLabel}_${timestamp}_${res.angleId}.png`.replace(/\s+/g, '_');
+
+                                const buffer = Buffer.from(resizedBase64, 'base64');
+                                const fileHandle = await saveDirectory.getFileHandle(filename, { create: true });
+                                const writable = await fileHandle.createWritable();
+                                await writable.write(buffer);
+                                await writable.close();
+                                console.log(`[BrowserAutoSave] ✅ Saved directly to local PC: ${filename}`);
+                            } catch (fsErr) {
+                                console.error('[BrowserAutoSave] ❌ Failed to save directly:', fsErr);
+                            }
+                        }
+
+                        // 2) 항상 기존 서버 백엔드 API (localhost 등 확인용) 저장 시도 수행
                         const saveRes = await fetch('/api/save-image', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -478,12 +505,12 @@ export default function CoverImageGeneratorModal({
                         });
                         const saveData = await saveRes.json();
                         if (saveRes.ok) {
-                            console.log(`[AutoSave] ✅ Saved: ${saveData.filename}`);
+                            console.log(`[AutoSave API] ✅ Saved: ${saveData.filename}`);
                         } else {
-                            console.error(`[AutoSave] ❌ Save failed (${saveRes.status}):`, saveData);
+                            console.error(`[AutoSave API] ❌ Save failed (${saveRes.status}):`, saveData);
                         }
                     } catch (saveErr) {
-                        console.error('[AutoSave] ❌ Network error saving image:', saveErr);
+                        console.error('[AutoSave] ❌ error saving image:', saveErr);
                     }
                 }
             }

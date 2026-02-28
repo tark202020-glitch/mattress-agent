@@ -173,6 +173,9 @@ export default function ConceptImageGeneratorModal({ isOpen, onClose, aiCoverIma
 
     const [mounted, setMounted] = useState(false);
 
+    // 📁 (핵심) 사용자 PC 로컬 저장 폴더 핸들 상태 (File System Access API)
+    const [saveDirectory, setSaveDirectory] = useState<FileSystemDirectoryHandle | null>(null);
+
     // 배경/분위기
     const [scenePrompt, setScenePrompt] = useState('');
     const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
@@ -346,6 +349,11 @@ export default function ConceptImageGeneratorModal({ isOpen, onClose, aiCoverIma
 
     // 앵글별 3장 생성
     const handleGenerate = async () => {
+        if (!saveDirectory) {
+            const proceed = window.confirm("📁 내 PC의 다운로드(저장) 대상 폴더가 지정되지 않았습니다.\n(지정하지 않으시면 자동 저장이 이루어지지 않습니다)\n\n이대로 이미지 생성만 진행하시겠습니까?");
+            if (!proceed) return;
+        }
+
         if (selectedAngles.length === 0) {
             setError('카메라 앵글을 하나 이상 선택해주세요.');
             return;
@@ -398,10 +406,30 @@ export default function ConceptImageGeneratorModal({ isOpen, onClose, aiCoverIma
                         angleId: res.angleId,
                     });
 
-                    // 💡 자동 저장 API 호출 (CoverImageGeneratorModal과 동일)
+                    // 💡 자동 저장 로직 (브라우저 직접 저장 + 기존 API Fallback)
                     try {
                         console.log(`[ConceptAutoSave] Saving ${res.angleId} image for ${coverLabel}...`);
                         const resizedBase64 = await resizeToSquare(generatedImg.base64, 2048);
+
+                        // 1) 로컬 디렉터리 핸들러가 있으면 직접 저장 (브라우저)
+                        if (saveDirectory) {
+                            try {
+                                const now = new Date();
+                                const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+                                const filename = `${coverLabel}_${timestamp}_${res.angleId}.png`.replace(/\s+/g, '_');
+
+                                const buffer = Buffer.from(resizedBase64, 'base64');
+                                const fileHandle = await saveDirectory.getFileHandle(filename, { create: true });
+                                const writable = await fileHandle.createWritable();
+                                await writable.write(buffer);
+                                await writable.close();
+                                console.log(`[BrowserAutoSave] ✅ Saved directly to local PC: ${filename}`);
+                            } catch (fsErr) {
+                                console.error('[BrowserAutoSave] ❌ Failed to save directly:', fsErr);
+                            }
+                        }
+
+                        // 2) 로컬 Fallback 혹은 개발망 확인용 백엔드 API 저장
                         const saveRes = await fetch('/api/save-image', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -414,12 +442,12 @@ export default function ConceptImageGeneratorModal({ isOpen, onClose, aiCoverIma
                         });
                         const saveData = await saveRes.json();
                         if (saveRes.ok) {
-                            console.log(`[ConceptAutoSave] ✅ Saved: ${saveData.filename}`);
+                            console.log(`[ConceptAutoSave API] ✅ Saved: ${saveData.filename}`);
                         } else {
-                            console.error(`[ConceptAutoSave] ❌ Save failed:`, saveData);
+                            console.error(`[ConceptAutoSave API] ❌ Save failed:`, saveData);
                         }
                     } catch (saveErr) {
-                        console.error('[ConceptAutoSave] ❌ Network error:', saveErr);
+                        console.error('[ConceptAutoSave] ❌ error:', saveErr);
                     }
                 }
             }
@@ -545,6 +573,31 @@ export default function ConceptImageGeneratorModal({ isOpen, onClose, aiCoverIma
                             </div>
                         )}
                         <span style={{ fontSize: 10, color: '#64748b' }}>{originalRefImages.length}장 사용</span>
+                    </div>
+
+                    {/* 브라우저 로컬 저장 폴더 선택기 */}
+                    <div style={{ marginBottom: 16, padding: 12, border: '1px dashed #6366f1', borderRadius: 9, background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.4 }}>
+                            <strong style={{ color: '#4f46e5' }}>[Vercel 배포망 연결]</strong> 보안상의 이유로 Vercel 환경에서는 자동 저장이 막혀 있습니다.<br />
+                            이미지가 자동 다운로드되길 원하는 <strong>내 PC의 폴더</strong>를 한 번 지정해주세요.
+                        </div>
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const dirHandle = await (window as any).showDirectoryPicker({ mode: 'readwrite' });
+                                    setSaveDirectory(dirHandle);
+                                } catch (e) {
+                                    console.warn('폴더 선택 취소 또는 지원하지 않는 브라우저', e);
+                                }
+                            }}
+                            style={{
+                                padding: '8px 0', width: '100%', background: saveDirectory ? '#10b981' : '#fff',
+                                color: saveDirectory ? '#fff' : '#6366f1', border: '1px solid #6366f1',
+                                borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                            }}
+                        >
+                            {saveDirectory ? `📁 저장 폴더 연결됨 (${saveDirectory.name})` : '📁 내 PC의 다운로드(저장) 대상 폴더 선택하기'}
+                        </button>
                     </div>
 
                     {/* 🎬 배경 선택 */}
