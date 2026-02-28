@@ -6,6 +6,12 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '50mb',
     },
   },
+  outputFileTracingExcludes: {
+    "*": [
+      "resource/AI-cover/**/*",
+      "resource/AI-concept/**/*",
+    ],
+  },
 };
 
 export default nextConfig;
