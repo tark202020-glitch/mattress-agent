@@ -22,25 +22,29 @@ function containsKorean(text: string): boolean {
     return /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F\uA960-\uA97F\uD7B0-\uD7FF]/.test(text);
 }
 
-// Google Cloud Translation API로 번역
-async function translateToEnglish(text: string, token: string): Promise<string> {
-    const url = `https://translation.googleapis.com/language/translate/v2`;
+// Gemini Text 모델로 번역
+async function translateWithGemini(text: string, apiKey: string): Promise<string> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ q: text, source: 'ko', target: 'en', format: 'text' }),
+        body: JSON.stringify({
+            contents: [{
+                role: 'user',
+                parts: [{ text: `Translate the following Korean text to English for an AI image generation prompt. Output ONLY the translated English text without any additional explanation or markdown formatting:\n\n${text}` }]
+            }]
+        }),
     });
 
     if (!response.ok) {
-        console.error('[Translation] Error:', await response.text());
-        throw new Error(`Translation failed: ${response.status}`);
+        console.error('[Translation] Gemini Error:', await response.text());
+        throw new Error(`Gemini Translation failed: ${response.status}`);
     }
 
     const data = await response.json();
-    return data.data.translations[0].translatedText;
+    return data.candidates[0].content.parts[0].text.trim();
 }
 
 export async function POST(req: Request) {
@@ -65,7 +69,7 @@ export async function POST(req: Request) {
 
         console.log(`[GenerateImage] 🍌 모드 체크: NANO BANANA = ${USE_NANO_BANANA}, RefImages = ${refCount}`);
 
-        // Vertex AI / Google Cloud Token 초기화 (번역용으로도 쓰일 수 있으므로)
+        // Vertex AI / Google Cloud Token 초기화 (이제 번역 대신 폴백 모델 생성용으로만 남김)
         let token = '';
         try {
             const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/cloud-platform'] });
@@ -73,23 +77,25 @@ export async function POST(req: Request) {
             const accessToken = await client.getAccessToken();
             token = accessToken.token || '';
         } catch (authError) {
-            console.warn('[GenerateImage] Google Auth 토큰 발급 실패 (NANO BANANA 전용 키 사용 시 무시 가능):', authError);
+            console.warn('[GenerateImage] Google Auth 토큰 발급 실패 (NANO BANANA 전용 키 사용 시 무시 가능):', (authError as Error).message);
         }
 
         // 2. 한글 -> 영어 번역 (배경/씬 번역)
         let finalScene = prompt;
         let wasTranslated = false;
-        if (containsKorean(prompt) && token) {
-            console.log(`[GenerateImage] 🇰🇷 한글 감지, 번역 시도...`);
-            try {
-                finalScene = await translateToEnglish(prompt, token);
-                wasTranslated = true;
-                console.log(`[GenerateImage] Translated scene: ${finalScene}`);
-            } catch (err: any) {
-                console.warn(`[GenerateImage] ⚠️ 번역 실패, 원본 사용`);
+        if (containsKorean(prompt)) {
+            console.log(`[GenerateImage] 🇰🇷 한글 감지, Gemini를 통한 번역 시도...`);
+            if (NANO_BANANA_KEY) {
+                try {
+                    finalScene = await translateWithGemini(prompt, NANO_BANANA_KEY);
+                    wasTranslated = true;
+                    console.log(`[GenerateImage] Translated scene: ${finalScene}`);
+                } catch (err: any) {
+                    console.warn(`[GenerateImage] ⚠️ 번역 실패, 원본 사용`, err.message);
+                }
+            } else {
+                console.warn(`[GenerateImage] ⚠️ NANO_BANANA_KEY(Gemini API Key)가 없어 번역 불가능, 원본 사용`);
             }
-        } else if (containsKorean(prompt) && !token) {
-            console.warn(`[GenerateImage] ⚠️ Google Auth 토큰이 없어 번역 스킵`);
         }
 
         // 3. 템플릿 조립

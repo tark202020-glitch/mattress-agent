@@ -29,11 +29,11 @@ const COVER_FILE_BASE: Record<string, string[]> = {
 };
 
 /* ── 고정 프롬프트 데이터 ── */
-const FIXED_SCENE = 'Isolated product shot of a mattress cover on an invisible frame. The mattress has a rectangular shape with width 1500mm and depth 2000mm (the depth/length is longer than the width — it must NOT look like a square). Pure, seamless white background. No props, no furniture, no shadows except subtle drop shadow beneath the mattress. Studio lighting. Clean, minimal, commercial photography aesthetic.';
+const FIXED_SCENE = '보이지 않는 프레임 위에 올려진 매트리스 커버의 단독 제품 컷. 매트리스는 가로 1500mm, 세로(깊이) 2000mm의 직사각형 형태를 가집니다 (가로보다 세로가 더 길어야 하며, 절대 정사각형으로 보이면 안 됩니다). 순수하고 이음새 없는 흰색 배경. 주변 소품, 가구, 그림자 없이 매트리스 아래의 미세한 그림자만 허용됩니다. 스튜디오 조명. 깔끔하고 미니멀한 상업 사진 미학.';
 const FIXED_ANGLES = [
-    { id: 'front', label: '정면', prompt: 'Straight-on view directly facing the front of the mattress. Eye-level perspective. Symmetrical composition. The mattress should clearly appear longer in depth than in width.' },
-    { id: 'perspective', label: '퍼스펙티브', prompt: '3/4 angled perspective view from the corner, showing the top and side of the mattress clearly. The mattress depth should visibly extend further than its width.' },
-    { id: 'detail', label: '디테일', prompt: 'Extreme close-up of ONLY the right front corner of a mattress, cropped tightly so the full mattress is NOT visible — just the corner filling most of the frame. ORTHOGRAPHIC flat projection, NO perspective distortion, all parallel edges remain parallel. The camera looks down at roughly 45 degrees from above-right. Clearly show the top quilting texture, piping/zipper seam, side fabric ribbing, and corner stitching detail. White background. Studio lighting. Premium product photography.' }
+    { id: 'front', label: '정면', prompt: '매트리스 정면을 살짝 위쪽 눈높이에서 보여주는 정면 뷰. 대칭 구도. 매트리스의 가로보다 세로(깊이)가 길어 보여야 합니다.' },
+    { id: 'perspective', label: '퍼스펙티브', prompt: '모서리에서 바라본 3/4 각도 퍼스펙티브 뷰. 매트리스의 윗면과 측면이 모두 선명하게 보여야 합니다. 매트리스의 세로 깊이가 가로 폭보다 시각적으로 길게 확장되어야 합니다.' },
+    { id: 'detail', label: '디테일', prompt: '매트리스의 우측 전면 모서리만 매우 가깝게 클로즈업. 매트리스 전체 모습이 보이지 않도록 화면을 모서리로만 가득 채웁니다. 원근 왜곡이 없는 직교(Orthographic) 평면 투영 방식이며, 모든 평행선은 평행하게 유지됩니다. 평면 위에서 우측 45도 각도로 내려다보는 시점. 상단의 퀼팅 텍스처, 파이핑/지퍼 스티치, 측면 원단 디테일, 모서리 박음질이 선명하게 보여야 합니다. 흰색 배경. 스튜디오 조명. 프리미엄 제품 사진 미학.' }
 ];
 
 

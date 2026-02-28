@@ -23,27 +23,27 @@ const COVER_FILE_BASE: Record<string, string> = {
 const MOOD_PRESETS = [
     {
         id: 'warm_brown', label: '따뜻한 실내 갈색', emoji: '🪵', color: '#92400e', bgColor: '#fef3c7',
-        scene: 'Warm bedroom scene. Empty dark platform bed base. Arranged on top: two white pillows, one light beige pillow, and a rust-orange square accent pillow. A tan fringed throw blanket draped across the lower right. Fluffy beige shag area rug. Left: dark wood side table with a white device. Right: modern black floor lamp with three circular discs. Background wall features pinkish-mauve wainscoting on the lower half and pale yellow above. Warm lighting with soft shadows. High-end interior design aesthetic.'
+        scene: '따뜻한 침실 씬. 비어 있는 짙은 색 플랫폼 침대 프레임. 그 위에는 하얀 베개 두 개, 연베이지 베개 한 개, 그리고 녹슨 오렌지색 정사각형 포인트 베개가 놓여 있습니다. 우측 하단에는 황갈색 프린지 담요가 늘어져 있습니다. 푹신한 베이지 다이아몬드 프린지 러그. 왼쪽에는 하얀 기기가 놓인 짙은 나무 사이드 테이블. 오른쪽에는 둥근 원판 세 개가 있는 모던 블랙 플로어 램프. 배경 벽면의 하단부는 핑크빛 도는 옅은 자주색 웨인스코팅으로, 상단부는 옅은 노란색으로 되어 있습니다. 부드러운 그림자가 지는 따뜻한 조명. 고급스러운 인테리어 디자인 미학.'
     },
     {
         id: 'clean_studio', label: '깔끔한 스튜디오', emoji: '✨', color: '#4338ca', bgColor: '#eef2ff',
-        scene: 'A modern bedroom scene. An empty light grey-blue upholstered platform bed frame with a padded headboard and small black cylindrical legs. Arranged on the frame (where the mattress would be) are two large light blue-grey pillows in the back, and two textured, light pink lumbar pillows in the front. A modern gold and frosted glass spherical pendant lamp hangs in the top left corner. A section of a fluffy, textured cream and grey patterned area rug is visible on the floor in the bottom right corner. The background is a seamless light grey wall and white floor. Soft, bright studio lighting casting gentle shadows. High-end interior design aesthetic.'
+        scene: '모던한 침실 씬. 부드러운 헤드보드와 작은 검은색 원통형 다리가 있는 비어 있는 밝은 회청색 패브릭 플랫폼 침대 프레임. 침대 프레임 위(매트리스가 놓일 자리) 뒷면에는 커다란 밝은 회청색 베개 두 개, 앞면에는 질감 있는 연분홍색 요추 베개 두 개가 놓여 있습니다. 좌측 상단에는 모던한 골드 및 불투명 유리 구형 펜던트 조명이 걸려 있습니다. 우측 하단 바닥에는 보송보송한 질감의 크림색과 회색 패턴 러그 일부가 보입니다. 배경은 이음새 없는 밝은 회색 벽과 하얀색 바닥. 부드럽고 잔잔한 그림자를 만드는 밝은 스튜디오 조명. 고급스러운 인테리어 디자인 미학.'
     },
     {
         id: 'wood_luxury', label: '고급스러운 원목', emoji: '🏨', color: '#78350f', bgColor: '#fef9ee',
-        scene: 'A minimalist bedroom scene with an empty, low-profile upholstered bed frame in a light beige fabric. The frame has a tall, padded headboard against which two large, plain white pillows are leaning. To the left of the bed is a round, sculptural side table made of light wood, holding a small white rounded rectangular object. The background features a light beige wall with subtle vertical paneling details and a large, semi-transparent screen on the right. The floor is made of light wood planks. Soft, warm natural light streams in from the left, casting a shadow of a plant on the wall.'
+        scene: '비어 있는 로우 프로파일 연베이지 패브릭 침대 프레임이 있는 미니멀 침실 씬. 프레임에는 아무 장식 없는 큰 하얀 베개 두 개가 기대어 있는 높은 패딩 헤드보드가 있습니다. 침대 왼쪽에는 밝은 원목의 조형적인 둥근 사이드 테이블이 있고, 위에는 작고 둥근 모서리의 직사각형 하얀 물건이 있습니다. 배경에는 은은한 세로 패널 디테일이 있는 연베이지 벽과 우측에 반투명한 대형 파티션이 있습니다. 바닥은 밝은 우드 플랭크보드. 좌측에서 부드럽고 따뜻한 자연광이 비치며 벽에 식물 그림자를 드리웁니다.'
     },
     {
         id: 'warm_grey', label: '웜 그레이톤', emoji: '🤍', color: '#374151', bgColor: '#f3f4f6',
-        scene: 'A modern bedroom scene. An empty grey upholstered bed frame with a tufted headboard and small black legs. Arranged on the frame are two white pillows, one grey accent pillow, and a brown knit throw blanket. To the left, a small wooden side table holds a white rectangular object. To the right, a chrome and glass side table holds a white rectangular object. Further right, a wooden shelving unit with black legs holds a bowl, books, and a dry branch decoration. A glass pendant lamp hangs from the top right. A white scale is visible on the floor in the bottom left corner. The background is a seamless white wall and light grey floor. Soft, even studio lighting. High-end interior design aesthetic.'
+        scene: '모던한 침실 씬. 터프팅 헤드보드와 작은 검은색 다리가 있는 비어 있는 회색 패브릭 침대 프레임. 프레임 위에는 하얀 베개 두 개, 회색 포인트 베개 하나, 갈색 니트 담요. 왼쪽의 작은 나무 사이드 테이블에는 하얀 직사각형 물건이 놓여 있습니다. 오른쪽의 크롬 소재 사이드 테이블 위에도 하얀 직사각형 물건이 있습니다. 오른쪽 뒤편의 검은색 다리를 가진 나무 선반에는 그릇, 책, 그리고 마른 나뭇가지 장식이 있습니다. 우측 상단에서 유리 펜던트 램프가 내려옵니다. 좌측 하단 바닥에는 하얀색 체중계가 보입니다. 배경은 이음새 없는 하얀 벽과 옅은 회색 바닥. 부드럽고 고른 스튜디오 조명. 고급스러운 인테리어 디자인 미학.'
     },
     {
         id: 'cool_tone', label: '차가운 쿨톤', emoji: '❄️', color: '#1e40af', bgColor: '#eff6ff',
-        scene: 'A modern, minimalist studio bedroom scene. An empty black leather Barcelona daybed frame with chrome legs sits in the center. Arranged on the frame are two large white pillows, a blue rectangular accent pillow, and a light grey blanket. To the left, a glass and chrome side table holds a black and white striped ceramic vase and stacked books. To the right, another glass and chrome side table holds a white rectangular object. A tall, thin chrome floor lamp stands behind the right side of the bed frame. A light grey area rug covers the white floor beneath the frame. The background is a seamless white wall. Soft, even studio lighting. High-end interior design aesthetic.'
+        scene: '모던하고 미니멀한 스튜디오 침실 씬. 크롬 다리가 달린 빈 블랙 가죽 바르셀로나 데이베드 프레임이 중앙에 놓여 있습니다. 프레임 위에는 큰 하얀 베개 두 개, 파란색 직사각형 포인트 베개 하나, 그리고 옅은 회색 담요가 있습니다. 왼쪽의 유리와 크롬 사이드 테이블에는 흑백 줄무늬 세라믹 화병과 쌓인 책들. 오른쪽의 유리와 크롬 사이드 테이블 위에는 하얀 직사각형 물건. 프레임 오른쪽 뒤에는 길고 얇은 크롬 플로어 램프가 서 있습니다. 하얀 바닥 위의 프레임 밑에는 옅은 회색 러그가 깔려 있습니다. 배경은 이음새 없는 하얀 벽. 부드럽고 고른 스튜디오 조명. 고급스러운 인테리어 디자인 미학.'
     },
     {
         id: 'white_isolated', label: '매트리스만 (흰색 배경)', emoji: '🛏️', color: '#0f172a', bgColor: '#f1f5f9',
-        scene: 'Isolated product shot of a mattress cover on an invisible frame. Pure, seamless white background. No props, no furniture, no shadows except subtle drop shadow beneath the mattress. Studio lighting. Clean, minimal, commercial photography aesthetic.'
+        scene: '보이지 않는 프레임 위에 올려진 매트리스 단독 제품 컷. 순수하고 이음새 없는 흰색 배경. 주변 소품, 가구, 그림자 없이 매트리스 아래의 미세한 그림자만 허용. 스튜디오 조명. 깔끔하고 미니멀한 상업 사진 미학.'
     },
 ];
 
@@ -51,15 +51,15 @@ const MOOD_PRESETS = [
 const CAMERA_ANGLES = [
     {
         id: 'front', label: '정면', emoji: '🖼️', color: '#0f766e', bgColor: '#f0fdf4',
-        prompt: 'Straight-on view directly facing the front of the mattress. Eye-level perspective. Symmetrical composition. The mattress should clearly appear longer in depth than in width.'
+        prompt: '매트리스 정면을 살짝 위쪽 눈높이에서 보여주는 정면 뷰. 대칭 구도. 매트리스의 가로보다 세로(깊이)가 길어 보여야 합니다.'
     },
     {
         id: 'perspective', label: '퍼스펙티브', emoji: '📐', color: '#6b21a8', bgColor: '#faf5ff',
-        prompt: '3/4 angled perspective view from the corner, showing the top and side of the mattress clearly. The mattress depth should visibly extend further than its width.'
+        prompt: '모서리에서 바라본 3/4 각도 퍼스펙티브 뷰. 매트리스의 윗면과 측면이 모두 선명하게 보여야 합니다. 매트리스의 세로 깊이가 가로 폭보다 시각적으로 길게 확장되어야 합니다.'
     },
     {
         id: 'detail', label: '디테일', emoji: '🔍', color: '#b45309', bgColor: '#fffbeb',
-        prompt: 'Extreme close-up of ONLY the right front corner of a mattress, cropped tightly so the full mattress is NOT visible — just the corner filling most of the frame. ORTHOGRAPHIC flat projection, NO perspective distortion, all parallel edges remain parallel. The camera looks down at roughly 45 degrees from above-right. Clearly show the top quilting texture, piping/zipper seam, side fabric ribbing, and corner stitching detail. White background. Studio lighting. Premium product photography.'
+        prompt: '매트리스의 우측 전면 모서리만 매우 가깝게 클로즈업. 매트리스 전체 모습이 보이지 않도록 화면을 모서리로만 가득 채웁니다. 원근 왜곡이 없는 직교(Orthographic) 평면 투영 방식이며, 모든 평행선은 평행하게 유지됩니다. 평면 위에서 우측 45도 각도로 내려다보는 시점. 상단의 퀼팅 텍스처, 파이핑/지퍼 스티치, 측면 원단 디테일, 모서리 박음질이 선명하게 보여야 합니다. 흰색 배경. 스튜디오 조명. 프리미엄 제품 사진 미학.'
     },
 ];
 
