@@ -825,6 +825,33 @@ export default function CoverImageGeneratorModal({
                                 </button>
                             )}
 
+                            {/* 브라우저 로컬 저장 폴더 선택기 */}
+                            {!finalImage && (
+                                <div style={{ marginBottom: 16, padding: 12, border: '1px dashed #6366f1', borderRadius: 9, background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.4 }}>
+                                        <strong style={{ color: '#4f46e5' }}>[Vercel 배포망 연결]</strong> 보안상의 이유로 Vercel 환경에서는 자동 저장이 막혀 있습니다.<br />
+                                        이미지가 자동 다운로드되길 원하는 <strong>내 PC의 폴더</strong>를 한 번 지정해주세요.
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                const dirHandle = await (window as any).showDirectoryPicker({ mode: 'readwrite' });
+                                                setSaveDirectory(dirHandle);
+                                            } catch (e) {
+                                                console.warn('폴더 선택 취소 또는 지원하지 않는 브라우저', e);
+                                            }
+                                        }}
+                                        style={{
+                                            padding: '8px 0', width: '100%', background: saveDirectory ? '#10b981' : '#fff',
+                                            color: saveDirectory ? '#fff' : '#6366f1', border: '1px solid #6366f1',
+                                            borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                                        }}
+                                    >
+                                        {saveDirectory ? `📁 저장 폴더 연결됨 (${saveDirectory.name})` : '📁 내 PC의 다운로드(저장) 대상 폴더 선택하기'}
+                                    </button>
+                                </div>
+                            )}
+
                             {/* 생성 버튼 */}
                             {!finalImage && (
                                 <button onClick={handleGenerate} disabled={loading || refImageLoading} style={{
