@@ -40,5 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
 .env*.local
+
+# AI-generated images (too large for deployment)
+resource/AI-cover/
+resource/AI-concept/
+public/resource/AI-cover/
+public/resource/AI-concept/
+public/covers/새 폴더/

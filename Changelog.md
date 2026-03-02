@@ -1,10 +1,11 @@
-## [Alpha V1.082] - 2026-03-02 19:37:51
+## [Alpha V1.082] - 2026-03-02 20:12:29
 
 ### 🔄 Build Update
-- **Summary**: Vercel 빌드 및 배포 에러(Internal Error 및 Buffer 참조 오류) 2종 수정
+- **Summary**: Vercel 배포 에러 3종 수정 (Buffer 참조 오류 + next.config 오류 + 대용량 파일 배포 제외)
 - **Detail** : 
-  - **`next.config.ts` [MODIFY]**: Vercel 배포 단계("Deploying outputs...")에서 발생하는 "Internal Error" 원인인 `outputFileTracingExcludes`의 와일드카드(`*`) 패턴 구문을 삭제.
-  - **`app/components/CoverImageGeneratorModal.tsx`, `ConceptImageGeneratorModal.tsx` [MODIFY]**: 클라이언트 컴포넌트 환경에서 에러를 유발하는 Node.js `Buffer.from()` 코드를 표준 브라우저 Web API인 `window.atob()`와 `Uint8Array` 기반 디코딩 로직으로 전면 교체.
+  - **`next.config.ts` [MODIFY]**: Vercel "Deploying outputs..." 단계에서 Internal Error를 유발하던 `outputFileTracingExcludes` 와일드카드 구문 삭제.
+  - **`app/components/CoverImageGeneratorModal.tsx`, `ConceptImageGeneratorModal.tsx` [MODIFY]**: 클라이언트 컴포넌트에서 Node.js `Buffer.from()` → 표준 `window.atob()` + `Uint8Array`로 교체.
+  - **`.gitignore`, `.vercelignore` [MODIFY]**: AI 생성 이미지 폴더(`resource/AI-cover/`, `resource/AI-concept/`, `public/covers/새 폴더/`) 총 ~250MB+ 분량을 git 추적 및 Vercel 배포에서 제외.
 - **Build Time**: 2026-03-02 19:37:51
 
 ## [Alpha V1.081] - 2026-02-28 18:25:00
