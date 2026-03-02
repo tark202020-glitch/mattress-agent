@@ -1,3 +1,11 @@
+## [Alpha V1.082] - 2026-03-02 19:37:51
+
+### 🔄 Build Update
+- **Summary**: Vercel 빌드 및 배포 에러(Buffer 객체 참조 오류) 수정
+- **Detail** : 
+  - **`app/components/CoverImageGeneratorModal.tsx`, `ConceptImageGeneratorModal.tsx` [MODIFY]**: 클라이언트 컴포넌트 환경에서 지원하지 않는 Node.js 코어 모듈인 `Buffer.from()` 사용 코드를 표준 브라우저 Web API인 `window.atob()`와 `Uint8Array` 기반 디코딩 로직으로 전면 교체하여 Vercel 빌드 타임의 "Internal Error" 원인을 해결.
+- **Build Time**: 2026-03-02 19:37:51
+
 ## [Alpha V1.081] - 2026-02-28 18:25:00
 
 ### 🔄 Build Update

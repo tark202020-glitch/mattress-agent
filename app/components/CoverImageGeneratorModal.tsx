@@ -481,10 +481,15 @@ export default function CoverImageGeneratorModal({
                                 const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
                                 const filename = `${coverLabel}_${timestamp}_${res.angleId}.png`.replace(/\s+/g, '_');
 
-                                const buffer = Buffer.from(resizedBase64, 'base64');
+                                const binaryString = window.atob(resizedBase64);
+                                const len = binaryString.length;
+                                const bytes = new Uint8Array(len);
+                                for (let i = 0; i < len; i++) {
+                                    bytes[i] = binaryString.charCodeAt(i);
+                                }
                                 const fileHandle = await saveDirectory.getFileHandle(filename, { create: true });
                                 const writable = await fileHandle.createWritable();
-                                await writable.write(buffer);
+                                await writable.write(bytes);
                                 await writable.close();
                                 console.log(`[BrowserAutoSave] ✅ Saved directly to local PC: ${filename}`);
                             } catch (fsErr) {
