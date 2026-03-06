@@ -459,6 +459,7 @@ function MattressModel({ explodeGap }: { explodeGap: number }) {
         guardFoamEnabled, guardFoamThickness, guardFoamRadius,
         bottomFoamEnabled, bottomFoamThickness, bottomFoamRadius,
         structureType, upperCoverTextures, lowerCoverTextures,
+        sensorId,
     } = useDesignStore();
     const customOpts = useCustomOptionsStore();
     const pathname = usePathname();
@@ -569,6 +570,15 @@ function MattressModel({ explodeGap }: { explodeGap: number }) {
             );
         }
 
+        // 센서 치수 계산
+        let sensorW = 0, sensorH = 0, sensorD = 0;
+        if (sensorId === 'SENSOR_BAND_S') { sensorW = 900 * SCALE; sensorH = 3 * SCALE; sensorD = 100 * SCALE; }
+        else if (sensorId === 'SENSOR_BAND_M') { sensorW = 1200 * SCALE; sensorH = 3 * SCALE; sensorD = 100 * SCALE; }
+        else if (sensorId === 'SENSOR_BODY_P') { sensorW = 800 * SCALE; sensorH = 3 * SCALE; sensorD = 1100 * SCALE; }
+        const hasSensor = sensorW > 0;
+        // 센서 Z 위치: 코어 상단, 위쪽 가장자리에서 600mm 아래 중앙
+        const sensorZ = -coreD / 2 + 600 * SCALE;
+
         if (isDual) {
             const offsetX = gfT / 2 + coreW / 2;
             const coreExp = actualGap * 0.222;
@@ -577,10 +587,36 @@ function MattressModel({ explodeGap }: { explodeGap: number }) {
                 <CoreBox key="core-l" position={[-offsetX - coreExp, coreY, 0]} args={[coreW, coreH, coreD]} color={CO.core} opacity={foamOpacity} />,
                 <CoreBox key="core-r" position={[offsetX + coreExp, coreY, 0]} args={[coreW, coreH, coreD]} color={CO.core} opacity={foamOpacity} />
             );
+
+            // 듀얼 센서: 양쪽 코어 위에 각각 배치
+            if (hasSensor) {
+                const sensorYPos = coreY + coreH / 2 + sensorH / 2;
+                parts.push(
+                    <mesh key="sensor-l" position={[-offsetX - coreExp, sensorYPos, sensorZ]} castShadow receiveShadow>
+                        <boxGeometry args={[sensorW, sensorH, sensorD]} />
+                        <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={0.3} roughness={0.7} metalness={0.1} />
+                    </mesh>,
+                    <mesh key="sensor-r" position={[offsetX + coreExp, sensorYPos, sensorZ]} castShadow receiveShadow>
+                        <boxGeometry args={[sensorW, sensorH, sensorD]} />
+                        <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={0.3} roughness={0.7} metalness={0.1} />
+                    </mesh>
+                );
+            }
         } else {
             parts.push(
                 <CoreBox key="core-s" position={[0, coreY, 0]} args={[coreW, coreH, coreD]} color={CO.core} opacity={foamOpacity} />
             );
+
+            // 싱글 센서: 중앙 코어 위
+            if (hasSensor) {
+                const sensorYPos = coreY + coreH / 2 + sensorH / 2;
+                parts.push(
+                    <mesh key="sensor-s" position={[0, sensorYPos, sensorZ]} castShadow receiveShadow>
+                        <boxGeometry args={[sensorW, sensorH, sensorD]} />
+                        <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={0.3} roughness={0.7} metalness={0.1} />
+                    </mesh>
+                );
+            }
         }
 
         return parts;

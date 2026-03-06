@@ -349,8 +349,6 @@ function SensorBox({ position, args, color = '#ff0000' }: any) {
             <boxGeometry args={args} />
             <meshStandardMaterial
                 color={color}
-                emissive={color}
-                emissiveIntensity={0.5}
                 roughness={0.7}
                 metalness={0.1}
             />
@@ -463,13 +461,9 @@ function ExplodedModel({ isExploded, gaps }: { isExploded: boolean, gaps: any })
     const gdLen = dims.guardD_len * SCALE;
 
     let sensorArgs: [number, number, number] | null = null;
-    // 디버그: 센서 두께를 3mm -> 20mm 로 임시 렌더링
-    if (sensorId === 'SENSOR_BAND_S') sensorArgs = [900 * SCALE, 20 * SCALE, 100 * SCALE];
-    else if (sensorId === 'SENSOR_BAND_M') sensorArgs = [1200 * SCALE, 20 * SCALE, 100 * SCALE];
-    else if (sensorId === 'SENSOR_BODY_P') sensorArgs = [800 * SCALE, 20 * SCALE, 1100 * SCALE];
-
-    // 디버그 로그: 브라우저 콘솔에서 sensorId 확인
-    console.log('[DEBUG] sensorId:', sensorId, '| sensorArgs:', sensorArgs);
+    if (sensorId === 'SENSOR_BAND_S') sensorArgs = [900 * SCALE, 3 * SCALE, 100 * SCALE];
+    else if (sensorId === 'SENSOR_BAND_M') sensorArgs = [1200 * SCALE, 3 * SCALE, 100 * SCALE];
+    else if (sensorId === 'SENSOR_BODY_P') sensorArgs = [800 * SCALE, 3 * SCALE, 1100 * SCALE];
 
     return (
         <AnimatedExplodedGroup
@@ -599,12 +593,6 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
 
             {/* 3. 코어 + 가드폼 */}
             <group ref={coreGroupRef}>
-                {/* ▼▼▼ 디버그: 무조건 렌더링되는 테스트 센서 박스 ▼▼▼ */}
-                <mesh position={[0, coreH / 2 + 0.02, 0]} castShadow receiveShadow>
-                    <boxGeometry args={[0.5, 0.03, 0.3]} />
-                    <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={0.8} />
-                </mesh>
-                {/* ▲▲▲ 디버그 끝 ▲▲▲ */}
                 {/* 가드폼 */}
                 {gfEnabled && (
                     <>

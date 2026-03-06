@@ -1,3 +1,13 @@
+## [Alpha V1.087] - 2026-03-06 14:06:00
+
+### 🔄 Build Update
+- **Summary**: Builder 페이지 3D 프리뷰(Mattress3D) 센서 렌더링 구현
+- **Detail** :
+  - **`app/components/Mattress3D.tsx` [MODIFY]**: 선택된 센서(`sensorId`)에 따라 코어(String) 상단에 붉은색 센서 객체를 렌더링합니다. 위쪽 가장자리에서 600mm 아래 중앙에 배치되며, 듀얼 모델 선택 시 양쪽에 각각 배치됩니다.
+  - **`app/components/MattressExplodedView.tsx` [MODIFY]**: 디버그 코드 제거 및 정리
+  - **`app/builder/page.tsx` [MODIFY]**: 버전 레이블 V1.087로 갱신
+- **Build Time**: 2026-03-06 14:06:00
+
 ## [Alpha V1.086] - 2026-03-06 13:10:00
 
 ### 🔄 Build Update
