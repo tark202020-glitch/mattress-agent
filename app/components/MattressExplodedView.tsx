@@ -461,8 +461,8 @@ function ExplodedModel({ isExploded, gaps }: { isExploded: boolean, gaps: any })
     const gdLen = dims.guardD_len * SCALE;
 
     let sensorArgs: [number, number, number] | null = null;
-    if (sensorId === 'SENSOR_BAND_S') sensorArgs = [900 * SCALE, 3 * SCALE, 100 * SCALE];
-    else if (sensorId === 'SENSOR_BAND_M') sensorArgs = [1200 * SCALE, 3 * SCALE, 100 * SCALE];
+    if (sensorId === 'SENSOR_BAND_S') sensorArgs = [700 * SCALE, 3 * SCALE, 100 * SCALE];
+    else if (sensorId === 'SENSOR_BAND_M') sensorArgs = [1100 * SCALE, 3 * SCALE, 100 * SCALE];
     else if (sensorId === 'SENSOR_BODY_P') sensorArgs = [800 * SCALE, 3 * SCALE, 1100 * SCALE];
 
     return (
@@ -653,7 +653,7 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
                             />
                             {sensorArgs && (
                                 <SensorBox
-                                    position={[-(gfT / 2 + coreW / 2), coreH / 2 + sensorArgs[1] / 2, -coreD / 2 + 600 * SCALE]}
+                                    position={[-(gfT / 2 + coreW / 2), coreH / 2 + sensorArgs[1] / 2, coreD / 2 - 600 * SCALE]}
                                     args={sensorArgs}
                                 />
                             )}
@@ -664,7 +664,7 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
                             />
                             {sensorArgs && (
                                 <SensorBox
-                                    position={[gfT / 2 + coreW / 2, coreH / 2 + sensorArgs[1] / 2, -coreD / 2 + 600 * SCALE]}
+                                    position={[gfT / 2 + coreW / 2, coreH / 2 + sensorArgs[1] / 2, coreD / 2 - 600 * SCALE]}
                                     args={sensorArgs}
                                 />
                             )}
@@ -678,7 +678,7 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
                             />
                             {sensorArgs && (
                                 <SensorBox
-                                    position={[0, coreH / 2 + sensorArgs[1] / 2, -coreD / 2 + 600 * SCALE]}
+                                    position={[0, coreH / 2 + sensorArgs[1] / 2, coreD / 2 - 600 * SCALE]}
                                     args={sensorArgs}
                                 />
                             )}

@@ -572,12 +572,12 @@ function MattressModel({ explodeGap }: { explodeGap: number }) {
 
         // 센서 치수 계산
         let sensorW = 0, sensorH = 0, sensorD = 0;
-        if (sensorId === 'SENSOR_BAND_S') { sensorW = 900 * SCALE; sensorH = 3 * SCALE; sensorD = 100 * SCALE; }
-        else if (sensorId === 'SENSOR_BAND_M') { sensorW = 1200 * SCALE; sensorH = 3 * SCALE; sensorD = 100 * SCALE; }
+        if (sensorId === 'SENSOR_BAND_S') { sensorW = 700 * SCALE; sensorH = 3 * SCALE; sensorD = 100 * SCALE; }
+        else if (sensorId === 'SENSOR_BAND_M') { sensorW = 1100 * SCALE; sensorH = 3 * SCALE; sensorD = 100 * SCALE; }
         else if (sensorId === 'SENSOR_BODY_P') { sensorW = 800 * SCALE; sensorH = 3 * SCALE; sensorD = 1100 * SCALE; }
         const hasSensor = sensorW > 0;
-        // 센서 Z 위치: 코어 상단, 위쪽 가장자리에서 600mm 아래 중앙
-        const sensorZ = -coreD / 2 + 600 * SCALE;
+        // 센서 Z 위치: 코어 상단, 아래쪽 가장자리에서 600mm 위 중앙
+        const sensorZ = coreD / 2 - 600 * SCALE;
 
         if (isDual) {
             const offsetX = gfT / 2 + coreW / 2;
