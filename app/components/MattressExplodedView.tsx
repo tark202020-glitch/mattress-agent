@@ -349,6 +349,8 @@ function SensorBox({ position, args, color = '#ff0000' }: any) {
             <boxGeometry args={args} />
             <meshStandardMaterial
                 color={color}
+                emissive={color}
+                emissiveIntensity={0.5}
                 roughness={0.7}
                 metalness={0.1}
             />
@@ -461,9 +463,10 @@ function ExplodedModel({ isExploded, gaps }: { isExploded: boolean, gaps: any })
     const gdLen = dims.guardD_len * SCALE;
 
     let sensorArgs: [number, number, number] | null = null;
-    if (sensorId === 'SENSOR_BAND_S') sensorArgs = [900 * SCALE, 3 * SCALE, 100 * SCALE];
-    else if (sensorId === 'SENSOR_BAND_M') sensorArgs = [1200 * SCALE, 3 * SCALE, 100 * SCALE];
-    else if (sensorId === 'SENSOR_BODY_P') sensorArgs = [800 * SCALE, 3 * SCALE, 1100 * SCALE];
+    // 디버그: 센서 두께를 3mm -> 20mm 로 임시 렌더링
+    if (sensorId === 'SENSOR_BAND_S') sensorArgs = [900 * SCALE, 20 * SCALE, 100 * SCALE];
+    else if (sensorId === 'SENSOR_BAND_M') sensorArgs = [1200 * SCALE, 20 * SCALE, 100 * SCALE];
+    else if (sensorId === 'SENSOR_BODY_P') sensorArgs = [800 * SCALE, 20 * SCALE, 1100 * SCALE];
 
     return (
         <AnimatedExplodedGroup
