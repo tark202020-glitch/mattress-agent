@@ -344,25 +344,15 @@ function CoreBox({ position, args, color }: any) {
 
 /* 센서 박스 */
 function SensorBox({ position, args, color = '#ff0000' }: any) {
-    const [W, H, D] = args;
-    const maxRadius = Math.min(Math.abs(W) / 2, Math.abs(H) / 2, Math.abs(D) / 2);
-    const safeRadius = Math.max(0.0001, Math.min(0.001, maxRadius * 0.95)); // 1mm 라운드
-
     return (
-        <RoundedBox
-            position={position}
-            args={args}
-            radius={safeRadius}
-            smoothness={2}
-            castShadow
-            receiveShadow
-        >
+        <mesh position={position} castShadow receiveShadow>
+            <boxGeometry args={args} />
             <meshStandardMaterial
                 color={color}
                 roughness={0.7}
                 metalness={0.1}
             />
-        </RoundedBox>
+        </mesh>
     );
 }
 
