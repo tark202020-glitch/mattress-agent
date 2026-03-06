@@ -226,7 +226,7 @@ export const useDesignStore = create<DesignState & DesignActions>((set) => ({
         return s;
     }),
 
-    nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 7) })),
+    nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 8) })),
     prevStep: () => set((s) => ({ currentStep: Math.max(s.currentStep - 1, 1) })),
     goToStep: (step) => set({ currentStep: step }),
     reset: () => set((s) => ({ ...initialState, defaultTextures: s.defaultTextures })), // preserve defaultTextures on reset
