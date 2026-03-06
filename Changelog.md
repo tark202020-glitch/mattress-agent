@@ -1,3 +1,11 @@
+## [Alpha V1.086] - 2026-03-06 13:10:00
+
+### 🔄 Build Update
+- **Summary**: 3D 프리뷰(MattressExplodedView) 센서 렌더링 구현
+- **Detail** : 
+  - **`app/components/MattressExplodedView.tsx` [MODIFY]**: 선택된 센서(`sensorId`)에 따라 코어(String) 상단(세로길이 기준 위쪽에서 600mm 이격된 중앙)에 붉은색 얇은 센서 객체(소형, 중형, 체압)를 실제 치수로 렌더링하도록 3D 뷰어 로직을 추가했습니다. 듀얼 모델 선택 시 양쪽 코어에 2개의 센서가 각각 배치됩니다.
+- **Build Time**: 2026-03-06 13:10:00
+
 ## [Alpha V1.085] - 2026-03-06 12:40:00
 
 ### 🐛 Bug Fix

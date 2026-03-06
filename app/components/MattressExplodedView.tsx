@@ -342,6 +342,30 @@ function CoreBox({ position, args, color }: any) {
     );
 }
 
+/* 센서 박스 */
+function SensorBox({ position, args, color = '#ff0000' }: any) {
+    const [W, H, D] = args;
+    const maxRadius = Math.min(Math.abs(W) / 2, Math.abs(H) / 2, Math.abs(D) / 2);
+    const safeRadius = Math.max(0.0001, Math.min(0.001, maxRadius * 0.95)); // 1mm 라운드
+
+    return (
+        <RoundedBox
+            position={position}
+            args={args}
+            radius={safeRadius}
+            smoothness={2}
+            castShadow
+            receiveShadow
+        >
+            <meshStandardMaterial
+                color={color}
+                roughness={0.7}
+                metalness={0.1}
+            />
+        </RoundedBox>
+    );
+}
+
 /* 가드폼 */
 function GuardBox({ position, args, color, radius = 0.002 }: any) {
     const [W, H, D] = args;
@@ -377,7 +401,7 @@ function ExplodedModel({ isExploded, gaps }: { isExploded: boolean, gaps: any })
         topFoamEnabled, topFoamOptionId, topFoamRadius,
         guardFoamEnabled, guardFoamThickness, guardFoamRadius,
         bottomFoamEnabled, bottomFoamThickness, bottomFoamRadius,
-        customCoverImages, structureType,
+        customCoverImages, structureType, sensorId,
         upperCoverTextures, lowerCoverTextures,
     } = useDesignStore();
     const customOpts = useCustomOptionsStore();
@@ -446,6 +470,11 @@ function ExplodedModel({ isExploded, gaps }: { isExploded: boolean, gaps: any })
     const coreD = dims.coreD * SCALE;
     const gdLen = dims.guardD_len * SCALE;
 
+    let sensorArgs: [number, number, number] | null = null;
+    if (sensorId === 'SENSOR_BAND_S') sensorArgs = [900 * SCALE, 3 * SCALE, 100 * SCALE];
+    else if (sensorId === 'SENSOR_BAND_M') sensorArgs = [1200 * SCALE, 3 * SCALE, 100 * SCALE];
+    else if (sensorId === 'SENSOR_BODY_P') sensorArgs = [800 * SCALE, 3 * SCALE, 1100 * SCALE];
+
     return (
         <AnimatedExplodedGroup
             ref={groupRef}
@@ -469,6 +498,7 @@ function ExplodedModel({ isExploded, gaps }: { isExploded: boolean, gaps: any })
             lowerSideTextureFrontUrl={lowerCoverTextures?.front || coverOption?.sideImageFront}
             lowerSideTextureSideUrl={lowerCoverTextures?.side || coverOption?.sideImageSide}
             customCoverImage={coverImg}
+            sensorArgs={sensorArgs}
             CO={CO}
             {...gaps}
         />
@@ -481,7 +511,7 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
         isBasic, topFoamEnabled, topFoamOpt, topFoamRadius, bottomFoamEnabled, bottomFoamRadius, guardFoamRadius,
         topTextureUrl, sideTextureFrontUrl, sideTextureSideUrl,
         lowerTopTextureUrl, lowerSideTextureFrontUrl, lowerSideTextureSideUrl,
-        customCoverImage, CO,
+        customCoverImage, CO, sensorArgs,
         gapTopCover, gapTopFoam, gapInnerCore, gapBottomFoam, gapBottomCover }: any,
     ref: any
 ) {
@@ -631,18 +661,38 @@ const AnimatedExplodedGroup = React.forwardRef(function AnimatedExplodedGroup(
                                 args={[coreW, coreH, coreD]}
                                 color={CO.core}
                             />
+                            {sensorArgs && (
+                                <SensorBox
+                                    position={[-(gfT / 2 + coreW / 2), coreH / 2 + sensorArgs[1] / 2, -coreD / 2 + 600 * SCALE]}
+                                    args={sensorArgs}
+                                />
+                            )}
                             <CoreBox
                                 position={[gfT / 2 + coreW / 2, 0, 0]}
                                 args={[coreW, coreH, coreD]}
                                 color={CO.core}
                             />
+                            {sensorArgs && (
+                                <SensorBox
+                                    position={[gfT / 2 + coreW / 2, coreH / 2 + sensorArgs[1] / 2, -coreD / 2 + 600 * SCALE]}
+                                    args={sensorArgs}
+                                />
+                            )}
                         </>
                     ) : (
-                        <CoreBox
-                            position={[0, 0, 0]}
-                            args={[coreW, coreH, coreD]}
-                            color={CO.core}
-                        />
+                        <>
+                            <CoreBox
+                                position={[0, 0, 0]}
+                                args={[coreW, coreH, coreD]}
+                                color={CO.core}
+                            />
+                            {sensorArgs && (
+                                <SensorBox
+                                    position={[0, coreH / 2 + sensorArgs[1] / 2, -coreD / 2 + 600 * SCALE]}
+                                    args={sensorArgs}
+                                />
+                            )}
+                        </>
                     )}
                 </group>
             </group>
