@@ -49,6 +49,7 @@ export default function PresetPanel() {
             coverId: designStore.coverId,
             structureType: designStore.structureType,
             controllerId: designStore.controllerId,
+            sensorId: designStore.sensorId,
             packagingId: designStore.packagingId,
             deliveryId: designStore.deliveryId,
             customCoverImages: designStore.customCoverImages,

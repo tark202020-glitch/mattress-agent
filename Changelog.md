@@ -1,3 +1,11 @@
+## [Alpha V1.084] - 2026-03-06 12:10:00
+
+### 🐛 Bug Fix
+- **Summary**: Vercel TypeScript 빌드 에러 수정 (`PresetPanel.tsx`)
+- **Detail** : 
+  - **`app/components/PresetPanel.tsx` [MODIFY]**: `store.ts`의 `DesignState` 인터페이스에 새로 추가되었던 `sensorId` 필드가 프리셋 저장 시의 상태 객체 매핑에 누락되어 발생한 TypeScript 컴파일 에러(Type error: Property 'sensorId' is missing...)를 해결했습니다.
+- **Build Time**: 2026-03-06 12:10:00
+
 ## [Alpha V1.083] - 2026-03-06 12:30:00
 
 ### 🔄 Build Update
