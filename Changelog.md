@@ -1,5 +1,15 @@
-## [Alpha V1.082] - 2026-03-02 20:12:29
+## [Alpha V1.083] - 2026-03-06 12:30:00
 
+### 🔄 Build Update
+- **Summary**: 빌더 페이지 스마트 컨트롤러 및 센서 3종 추가, 견적/개발요청서 업데이트
+- **Detail** : 
+  - **`app/lib/constants.ts` & `pricingData.ts`**: 'Smart Controller' (12만원) 및 센서 카테고리 3종(띠센서 소형/중형, 체압센서) 신규 추가 및 단가 세팅
+  - **UI/UX 개선 (`builder/page`, `StepIndicator`, `StepGenericSelect` 등)**: 센서 단계를 6번째 스텝으로 신설하여 기존 7단계 설계 마법사를 8단계로 확장
+  - **단가 산출 로직 (`pricingStore.ts`)**: 센서 단가 합산 적용 및 **Dual 사이즈 선택 시 센서 수량/단가를 자동으로 2배수(x2)** 적용하는 로직 구현
+  - **문서 출력 템플릿 연동 (`quoteHandlers.ts`, `DevelopmentRequestModal.tsx`)**: 생성되는 엑셀 견적서와 PDF 개발요청서 화면에 신규 컨트롤러 및 센서 구성역이 정상적으로 데이터 표출되도록 기능 반영
+- **Build Time**: 2026-03-06 12:30:00
+
+## [Alpha V1.082] - 2026-03-02 20:12:29
 ### 🔄 Build Update
 - **Summary**: Vercel 배포 에러 3종 수정 (Buffer 참조 오류 + next.config 오류 + 대용량 파일 배포 제외)
 - **Detail** : 

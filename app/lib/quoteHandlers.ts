@@ -2,7 +2,7 @@
 
 export const handleDownloadQuote = async (designState: any, custom: any, summary: any, calculateSummary: any) => {
     try {
-        const { COVER_OPTIONS, TOP_FOAM_OPTIONS, CORE_OPTIONS, CONTROLLER_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS, SIZE_PRESETS, calcCoreDimensions } = await import('./constants');
+        const { COVER_OPTIONS, TOP_FOAM_OPTIONS, CORE_OPTIONS, CONTROLLER_OPTIONS, SENSOR_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS, SIZE_PRESETS, calcCoreDimensions } = await import('./constants');
 
         // Prepare data
         const coverOpt = [...COVER_OPTIONS, ...custom.covers].find(c => c.id === designState.coverId);
@@ -18,6 +18,7 @@ export const handleDownloadQuote = async (designState: any, custom: any, summary
         const core = [...CORE_OPTIONS, ...custom.cores].find(c => c.id === designState.coreId);
         const cover = [...COVER_OPTIONS, ...custom.covers].find(c => c.id === designState.coverId);
         const ctrl = [...CONTROLLER_OPTIONS, ...custom.controllers].find(c => c.id === designState.controllerId);
+        const sns = [...SENSOR_OPTIONS, ...custom.sensors].find(s => s.id === designState.sensorId);
         const pkg = [...PACKAGING_OPTIONS, ...custom.packagings].find(p => p.id === designState.packagingId);
         const dlv = [...DELIVERY_OPTIONS, ...custom.deliveries].find(d => d.id === designState.deliveryId);
 
@@ -56,6 +57,7 @@ export const handleDownloadQuote = async (designState: any, custom: any, summary
             },
             { label: '커버', value: cover?.label || null },
             { label: '컨트롤러', value: ctrl?.label || null },
+            { label: '센서', value: sns?.label || null },
             { label: '포장', value: pkg?.label || null },
             { label: '배송', value: dlv?.label || null },
         ];
@@ -141,7 +143,7 @@ export const handleDownloadQuoteWithCondition = async (
     condition: QuoteCondition
 ) => {
     try {
-        const { COVER_OPTIONS, TOP_FOAM_OPTIONS, CORE_OPTIONS, CONTROLLER_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS, SIZE_PRESETS, calcCoreDimensions } = await import('./constants');
+        const { COVER_OPTIONS, TOP_FOAM_OPTIONS, CORE_OPTIONS, CONTROLLER_OPTIONS, SENSOR_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS, SIZE_PRESETS, calcCoreDimensions } = await import('./constants');
 
         const coverOpt = [...COVER_OPTIONS, ...custom.covers].find(c => c.id === designState.coverId);
         let coverName = '미선택';
@@ -156,6 +158,7 @@ export const handleDownloadQuoteWithCondition = async (
         const core = [...CORE_OPTIONS, ...custom.cores].find(c => c.id === designState.coreId);
         const cover = [...COVER_OPTIONS, ...custom.covers].find(c => c.id === designState.coverId);
         const ctrl = [...CONTROLLER_OPTIONS, ...custom.controllers].find(c => c.id === designState.controllerId);
+        const sns = [...SENSOR_OPTIONS, ...custom.sensors].find(s => s.id === designState.sensorId);
         const pkg = [...PACKAGING_OPTIONS, ...custom.packagings].find(p => p.id === designState.packagingId);
         const dlv = [...DELIVERY_OPTIONS, ...custom.deliveries].find(d => d.id === designState.deliveryId);
 
@@ -171,6 +174,7 @@ export const handleDownloadQuoteWithCondition = async (
             { label: '스트링', value: core ? `${core.label}${designState.isDual ? ' × 2' : ''}` : null, sub: dims ? `${dims.coreW} × ${dims.coreD} × ${core?.height || 200}mm` : null },
             { label: '커버', value: cover?.label || null },
             { label: '컨트롤러', value: ctrl?.label || null },
+            { label: '센서', value: sns?.label || null },
             { label: '포장', value: pkg?.label || null },
             { label: '배송', value: dlv?.label || null },
         ];

@@ -52,6 +52,7 @@ export interface DesignStateForPricing {
     coreId: string | null;
     coverId: string | null;
     controllerId: string | null;
+    sensorId: string | null;
     packagingId: string | null;
     deliveryId: string | null;
 }
@@ -247,6 +248,12 @@ export const usePricingStore = create<PricingState & PricingActions>((set, get) 
         if (ds.controllerId) {
             const multiplier = ds.isDual ? 2 : 1;
             calcItem('controller', ds.controllerId, W, D, 0, multiplier);
+        }
+
+        // 센서 (Dual일 경우 수량 2배)
+        if (ds.sensorId) {
+            const multiplier = ds.isDual ? 2 : 1;
+            calcItem('sensor', ds.sensorId, W, D, 0, multiplier);
         }
 
         // 포장

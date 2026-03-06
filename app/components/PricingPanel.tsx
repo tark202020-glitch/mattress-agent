@@ -6,7 +6,7 @@ import { usePricingStore } from '../lib/pricingStore';
 import {
     SIZE_PRESETS,
     CORE_OPTIONS, COVER_OPTIONS, TOP_FOAM_OPTIONS,
-    CONTROLLER_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS,
+    CONTROLLER_OPTIONS, SENSOR_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS,
     calcCoreDimensions,
 } from '../lib/constants';
 import { useCustomOptionsStore } from '../lib/customOptionsStore';
@@ -29,6 +29,7 @@ export default function PricingPanel() {
     const allCovers = [...COVER_OPTIONS, ...custom.covers];
     const allTopFoams = [...TOP_FOAM_OPTIONS, ...custom.topFoams];
     const allControllers = [...CONTROLLER_OPTIONS, ...custom.controllers];
+    const allSensors = [...SENSOR_OPTIONS, ...custom.sensors];
     const allPackagings = [...PACKAGING_OPTIONS, ...custom.packagings];
     const allDeliveries = [...DELIVERY_OPTIONS, ...custom.deliveries];
 
@@ -40,6 +41,7 @@ export default function PricingPanel() {
             case 'string': return allCores.find(c => c.id === optionName)?.label || optionName;
             case 'cover': return allCovers.find(c => c.id === optionName)?.label || optionName;
             case 'controller': return allControllers.find(c => c.id === optionName)?.label || optionName;
+            case 'sensor': return allSensors.find(s => s.id === optionName)?.label || optionName;
             case 'packaging': return allPackagings.find(p => p.id === optionName)?.label || optionName;
             case 'delivery': return allDeliveries.find(d => d.id === optionName)?.label || optionName;
             default: return optionName;

@@ -16,6 +16,7 @@ export interface CustomOptionsState {
     cores: CoreOption[];
     covers: CoverOption[];
     controllers: GenericOption[];
+    sensors: GenericOption[];
     packagings: GenericOption[];
     deliveries: GenericOption[];
     coverDefaults: Record<string, {
@@ -47,6 +48,8 @@ interface CustomOptionsActions {
     removeCover: (id: string) => void;
     addController: (item: GenericOption) => void;
     removeController: (id: string) => void;
+    addSensor: (item: GenericOption) => void;
+    removeSensor: (id: string) => void;
     addPackaging: (item: GenericOption) => void;
     removePackaging: (id: string) => void;
     addDelivery: (item: GenericOption) => void;
@@ -65,6 +68,7 @@ const emptyState: CustomOptionsState = {
     cores: [],
     covers: [],
     controllers: [],
+    sensors: [],
     packagings: [],
     deliveries: [],
     coverDefaults: {},
@@ -197,6 +201,18 @@ export const useCustomOptionsStore = create<CustomOptionsState & CustomOptionsAc
     }),
     removeController: (id) => set((s) => {
         const next = { ...s, controllers: s.controllers.filter(x => x.id !== id) };
+        saveToStorage(next);
+        return next;
+    }),
+
+    // Sensor
+    addSensor: (item) => set((s) => {
+        const next = { ...s, sensors: [...s.sensors, item] };
+        saveToStorage(next);
+        return next;
+    }),
+    removeSensor: (id) => set((s) => {
+        const next = { ...s, sensors: s.sensors.filter(x => x.id !== id) };
         saveToStorage(next);
         return next;
     }),

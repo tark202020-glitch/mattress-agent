@@ -2,28 +2,31 @@
 
 import { useState, useEffect } from 'react';
 import { useDesignStore } from '../../lib/store';
-import { CONTROLLER_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS } from '../../lib/constants';
+import { CONTROLLER_OPTIONS, SENSOR_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS } from '../../lib/constants';
 import { useCustomOptionsStore } from '../../lib/customOptionsStore';
 import AddOptionModal, { AddButton, DeleteBadge } from '../AddOptionModal';
 
 interface GenericStepProps {
-    stepKey: 'controller' | 'packaging' | 'delivery';
+    stepKey: 'controller' | 'sensor' | 'packaging' | 'delivery';
 }
 
 const optionSets = {
     controller: CONTROLLER_OPTIONS,
+    sensor: SENSOR_OPTIONS,
     packaging: PACKAGING_OPTIONS,
     delivery: DELIVERY_OPTIONS,
 };
 
 const icons: Record<string, string> = {
-    NUMBERING: '🔢', CTRL_1_6: '🎛️', IOT: '📡', IOT_STICK: '📱',
+    NUMBERING: '🔢', CTRL_1_6: '🎛️', IOT: '📡', IOT_STICK: '📱', SMART_CTRL: '💎',
+    SENSOR_BAND_S: '📏', SENSOR_BAND_M: '📐', SENSOR_BODY_P: '🛏️',
     ROLL: '🌀', FOLD_3: '📐', SEPARATE: '📦',
     DIRECT_PRODUCT: '🚛', DIRECT_PACKED: '📬', PARCEL: '🚚',
 };
 
 const stepLabels: Record<string, string> = {
     controller: '컨트롤러',
+    sensor: '센서',
     packaging: '포장',
     delivery: '배송',
 };
@@ -40,6 +43,7 @@ export function StepGenericSelect({ stepKey }: GenericStepProps) {
 
     const customOptionsMap = {
         controller: custom.controllers,
+        sensor: custom.sensors,
         packaging: custom.packagings,
         delivery: custom.deliveries,
     };
@@ -47,11 +51,13 @@ export function StepGenericSelect({ stepKey }: GenericStepProps) {
 
     const addersMap = {
         controller: custom.addController,
+        sensor: custom.addSensor,
         packaging: custom.addPackaging,
         delivery: custom.addDelivery,
     };
     const removersMap = {
         controller: custom.removeController,
+        sensor: custom.removeSensor,
         packaging: custom.removePackaging,
         delivery: custom.removeDelivery,
     };
@@ -61,6 +67,7 @@ export function StepGenericSelect({ stepKey }: GenericStepProps) {
 
     const stateMap = {
         controller: { selectedId: store.controllerId, setter: store.setController },
+        sensor: { selectedId: store.sensorId, setter: store.setSensor },
         packaging: { selectedId: store.packagingId, setter: store.setPackaging },
         delivery: { selectedId: store.deliveryId, setter: store.setDelivery },
     };

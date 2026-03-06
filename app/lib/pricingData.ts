@@ -72,25 +72,38 @@ export const DEFAULT_PRICING_DATA: PriceCategory[] = [
             { id: 'CTRL_16', categoryId: 'controller', optionId: 'CTRL_1_6', name: 'Controller 1.6', formulaType: 'FIXED', constant: 1, basePrice: 72000, formulaString: '=72000' },
             { id: 'CTRL_IOT', categoryId: 'controller', optionId: 'IOT', name: 'IoT Controller', formulaType: 'FIXED', constant: 1, basePrice: 78000, formulaString: '=78000' },
             { id: 'CTRL_IOT_S', categoryId: 'controller', optionId: 'IOT_STICK', name: 'IoT + Stick', formulaType: 'FIXED', constant: 1, basePrice: 90000, formulaString: '=90000' },
+            { id: 'CTRL_SMART', categoryId: 'controller', optionId: 'SMART_CTRL', name: 'Smart Controller', formulaType: 'FIXED', constant: 1, basePrice: 120000, formulaString: '=120000' },
         ],
     },
 
-    // ── Step 6: 포장 ──
+    // ── Step 6: 센서 ──
+    {
+        id: 'sensor',
+        displayName: '센서',
+        step: 6,
+        items: [
+            { id: 'SNS_BAND_S', categoryId: 'sensor', optionId: 'SENSOR_BAND_S', name: '띠센서 소형 (900mm)', formulaType: 'FIXED', constant: 1, basePrice: 90000, formulaString: '=90000' },
+            { id: 'SNS_BAND_M', categoryId: 'sensor', optionId: 'SENSOR_BAND_M', name: '띠센서 중형 (1200mm)', formulaType: 'FIXED', constant: 1, basePrice: 130000, formulaString: '=130000' },
+            { id: 'SNS_BODY_P', categoryId: 'sensor', optionId: 'SENSOR_BODY_P', name: '체압센서 (800x1100)', formulaType: 'FIXED', constant: 1, basePrice: 520000, formulaString: '=520000' },
+        ],
+    },
+
+    // ── Step 7: 포장 ──
     {
         id: 'packaging',
         displayName: '포장',
-        step: 6,
+        step: 7,
         items: [
             { id: 'PKG_ROLL', categoryId: 'packaging', optionId: 'ROLL', name: '롤 타입 (type A)', formulaType: 'WIDTH_STEP', constant: 1, basePrice: 0, formulaString: '가로기준 1100이하 7000, 1500이하 8500, 1800이하 13000' },
             { id: 'PKG_FOLD3', categoryId: 'packaging', optionId: 'FOLD_3', name: '압축 3단접 (type B)', formulaType: 'WIDTH_STEP', constant: 1, basePrice: 0, formulaString: '1499이하 12000, 1700이하 15000, 2000이하 18000' },
         ],
     },
 
-    // ── Step 7: 배송 ──
+    // ── Step 8: 배송 ──
     {
         id: 'delivery',
         displayName: '배송',
-        step: 7,
+        step: 8,
         items: [
             { id: 'DLV_SELF', categoryId: 'delivery', optionId: 'SELF', name: '자체 배송', formulaType: 'FIXED', constant: 0, basePrice: 0, formulaString: '=0' },
             { id: 'DLV_PARCEL', categoryId: 'delivery', optionId: 'PARCEL', name: '택배 배송', formulaType: 'FIXED', constant: 0, basePrice: 0, formulaString: '=0' },

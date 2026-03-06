@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useDesignStore } from '../lib/store';
 import {
     SIZE_PRESETS, CORE_OPTIONS, COVER_OPTIONS, TOP_FOAM_OPTIONS,
-    CONTROLLER_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS,
+    CONTROLLER_OPTIONS, SENSOR_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS,
     calcCoreDimensions,
 } from '../lib/constants';
 import { useCustomOptionsStore } from '../lib/customOptionsStore';
@@ -48,6 +48,7 @@ export default function DevelopmentRequestModal({ onClose }: DevelopmentRequestM
     const allCovers = [...COVER_OPTIONS, ...custom.covers];
     const allTopFoams = [...TOP_FOAM_OPTIONS, ...custom.topFoams];
     const allControllers = [...CONTROLLER_OPTIONS, ...custom.controllers];
+    const allSensors = [...SENSOR_OPTIONS, ...custom.sensors];
     const allPackagings = [...PACKAGING_OPTIONS, ...custom.packagings];
     const allDeliveries = [...DELIVERY_OPTIONS, ...custom.deliveries];
 
@@ -56,6 +57,7 @@ export default function DevelopmentRequestModal({ onClose }: DevelopmentRequestM
     const cover = allCovers.find((c) => c.id === state.coverId);
     const topFoam = allTopFoams.find((o) => o.id === state.topFoamOptionId);
     const ctrl = allControllers.find((c) => c.id === state.controllerId);
+    const sns = allSensors.find((s) => s.id === state.sensorId);
     const pkg = allPackagings.find((p) => p.id === state.packagingId);
     const dlv = allDeliveries.find((d) => d.id === state.deliveryId);
 
@@ -178,6 +180,7 @@ export default function DevelopmentRequestModal({ onClose }: DevelopmentRequestM
             category: '부속/배송',
             items: [
                 { label: '컨트롤러', value: ctrl?.label || '-', detail: '' },
+                { label: '센서', value: sns?.label || '-', detail: sns ? (state.isDual ? '수량: 2ea (Dual 적용)' : '수량: 1ea') : '' },
                 { label: '포장', value: pkg?.label || '-', detail: '' },
                 { label: '배송', value: dlv?.label || '-', detail: '' },
             ]

@@ -60,8 +60,9 @@ export default function Page() {
             case 3: return <StepCore />;
             case 4: return <StepCover />;
             case 5: return <StepGenericSelect stepKey="controller" />;
-            case 6: return <StepGenericSelect stepKey="packaging" />;
-            case 7: return <StepGenericSelect stepKey="delivery" />;
+            case 6: return <StepGenericSelect stepKey="sensor" />;
+            case 7: return <StepGenericSelect stepKey="packaging" />;
+            case 8: return <StepGenericSelect stepKey="delivery" />;
             default: return <div>Unknown Step</div>;
         }
     };
@@ -236,6 +237,8 @@ export default function Page() {
                                             if (!useDesignStore.getState().coreId) missing.push('스트링 코어');
                                             if (!useDesignStore.getState().coverId) missing.push('커버');
                                             if (useDesignStore.getState().topFoamEnabled && !useDesignStore.getState().topFoamOptionId) missing.push('상단폼');
+                                            if (!useDesignStore.getState().controllerId) missing.push('컨트롤러');
+                                            if (!useDesignStore.getState().sensorId) missing.push('센서');
                                             if (!useDesignStore.getState().packagingId) missing.push('포장');
                                             if (!useDesignStore.getState().deliveryId) missing.push('배송');
 

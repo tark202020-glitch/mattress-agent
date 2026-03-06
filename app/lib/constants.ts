@@ -123,6 +123,13 @@ export const CONTROLLER_OPTIONS: GenericOption[] = [
     { id: 'CTRL_1_6', label: 'Controller 1.6', description: '1.6세대 디지털 컨트롤러' },
     { id: 'IOT', label: 'IoT Controller', description: 'Wi-Fi 연동 스마트 컨트롤러' },
     { id: 'IOT_STICK', label: 'IoT Controller (Stick add)', description: 'IoT + 스틱 리모컨 포함' },
+    { id: 'SMART_CTRL', label: 'Smart Controller', description: '스마트 컨트롤러' },
+];
+
+export const SENSOR_OPTIONS: GenericOption[] = [
+    { id: 'SENSOR_BAND_S', label: '띠센서 소형 (900mm)', description: '소형 매트리스용 띠형 센서' },
+    { id: 'SENSOR_BAND_M', label: '띠센서 중형 (1200mm)', description: '중형 매트리스용 띠형 센서' },
+    { id: 'SENSOR_BODY_P', label: '체압센서 (800mm × 1100mm)', description: '정밀 체압 분포 측정 센서' },
 ];
 
 export const PACKAGING_OPTIONS: GenericOption[] = [
@@ -144,8 +151,9 @@ export const WIZARD_STEPS = [
     { id: 3, title: '스트링', icon: '🔧', description: '스트링 타입을 선택하세요' },
     { id: 4, title: '커버', icon: '🎨', description: '외부 커버 디자인을 선택하세요' },
     { id: 5, title: '컨트롤러', icon: '🎮', description: '제어 장치를 선택하세요' },
-    { id: 6, title: '포장', icon: '📦', description: '포장 방식을 선택하세요' },
-    { id: 7, title: '배송', icon: '🚚', description: '배송 방식을 선택하세요' },
+    { id: 6, title: '센서', icon: '📡', description: '스마트 센서를 선택하세요' },
+    { id: 7, title: '포장', icon: '📦', description: '포장 방식을 선택하세요' },
+    { id: 8, title: '배송', icon: '🚚', description: '배송 방식을 선택하세요' },
 ] as const;
 
 // --- 도면 상수 ---

@@ -5,7 +5,7 @@ import { useDesignStore } from '../lib/store';
 import PricingPanel from './PricingPanel';
 import {
     SIZE_PRESETS, CORE_OPTIONS, COVER_OPTIONS, TOP_FOAM_OPTIONS,
-    CONTROLLER_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS,
+    CONTROLLER_OPTIONS, SENSOR_OPTIONS, PACKAGING_OPTIONS, DELIVERY_OPTIONS,
     calcCoreDimensions,
 } from '../lib/constants';
 import { useCustomOptionsStore } from '../lib/customOptionsStore';
@@ -19,6 +19,7 @@ export default function SpecSummary() {
     const allCovers = [...COVER_OPTIONS, ...custom.covers];
     const allTopFoams = [...TOP_FOAM_OPTIONS, ...custom.topFoams];
     const allControllers = [...CONTROLLER_OPTIONS, ...custom.controllers];
+    const allSensors = [...SENSOR_OPTIONS, ...custom.sensors];
     const allPackagings = [...PACKAGING_OPTIONS, ...custom.packagings];
     const allDeliveries = [...DELIVERY_OPTIONS, ...custom.deliveries];
 
@@ -27,6 +28,7 @@ export default function SpecSummary() {
     const cover = allCovers.find((c) => c.id === state.coverId);
     const topFoam = allTopFoams.find((o) => o.id === state.topFoamOptionId);
     const ctrl = allControllers.find((c) => c.id === state.controllerId);
+    const sns = allSensors.find((s) => s.id === state.sensorId);
     const pkg = allPackagings.find((p) => p.id === state.packagingId);
     const dlv = allDeliveries.find((d) => d.id === state.deliveryId);
 
@@ -72,6 +74,7 @@ export default function SpecSummary() {
         },
         { label: '커버', value: cover?.label || null },
         { label: '컨트롤러', value: ctrl?.label || null },
+        { label: '센서', value: sns?.label || null },
         { label: '포장', value: pkg?.label || null },
         { label: '배송', value: dlv?.label || null },
     ];

@@ -30,6 +30,7 @@ export interface DesignState {
     // Step 4~7
     coverId: string | null;
     controllerId: string | null;
+    sensorId: string | null;
     packagingId: string | null;
     deliveryId: string | null;
 
@@ -80,6 +81,7 @@ interface DesignActions {
     setCore: (coreId: string) => void;
     setCover: (coverId: string) => void;
     setController: (controllerId: string) => void;
+    setSensor: (sensorId: string) => void;
     setPackaging: (packagingId: string) => void;
     setDelivery: (deliveryId: string) => void;
     setCustomCoverImage: (coverId: string, imageUrl: string) => void;
@@ -127,6 +129,7 @@ const initialState: DesignState = {
     coreId: null,
     coverId: null,
     controllerId: null,
+    sensorId: null,
     packagingId: null,
     deliveryId: null,
     customCoverImages: {},
@@ -192,6 +195,7 @@ export const useDesignStore = create<DesignState & DesignActions>((set) => ({
     setCore: (coreId) => set({ coreId }),
     setCover: (coverId) => set({ coverId }),
     setController: (controllerId) => set({ controllerId }),
+    setSensor: (sensorId) => set({ sensorId }),
     setPackaging: (packagingId) => set({ packagingId }),
     setDelivery: (deliveryId) => set({ deliveryId }),
     setCustomCoverImage: (coverId, imageUrl) => set((s) => ({ customCoverImages: { ...s.customCoverImages, [coverId]: imageUrl } })),

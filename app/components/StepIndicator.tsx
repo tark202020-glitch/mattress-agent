@@ -8,6 +8,7 @@ import {
     CORE_OPTIONS,
     COVER_OPTIONS,
     CONTROLLER_OPTIONS,
+    SENSOR_OPTIONS,
     PACKAGING_OPTIONS,
     DELIVERY_OPTIONS
 } from '../lib/constants';
@@ -18,11 +19,11 @@ export default function StepIndicator() {
         currentStep, goToStep,
         sizePresetId, customWidth, customDepth,
         structureType,
-        coreId, coverId, controllerId, packagingId, deliveryId
+        coreId, coverId, controllerId, sensorId, packagingId, deliveryId
     } = useDesignStore();
 
     const {
-        cores, covers, controllers, packagings, deliveries, _hydrate
+        cores, covers, controllers, sensors, packagings, deliveries, _hydrate
     } = useCustomOptionsStore();
 
     const [mounted, setMounted] = useState(false);
@@ -75,6 +76,14 @@ export default function StepIndicator() {
                 return '-';
             }
             case 6: {
+                if (sensorId) {
+                    const allSensors = [...SENSOR_OPTIONS, ...sensors];
+                    const found = allSensors.find(c => c.id === sensorId);
+                    return found ? found.label : '-';
+                }
+                return '-';
+            }
+            case 7: {
                 if (packagingId) {
                     const allPacks = [...PACKAGING_OPTIONS, ...packagings];
                     const found = allPacks.find(c => c.id === packagingId);
@@ -82,7 +91,7 @@ export default function StepIndicator() {
                 }
                 return '-';
             }
-            case 7: {
+            case 8: {
                 if (deliveryId) {
                     const allDelivs = [...DELIVERY_OPTIONS, ...deliveries];
                     const found = allDelivs.find(c => c.id === deliveryId);
