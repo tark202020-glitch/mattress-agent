@@ -28,7 +28,7 @@ export async function POST(req: Request) {
                 parts: [{ text: instructions }]
             }],
             generationConfig: {
-                responseModalities: ["IMAGE"],
+                responseModalities: ["Text", "Image"],
                 // sampleCount: 4 - 만약 여러장 필요시 적용
             }
         };

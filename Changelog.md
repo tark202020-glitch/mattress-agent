@@ -1,3 +1,13 @@
+## [Alpha V1.088] - 2026-03-26 17:55:00
+
+### 🐛 Bug Fix
+- **Summary**: Nano Banana (Gemini) 이미지 생성 API 400 오류 수정
+- **Detail** :
+  - **`app/api/generate-image/route.ts` [MODIFY]**: `generationConfig.responseModalities` 값을 `["IMAGE"]` (대문자)에서 공식 Gemini REST API 스펙에 맞는 `["Text", "Image"]` (PascalCase)로 수정하여 400 Bad Request 오류 해결.
+  - **`app/api/inpaint/route.ts` [MODIFY]**: 동일하게 `['IMAGE', 'TEXT']`를 `['Text', 'Image']`로 수정.
+  - **`app/api/generate-texture/route.ts` [MODIFY]**: 동일하게 `["IMAGE"]`를 `["Text", "Image"]`로 수정.
+- **Build Time**: 2026-03-26 17:55:00
+
 ## [Alpha V1.087] - 2026-03-06 14:06:00
 
 ### 🔄 Build Update

@@ -73,7 +73,7 @@ Make it look photorealistic and natural while maintaining the same form and stru
                 parts,
             }],
             generationConfig: {
-                responseModalities: ['IMAGE', 'TEXT'],
+                responseModalities: ['Text', 'Image'],
             }
         };
 

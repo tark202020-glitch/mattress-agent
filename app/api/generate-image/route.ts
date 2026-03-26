@@ -147,7 +147,7 @@ export async function POST(req: Request) {
                     parts: parts
                 }],
                 generationConfig: {
-                    responseModalities: ["IMAGE"]
+                    responseModalities: ["Text", "Image"]
                 }
             };
 
