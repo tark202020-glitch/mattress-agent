@@ -6,6 +6,7 @@ import type { QuoteResult, PricedLine } from '../../../lib/bom/types';
 import { Card, Table, Badge, Btn, Spinner, ErrorBox, PageTitle, fmtWon, C } from '../../_components/ui';
 import QuoteDialog from './QuoteDialog';
 import { useDesignStore, type DesignState } from '../../../lib/store';
+import DevelopmentRequestModal from '../../../components/DevelopmentRequestModal';
 
 export interface BomLineRow { product_code: string; item_no: string; level: number; parent_item_no: string | null; quantity: number; required: string; alt_item_no: string | null; spec_text: string | null; note: string | null; source: string; items: { name: string; unit: string; category: string; revision: string } | null }
 export interface ProductRow { product_code: string; model_code: string; name: string; family: string | null; status: string; size_preset_id: string; width_mm: number; depth_mm: number; is_dual: boolean; delivery_option: string | null; design_snapshot: unknown; note: string | null; cover_split_count: number }
@@ -31,6 +32,7 @@ export default function ProductDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [quoteError, setQuoteError] = useState<string | null>(null);
     const [quoteOpen, setQuoteOpen] = useState(false);
+    const [devOpen, setDevOpen] = useState(false);
 
     const load = useCallback(() => {
         setError(null); setQuoteError(null);
@@ -48,6 +50,14 @@ export default function ProductDetailPage() {
     if (!detail) return <Spinner />;
     const p = detail.product;
     const priced = new Map(quote?.lines.map(l => [l.item_no, l]) ?? []);
+
+    const openDev = () => {
+        const snap = p.design_snapshot as Record<string, unknown> | null;
+        if (snap && 'coreId' in snap) {
+            useDesignStore.getState().loadFromPreset(restoreSnapshot(snap, p));
+        }
+        setDevOpen(true);
+    };
 
     return (
         <>
@@ -90,7 +100,7 @@ export default function ProductDetailPage() {
                     <Card>
                         <h3 style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 800, color: C.text }}>문서 / 작업</h3>
                         <div id="product-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {/* T5: 개발요청서 버튼이 여기에 붙는다 */}
+                            <Btn onClick={openDev}>📄 개발요청서</Btn>
                             <Btn onClick={() => {
                                 const snap = p.design_snapshot as Record<string, unknown> | null;
                                 if (!snap || !('coreId' in snap)) { alert('이 상품에는 위자드 스냅샷이 없습니다 (엑셀로 가져온 상품).'); return; }
@@ -103,6 +113,7 @@ export default function ProductDetailPage() {
                 </div>
             </div>
             {quoteOpen && <QuoteDialog modelCode={p.model_code} title={p.name} onClose={() => setQuoteOpen(false)} />}
+            {devOpen && <DevelopmentRequestModal onClose={() => setDevOpen(false)} bom={{ product_code: p.product_code, lines: detail.lines }} />}
         </>
     );
 }
