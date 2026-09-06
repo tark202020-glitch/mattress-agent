@@ -70,6 +70,7 @@ export interface AvlPriceRow {
     price_constant: number;
     price_base: number;
     price_steps: { maxWidth: number; price: number; boxSpec?: string }[] | null;
+    currency?: string;   // 없으면 KRW로 본다
 }
 
 export interface PricedLine {
@@ -88,4 +89,5 @@ export interface QuoteResult {
     delivery: { option: string | null; price: number };
     total: number;
     warnings: string[];
+    incomplete: boolean;  // 경고가 하나라도 있으면 true (금액을 그대로 믿으면 안 됨)
 }

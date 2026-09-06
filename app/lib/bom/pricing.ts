@@ -25,6 +25,10 @@ export function priceLine(line: BomLine, avl: AvlPriceRow | null, widthMm: numbe
         unit_price: 0, total: 0, warning: null, spec_note: null,
     };
     if (!avl) return { ...base, warning: '단가 미승인' };
+    // 환율 정보가 없으므로 원화가 아닌 단가는 계산하지 않는다
+    if (avl.currency && avl.currency !== 'KRW') {
+        return { ...base, vendor_code: avl.vendor_code, price_type: avl.price_type, warning: `통화 ${avl.currency} 환산 불가` };
+    }
 
     let total = 0;
     let specNote: string | null = null;
@@ -61,5 +65,6 @@ export function priceBom(
         delivery: { option: product.delivery_option, price: deliveryPrice },
         total: priced.reduce((s, p) => s + p.total, 0) + deliveryPrice,
         warnings,
+        incomplete: warnings.length > 0,
     };
 }

@@ -47,6 +47,7 @@ describe('pricing: 현행 calculateSummary와 동치', () => {
             const legacy = usePricingStore.getState().calculateSummary(legacyInput(v.d, s, 'PARCEL'));
             expect(result.total).toBe(legacy.totalUnitPrice);
             expect(result.warnings).toEqual([]);
+            expect(result.incomplete).toBe(false);
         });
     }
 });
@@ -80,6 +81,29 @@ describe('pricing: 단위 규칙', () => {
         expect(priceLine(line, row, 1100)).toMatchObject({ total: 7000, spec_note: 'Box: 1400×310×310' });
         expect(priceLine(line, row, 1500)).toMatchObject({ total: 8500 });
         expect(priceLine(line, row, 1800)).toMatchObject({ total: 13000, spec_note: 'Box: 2100×310×310' });
+    });
+    it('VOLUME인데 치수가 없으면 0원 + 치수 없음 경고', () => {
+        const line: BomLine = { item_no: 'FM-014', level: 2, parent_item_no: 'FM-000', quantity: 2, required: '필수', alt_item_no: null, spec_text: null, dims: null, note: null, source: 'manual' };
+        const row: AvlPriceRow = { item_no: 'FM-014', vendor_code: 'V-000', approval_status: '승인', approved_at: null, price_type: 'VOLUME', unit_price: 0, price_constant: 0.0003266, price_base: 0, price_steps: null };
+        expect(priceLine(line, row, 1800)).toMatchObject({ total: 0, unit_price: 0, warning: '치수 없음' });
+    });
+    it('WIDTH_STEP인데 구간이 비면 0원 + 폭 구간 없음 경고', () => {
+        const line: BomLine = { item_no: 'PK-001', level: 2, parent_item_no: 'PK-000', quantity: 1, required: '필수', alt_item_no: null, spec_text: null, dims: null, note: null, source: 'manual' };
+        const row: AvlPriceRow = { item_no: 'PK-001', vendor_code: 'V-000', approval_status: '승인', approved_at: null, price_type: 'WIDTH_STEP', unit_price: 0, price_constant: 0, price_base: 0, price_steps: [] };
+        expect(priceLine(line, row, 1800)).toMatchObject({ total: 0, unit_price: 0, warning: '폭 구간 없음' });
+    });
+    it('KRW가 아닌 통화는 환산하지 않고 경고', () => {
+        const line: BomLine = { item_no: 'CT-001', level: 2, parent_item_no: 'CT-000', quantity: 2, required: '필수', alt_item_no: null, spec_text: null, dims: null, note: null, source: 'manual' };
+        const usd: AvlPriceRow = { item_no: 'CT-001', vendor_code: 'V-004', approval_status: '승인', approved_at: null, price_type: 'FIXED', unit_price: 30, price_constant: 0, price_base: 0, price_steps: null, currency: 'USD' };
+        expect(priceLine(line, usd, 1800)).toMatchObject({ total: 0, unit_price: 0, warning: '통화 USD 환산 불가' });
+        expect(priceLine(line, { ...usd, currency: 'KRW' }, 1800)).toMatchObject({ total: 60, warning: null });
+        expect(priceLine(line, { ...usd, currency: undefined }, 1800)).toMatchObject({ total: 60, warning: null });
+    });
+    it('경고가 하나라도 있으면 incomplete = true', () => {
+        const line: BomLine = { item_no: 'CV-099', level: 2, parent_item_no: 'CV-000', quantity: 1, required: '필수', alt_item_no: null, spec_text: null, dims: null, note: null, source: 'manual' };
+        const r = priceBom([line], avl, { width_mm: 1800, delivery_option: null });
+        expect(r.warnings).toEqual(['CV-099: 단가 미승인']);
+        expect(r.incomplete).toBe(true);
     });
     it('레벨1 어셈블리는 결과 줄에 포함하지 않는다', () => {
         const { lines } = buildBom(premium, sizes[2]);

@@ -22,9 +22,9 @@ export async function POST(req: Request) {
     if (!products?.length) return NextResponse.json({ error: '해당 모델의 상품이 없습니다.' }, { status: 404 });
 
     const codes = products.map(p => p.product_code);
-    const { data: allLines, error: e2 } = await auth.supabase.from('bom_lines').select('*, items(name, category)').in('product_code', codes).order('level').order('item_no');
+    const { data: allLines, error: e2 } = await auth.supabase.from('bom_lines').select('*, items(name, category, subcategory)').in('product_code', codes).order('level').order('item_no');
     if (e2) return dbError(e2, 500);
-    const { data: avl, error: e3 } = await auth.supabase.from('avl').select('item_no, vendor_code, approval_status, approved_at, price_type, unit_price, price_constant, price_base, price_steps').in('item_no', [...new Set(allLines.map(l => l.item_no))]);
+    const { data: avl, error: e3 } = await auth.supabase.from('avl').select('item_no, vendor_code, approval_status, approved_at, price_type, unit_price, price_constant, price_base, price_steps, currency').in('item_no', [...new Set(allLines.map(l => l.item_no))]);
     if (e3) return dbError(e3, 500);
 
     const cond = body.condition;
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     const warnings: string[] = [];
     const sizes = products.map(p => {
-        const lines = allLines.filter(l => l.product_code === p.product_code) as (BomLine & { items: { name: string; category: string } | null })[];
+        const lines = allLines.filter(l => l.product_code === p.product_code) as (BomLine & { items: { name: string; category: string; subcategory: string | null } | null })[];
         const q = priceBom(lines, avl as AvlPriceRow[], p);
         warnings.push(...q.warnings.map(w => `${p.product_code} ${w}`));
         const snap = (p.design_snapshot ?? {}) as { topFoamEnabled?: boolean; topFoamOptionId?: string | null; bottomFoamEnabled?: boolean; bottomFoamThickness?: number };
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     });
 
     const first = sizes[0];
-    const coverLine = first.lines.find(l => l.level === 2 && l.items?.category === '커버' && !l.item_no.startsWith('CV-02'));
+    const coverLine = first.lines.find(l => l.level === 2 && l.items?.subcategory === '커버');
     const title = body.title ?? products[0].name;
     const buffer = await fillQuoteTemplate({
         coverName: coverLine?.items?.name ?? '미선택',

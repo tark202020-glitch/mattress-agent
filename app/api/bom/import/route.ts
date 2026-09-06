@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { requireUser } from '../_lib/auth';
 import { parseTemplate } from '../../../lib/bom/excelIO';
+import { synthesizeFoamDims, type ItemMeta } from '../../../lib/bom/importDims';
 
 export async function POST(req: Request) {
     const auth = await requireUser();
@@ -39,6 +40,16 @@ export async function POST(req: Request) {
         await step('items', newItems, () => sb.from('items').upsert(newItems, { onConflict: 'item_no' }));
 
         await step('products', b.products, () => sb.from('products').upsert(b.products, { onConflict: 'product_code' }));
+
+        // 템플릿 BOM에는 치수가 없어 VOLUME 폼이 '치수 없음'으로 0원이 된다.
+        // 품목의 attributes.thickness와 상품 폭·깊이로 치수를 합성한다 (나머지 줄은 그대로 두고 견적 경고로 남긴다)
+        const bomItemNos = [...new Set(b.bom_lines.map(l => l.item_no as string))];
+        if (bomItemNos.length) {
+            const { data: meta, error } = await sb.from('items').select('item_no, category, attributes').in('item_no', bomItemNos);
+            if (error) throw new Error(`items(치수 합성 조회): ${error.message}`);
+            b.bom_lines = synthesizeFoamDims(b.bom_lines, b.products, (meta ?? []) as ItemMeta[]);
+        }
+
         // BOM은 상품 단위로 교체 (레벨1 → 레벨2 순서 유지)
         for (const code of [...new Set(b.bom_lines.map(l => l.product_code as string))]) {
             const lines = b.bom_lines.filter(l => l.product_code === code);

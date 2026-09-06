@@ -16,7 +16,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     const { data: lines, error: e2 } = await auth.supabase.from('bom_lines').select('*, items(name)').eq('product_code', code).order('level').order('item_no');
     if (e2) return dbError(e2, 500);
     const itemNos = lines.map(l => l.item_no);
-    const { data: avl, error: e3 } = await auth.supabase.from('avl').select('item_no, vendor_code, approval_status, approved_at, price_type, unit_price, price_constant, price_base, price_steps').in('item_no', itemNos);
+    const { data: avl, error: e3 } = await auth.supabase.from('avl').select('item_no, vendor_code, approval_status, approved_at, price_type, unit_price, price_constant, price_base, price_steps, currency').in('item_no', itemNos);
     if (e3) return dbError(e3, 500);
     const result = priceBom(lines as BomLine[], avl as AvlPriceRow[], product);
     const nameOf = new Map(lines.map(l => [l.item_no, (l.items as { name: string } | null)?.name ?? '']));
