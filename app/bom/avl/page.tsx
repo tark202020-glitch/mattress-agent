@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { bomApi, errMsg } from '../../lib/bom/client';
 import { invalidateAvlCache } from '../../lib/bom/useAvlPricing';
-import { Card, Table, Btn, Badge, Modal, Field, TextInput, Select, Spinner, ErrorBox, PageTitle, fmtWon, C } from '../_components/ui';
+import { Card, Table, Btn, Badge, Modal, Field, TextInput, Select, Spinner, ErrorBox, PageTitle, fmtWon } from '../_components/ui';
 
 interface AvlRow { item_no: string; vendor_code: string; owner_id: string | null; approval_status: string; lead_time_days: number | null; moq: number | null; unit_price: number; currency: string; approved_at: string | null; price_type: 'FIXED' | 'VOLUME' | 'WIDTH_STEP'; price_constant: number; price_base: number; price_steps: { maxWidth: number; price: number; boxSpec?: string }[] | null; note: string | null; items: { name: string; category: string } | null; vendors: { name: string } | null; employees: { name: string } | null }
 interface Item { item_no: string; name: string; category: string }
