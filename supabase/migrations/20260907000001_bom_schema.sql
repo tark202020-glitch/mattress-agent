@@ -288,3 +288,4 @@ create policy documents_authenticated_all on storage.objects for all to authenti
 
 -- 비로그인(anon)은 채번·상품생성 함수를 호출할 수 없다
 revoke execute on function next_item_no(text,int,int), bom_create_products(jsonb) from anon;
+revoke execute on function next_item_no(text,int,int), bom_create_products(jsonb) from public;

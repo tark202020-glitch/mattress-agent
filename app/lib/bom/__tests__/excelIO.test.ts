@@ -42,6 +42,7 @@ describe('parseTemplate', () => {
         expect(b.npi_status.some(n => ['CV-001', 'CV-002'].includes(n.item_no as string))).toBe(false);
         expect(b.log).toContain('템플릿 일반 커버 품목 CV-001(커버1 (상판)) 제외: BOM 1 / AVL 1 / NPI 1 행 삭제 — 커버 분리수는 products.cover_split_count로 관리');
         expect(b.log.some(m => m.includes('CV-003') && m.includes('cover_split_count'))).toBe(true);
+        expect(b.ecn_products.every(p => b.ecn.some(e => e.ecn_no === p.ecn_no))).toBe(true);
     });
     it('ECN과 영향 상품', () => {
         expect(b.ecn[0]).toMatchObject({ ecn_no: 'ECN-2026-001', item_no: 'CT-001', rev_from: 'A', rev_to: 'B', status: '승인' });

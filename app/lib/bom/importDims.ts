@@ -5,16 +5,20 @@
 // ============================================================
 type Row = Record<string, unknown>;
 
+/** 치수 합성 대상 (상단폼/하단폼만: 가드폼은 실제 치수가 옆면 스트립이라 제외) */
+const SYNTH_SUBCATEGORIES = new Set(['상단폼', '하단폼']);
+
 /** items 중 치수 합성에 쓰는 컬럼 */
 export interface ItemMeta {
     item_no: string;
-    category?: string | null;
+    subcategory: string | null;
     attributes?: Record<string, unknown> | null;
 }
 
 export function synthesizeFoamDims(lines: Row[], products: Row[], itemMeta: ItemMeta[]): Row[] {
     const thicknessOf = new Map<string, number>();
     for (const m of itemMeta) {
+        if (!m.subcategory || !SYNTH_SUBCATEGORIES.has(m.subcategory)) continue;
         const t = m.attributes?.thickness;
         if (typeof t === 'number' && Number.isFinite(t)) thicknessOf.set(m.item_no, t);
     }

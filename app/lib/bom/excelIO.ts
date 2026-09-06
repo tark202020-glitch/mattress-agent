@@ -117,11 +117,11 @@ export function parseTemplate(buf: Buffer, opts: { size_preset_id: string }): Im
         issue_detail: S(r['이슈내용']), next_milestone: S(r['다음 마일스톤']), note: S(r['비고']),
     }));
     const npi_status = npiAll.filter(n => !refsLegacy(n, legacyPanels));
-    const ecn_products: ImportBundle['ecn_products'] = [];
+    const ecn_products_all: ImportBundle['ecn_products'] = [];
     const ecnAll = sheetRows(wb, 'ECN변경이력').map(r => {
         const ecn_no = S(r['ECN번호'])!;
         const [rev_from, rev_to] = (S(r['리비전(전→후)']) ?? '→').split('→').map(s => s.trim());
-        for (const c of (S(r['영향 상품']) ?? '').split(',').map(s => s.trim()).filter(Boolean)) ecn_products.push({ ecn_no, product_code: pcode(c)! });
+        for (const c of (S(r['영향 상품']) ?? '').split(',').map(s => s.trim()).filter(Boolean)) ecn_products_all.push({ ecn_no, product_code: pcode(c)! });
         const ecnDate = D(r['일자']);   // 비면 키 생략 (ecn.ecn_date NOT NULL DEFAULT current_date)
         return {
             ecn_no, ...(ecnDate ? { ecn_date: ecnDate } : {}), item_no: renum(S(r['품번'])), change_type: S(r['변경구분']), rev_from: rev_from || null, rev_to: rev_to || null,
@@ -130,6 +130,9 @@ export function parseTemplate(buf: Buffer, opts: { size_preset_id: string }): Im
         };
     });
     const ecn = ecnAll.filter(e => !refsLegacy(e, legacyPanels));
+    // 제외된 ECN(레거시 커버 참조)의 영향 상품 행도 함께 제외한다
+    const keptEcnNos = new Set(ecn.map(e => e.ecn_no as string));
+    const ecn_products = ecn_products_all.filter(p => keptEcnNos.has(p.ecn_no));
     // 제외한 커버 패널마다 삭제된 행 수를 로그로 남긴다
     for (const [no, name] of legacyPanels) {
         const one = new Map([[no, name]]);

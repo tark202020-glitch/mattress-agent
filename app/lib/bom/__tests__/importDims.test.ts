@@ -3,9 +3,10 @@ import { synthesizeFoamDims, type ItemMeta } from '../importDims';
 
 const products = [{ product_code: 'MAT-001-LK', width_mm: 1800, depth_mm: 2000 }];
 const meta: ItemMeta[] = [
-    { item_no: 'FM-003', category: '폼', attributes: { thickness: 70 } },
-    { item_no: 'CV-001', category: '커버', attributes: null },
-    { item_no: 'PK-001', category: '포장', attributes: { boxSpec: 'Box: 2100×310×310' } },
+    { item_no: 'FM-003', subcategory: '상단폼', attributes: { thickness: 70 } },
+    { item_no: 'CV-001', subcategory: '커버', attributes: null },
+    { item_no: 'PK-001', subcategory: '포장사양', attributes: { boxSpec: 'Box: 2100×310×310' } },
+    { item_no: 'FM-010', subcategory: '가드폼', attributes: { thickness: 80 } },
 ];
 
 describe('synthesizeFoamDims', () => {
@@ -28,5 +29,9 @@ describe('synthesizeFoamDims', () => {
             { product_code: 'MAT-999-LK', item_no: 'FM-003', level: 2, quantity: 1, dims: null, spec_text: null },
         ];
         expect(synthesizeFoamDims(kept, products, meta)).toEqual(kept);
+    });
+    it('가드폼(측면 스트립 치수)은 두께가 있어도 합성 대상에서 제외한다', () => {
+        const lines = [{ product_code: 'MAT-001-LK', item_no: 'FM-010', level: 2, quantity: 1, dims: null, spec_text: null }];
+        expect(synthesizeFoamDims(lines, products, meta)).toEqual(lines);
     });
 });
