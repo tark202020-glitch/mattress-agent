@@ -2297,6 +2297,7 @@ git commit -m "feat(bom): 상품 견적 계산 API 및 모델 견적서 xlsx 생
 **Interfaces:**
 - Consumes: `xlsx` (읽기), `ExcelJS` (쓰기), `SIZE_PRESETS`
 - Produces: `parseTemplate(buf: Buffer, opts: { size_preset_id: string }): ImportBundle`, `RENUMBER: Record<string,string>`, `buildExportWorkbook(data: ExportData): Promise<Buffer>`, 타입 `ImportBundle`, `ExportData`
+- 최종 리뷰 반영(2026-09-07): 템플릿 `CV-001~003` 일반 커버 패널은 재번호 대신 제외+로그 처리, AVL 단가 필드·BOM `spec_text/dims/source`를 내보내기/가져오기 양쪽에서 보존, `items.created_at` null 키 미전송, 왕복 테스트 추가.
 
 - [ ] **Step 1: 템플릿 복사**
 
