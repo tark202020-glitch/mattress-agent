@@ -8,9 +8,11 @@ npx supabase login                                   # 브라우저 인증 (1회
 npx supabase init                                    # supabase/config.toml 생성 (1회, 기존 migrations/ 유지)
 npx supabase link --project-ref jkeisufqjemsnqamiqlv
 npx supabase db push                                 # supabase/migrations/*.sql 적용
+npx supabase db push --include-seed                  # 스키마 + 시드(config.toml의 sql_paths)를 한 번에
 ```
-시드(`supabase/seed/seed.sql`)는 CLI에 `db query` 서브커맨드가 없으므로 대시보드 SQL Editor에서 적용한다:
-`npm run seed:gen`으로 `supabase/seed/seed.sql`을 만든 뒤 내용을 대시보드 SQL Editor에 붙여 넣어 실행한다.
+시드는 `npm run seed:gen`으로 `supabase/seed/seed.sql`을 먼저 만들어야 한다. 적용 방법은 둘 중 하나다.
+- `npx supabase db push --include-seed` (`config.toml`의 `[db.seed] sql_paths = ["./seed/seed.sql"]`를 읽는다)
+- 대시보드 SQL Editor에 `supabase/seed/seed.sql` 내용을 붙여 넣어 실행
 
 `supabase/config.toml`과 `supabase/.temp/`는 CLI가 생성한다. `config.toml`은 커밋하고, `supabase/.temp/`는 `.gitignore`에 추가한다.
 

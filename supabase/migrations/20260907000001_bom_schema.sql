@@ -245,13 +245,13 @@ begin
         values (rec->>'product_code', rec->>'model_code', rec->>'name', rec->>'family',
                 coalesce(rec->>'status', '기획'), (rec->>'launch_target_date')::date, rec->>'pm_id', coalesce((rec->>'cover_split_count')::int, 2),
                 rec->>'size_preset_id', (rec->>'width_mm')::int, (rec->>'depth_mm')::int,
-                coalesce((rec->>'is_dual')::boolean, false), rec->>'delivery_option', rec->'design_snapshot', rec->>'note');
+                coalesce((rec->>'is_dual')::boolean, false), rec->>'delivery_option', nullif(rec->'design_snapshot', 'null'::jsonb), rec->>'note');
         for line in select value from jsonb_array_elements(coalesce(rec->'bom_lines', '[]'::jsonb)) order by (value->>'level')::int loop
             insert into bom_lines (product_code, item_no, level, parent_item_no, quantity, required,
                                    alt_item_no, spec_text, dims, note, source)
             values (rec->>'product_code', line->>'item_no', (line->>'level')::int, line->>'parent_item_no',
                     (line->>'quantity')::numeric, coalesce(line->>'required', '필수'), line->>'alt_item_no',
-                    line->>'spec_text', line->'dims', line->>'note', coalesce(line->>'source', 'wizard'));
+                    line->>'spec_text', nullif(line->'dims', 'null'::jsonb), line->>'note', coalesce(line->>'source', 'wizard'));
         end loop;
         codes := array_append(codes, rec->>'product_code');
     end loop;
@@ -285,3 +285,6 @@ on conflict (id) do nothing;
 drop policy if exists documents_authenticated_all on storage.objects;
 create policy documents_authenticated_all on storage.objects for all to authenticated
     using (bucket_id = 'documents') with check (bucket_id = 'documents');
+
+-- 비로그인(anon)은 채번·상품생성 함수를 호출할 수 없다
+revoke execute on function next_item_no(text,int,int), bom_create_products(jsonb) from anon;
