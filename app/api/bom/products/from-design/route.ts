@@ -16,7 +16,7 @@ interface Body {
 }
 
 /** MAT-### 다음 번호 */
-async function nextModelCode(supabase: SupabaseClient<any, any, any>) {
+async function nextModelCode(supabase: SupabaseClient) {
     const { data } = await supabase.from('products').select('model_code').like('model_code', 'MAT-%').order('model_code', { ascending: false }).limit(1);
     const last = data?.[0]?.model_code as string | undefined;
     const n = last ? parseInt(last.slice(4), 10) + 1 : 1;
