@@ -15,12 +15,15 @@ interface Body {
     snapshot: unknown;   // useDesignStore 전체 상태 (재오픈용)
 }
 
-/** MAT-### 다음 번호 */
+/** MAT-### 다음 번호. 숫자 접미어만 대상으로 최대값 + 1 */
 async function nextModelCode(supabase: SupabaseClient) {
-    const { data } = await supabase.from('products').select('model_code').like('model_code', 'MAT-%').order('model_code', { ascending: false }).limit(1);
-    const last = data?.[0]?.model_code as string | undefined;
-    const n = last ? parseInt(last.slice(4), 10) + 1 : 1;
-    return `MAT-${String(n).padStart(3, '0')}`;
+    const { data } = await supabase.from('products').select('model_code').like('model_code', 'MAT-%');
+    let max = 0;
+    for (const row of data ?? []) {
+        const m = /^MAT-(\d+)$/.exec(String(row.model_code));
+        if (m) max = Math.max(max, parseInt(m[1], 10));
+    }
+    return `MAT-${String(max + 1).padStart(3, '0')}`;
 }
 
 export async function POST(req: Request) {
