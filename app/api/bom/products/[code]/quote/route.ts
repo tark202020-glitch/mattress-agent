@@ -13,7 +13,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     const { data: product, error: e1 } = await auth.supabase.from('products').select('product_code, width_mm, delivery_option').eq('product_code', code).maybeSingle();
     if (e1) return dbError(e1, 500);
     if (!product) return NextResponse.json({ error: '없는 상품입니다.' }, { status: 404 });
-    const { data: lines, error: e2 } = await auth.supabase.from('bom_lines').select('*, items(name)').eq('product_code', code).order('level').order('item_no');
+    const { data: lines, error: e2 } = await auth.supabase.from('bom_lines').select('*, items:items!bom_lines_item_no_fkey(name)').eq('product_code', code).order('level').order('item_no');
     if (e2) return dbError(e2, 500);
     const itemNos = lines.map(l => l.item_no);
     const { data: avl, error: e3 } = await auth.supabase.from('avl').select('item_no, vendor_code, approval_status, approved_at, price_type, unit_price, price_constant, price_base, price_steps, currency').in('item_no', itemNos);

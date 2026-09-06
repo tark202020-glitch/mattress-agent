@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     if (!products?.length) return NextResponse.json({ error: '해당 모델의 상품이 없습니다.' }, { status: 404 });
 
     const codes = products.map(p => p.product_code);
-    const { data: allLines, error: e2 } = await auth.supabase.from('bom_lines').select('*, items(name, category, subcategory)').in('product_code', codes).order('level').order('item_no');
+    const { data: allLines, error: e2 } = await auth.supabase.from('bom_lines').select('*, items:items!bom_lines_item_no_fkey(name, category, subcategory)').in('product_code', codes).order('level').order('item_no');
     if (e2) return dbError(e2, 500);
     const { data: avl, error: e3 } = await auth.supabase.from('avl').select('item_no, vendor_code, approval_status, approved_at, price_type, unit_price, price_constant, price_base, price_steps, currency').in('item_no', [...new Set(allLines.map(l => l.item_no))]);
     if (e3) return dbError(e3, 500);

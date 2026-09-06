@@ -4,7 +4,7 @@ import { pickColumns } from '../../_lib/master';
 import { toTree } from '../../../../lib/bom/tree';
 
 type Ctx = { params: Promise<{ code: string }> };
-const BOM_SELECT = 'product_code, item_no, level, parent_item_no, quantity, required, alt_item_no, spec_text, dims, note, source, items(name, unit, category, revision)';
+const BOM_SELECT = 'product_code, item_no, level, parent_item_no, quantity, required, alt_item_no, spec_text, dims, note, source, items:items!bom_lines_item_no_fkey(name, unit, category, revision)';
 
 export async function GET(_req: Request, { params }: Ctx) {
     const auth = await requireUser();
