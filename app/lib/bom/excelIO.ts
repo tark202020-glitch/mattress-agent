@@ -157,7 +157,7 @@ export function parseTemplate(buf: Buffer, opts: { size_preset_id: string }): Im
         log.push(`템플릿 일반 커버 품목 ${no}(${name}) 제외: BOM ${cnt(bomAll)} / AVL ${cnt(avlAll)} / NPI ${cnt(npiAll)} 행 삭제 — 커버 분리수는 products.cover_split_count로 관리`);
     }
     const codeSheet = XLSX.utils.sheet_to_json<string[]>(wb.Sheets['코드표'] ?? {}, { header: 1, defval: '' });
-    const CODE_TYPE_OF: Record<string, string> = { '대분류': 'category', '품목구분': 'item_type', '개발단계': 'dev_stage', '승인상태': 'approval_status', '상품상태': 'product_status', '이슈상태': 'issue_status', '협력사유형': 'vendor_type', '변경구분': 'change_type', '필수여부': 'required' };
+    const CODE_TYPE_OF: Record<string, string> = { '대분류': 'category', '품목구분': 'item_type', '개발단계': 'dev_stage', '승인상태': 'approval_status', '상품상태': 'product_status', '이슈상태': 'issue_status', '협력사유형': 'vendor_type', '변경구분': 'change_type', '필수여부': 'required' , /* 내보내기 파일 재가져오기(영문 헤더) */ 'approval_status': 'approval_status', 'category': 'category', 'change_type': 'change_type', 'dev_stage': 'dev_stage', 'issue_status': 'issue_status', 'item_type': 'item_type', 'product_status': 'product_status', 'required': 'required', 'vendor_type': 'vendor_type' };
     const code_values: ImportBundle['code_values'] = [];
     (codeSheet[0] ?? []).forEach((h, col) => {
         const t = CODE_TYPE_OF[h]; if (!t) return;

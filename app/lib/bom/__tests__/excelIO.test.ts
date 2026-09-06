@@ -53,6 +53,16 @@ describe('parseTemplate', () => {
     });
 });
 
+describe('코드표 왕복', () => {
+    it('내보낸 코드표(영문 헤더)를 다시 읽으면 코드값이 보존된다', async () => {
+        const b = parseTemplate(buf, { size_preset_id: 'LK' });
+        const out = await buildExportWorkbook({ ...b, progress: [] });
+        const b2 = parseTemplate(out, { size_preset_id: 'LK' });
+        expect(b2.code_values.length).toBe(b.code_values.length);
+        expect(b2.code_values).toEqual(expect.arrayContaining([{ code_type: 'dev_stage', value: 'EVT', sort_order: 1 }]));
+    });
+});
+
 describe('buildExportWorkbook', () => {
     it('시트 10개를 만들고 헤더가 템플릿과 같다', async () => {
         const b = parseTemplate(buf, { size_preset_id: 'LK' });
