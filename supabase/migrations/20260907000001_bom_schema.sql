@@ -94,11 +94,14 @@ create table if not exists bom_lines (
     note           text,
     source         text not null default 'manual',  -- wizard | manual
     primary key (product_code, item_no),
-    constraint bom_lines_parent_rule check ((level = 1 and parent_item_no is null) or (level = 2 and parent_item_no is not null))
+    constraint bom_lines_parent_rule check ((level = 1 and parent_item_no is null) or (level = 2 and parent_item_no is not null and parent_item_no <> item_no))
 );
+create index if not exists bom_lines_item_no_idx on bom_lines(item_no);
+create index if not exists bom_lines_parent_item_no_idx on bom_lines(parent_item_no);
 
 -- 상위 품번은 같은 상품 BOM 안에 있어야 한다
-create or replace function bom_lines_check_parent() returns trigger language plpgsql as $$
+create or replace function bom_lines_check_parent() returns trigger language plpgsql
+    set search_path = public, pg_temp as $$
 begin
     if new.level = 2 and not exists (
         select 1 from bom_lines where product_code = new.product_code and item_no = new.parent_item_no
@@ -128,6 +131,7 @@ create table if not exists avl (
     note            text,
     primary key (item_no, vendor_code)
 );
+create index if not exists avl_vendor_code_idx on avl(vendor_code);
 
 create table if not exists npi_status (
     product_code   text not null references products(product_code) on delete cascade,
@@ -145,6 +149,7 @@ create table if not exists npi_status (
     note           text,
     primary key (product_code, item_no)
 );
+create index if not exists npi_status_item_no_idx on npi_status(item_no);
 
 create table if not exists npi_status_history (
     id           bigserial primary key,
@@ -171,6 +176,7 @@ create table if not exists ecn (
     status       text not null default '요청',
     note         text
 );
+create index if not exists ecn_item_no_idx on ecn(item_no);
 
 create table if not exists ecn_products (
     ecn_no       text not null references ecn(ecn_no) on delete cascade,
@@ -190,7 +196,7 @@ create table if not exists documents (
 );
 
 -- 상품별완성률 (사양서 3.4)
-create or replace view v_product_progress as
+create or replace view v_product_progress with (security_invoker = true) as
 select
     p.product_code, p.model_code, p.name, p.status,
     count(n.item_no)                                              as item_count,
@@ -216,7 +222,8 @@ group by p.product_code, p.model_code, p.name, p.status;
 
 -- 접두어별 자동 채번: 범위 안 최대 번호 + 1
 create or replace function next_item_no(p_prefix text, p_start int default 1, p_end int default 999)
-returns text language sql stable as $$
+returns text language sql stable
+    set search_path = public, pg_temp as $$
     select p_prefix || '-' || lpad((coalesce(max(substring(item_no from 4)::int), p_start - 1) + 1)::text, 3, '0')
     from items
     where item_no like p_prefix || '-%'
@@ -225,20 +232,21 @@ $$;
 
 -- 상품 + BOM 원자적 생성. 입력: [{product_code, model_code, name, ..., bom_lines:[{item_no, level, ...}]}]
 create or replace function bom_create_products(p_products jsonb)
-returns text[] language plpgsql as $$
+returns text[] language plpgsql
+    set search_path = public, pg_temp as $$
 declare
     rec   jsonb;
     line  jsonb;
     codes text[] := '{}';
 begin
     for rec in select * from jsonb_array_elements(p_products) loop
-        insert into products (product_code, model_code, name, family, status, pm_id, cover_split_count,
+        insert into products (product_code, model_code, name, family, status, launch_target_date, pm_id, cover_split_count,
                               size_preset_id, width_mm, depth_mm, is_dual, delivery_option, design_snapshot, note)
         values (rec->>'product_code', rec->>'model_code', rec->>'name', rec->>'family',
-                coalesce(rec->>'status', '기획'), rec->>'pm_id', coalesce((rec->>'cover_split_count')::int, 2),
+                coalesce(rec->>'status', '기획'), (rec->>'launch_target_date')::date, rec->>'pm_id', coalesce((rec->>'cover_split_count')::int, 2),
                 rec->>'size_preset_id', (rec->>'width_mm')::int, (rec->>'depth_mm')::int,
                 coalesce((rec->>'is_dual')::boolean, false), rec->>'delivery_option', rec->'design_snapshot', rec->>'note');
-        for line in select * from jsonb_array_elements(coalesce(rec->'bom_lines', '[]'::jsonb)) loop
+        for line in select value from jsonb_array_elements(coalesce(rec->'bom_lines', '[]'::jsonb)) order by (value->>'level')::int loop
             insert into bom_lines (product_code, item_no, level, parent_item_no, quantity, required,
                                    alt_item_no, spec_text, dims, note, source)
             values (rec->>'product_code', line->>'item_no', (line->>'level')::int, line->>'parent_item_no',
@@ -251,10 +259,13 @@ begin
 end $$;
 
 -- updated_at 자동 갱신
-create or replace function set_updated_at() returns trigger language plpgsql as $$
+create or replace function set_updated_at() returns trigger language plpgsql
+    set search_path = public, pg_temp as $$
 begin new.updated_at = now(); return new; end $$;
 drop trigger if exists trg_products_updated on products;
 create trigger trg_products_updated before update on products for each row execute function set_updated_at();
+drop trigger if exists trg_npi_status_updated on npi_status;
+create trigger trg_npi_status_updated before update on npi_status for each row execute function set_updated_at();
 
 -- RLS: 1차는 로그인 사용자 전원 읽기/쓰기 (역할 강제는 3차)
 do $$
