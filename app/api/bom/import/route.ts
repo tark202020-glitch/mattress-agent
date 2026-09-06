@@ -18,39 +18,42 @@ export async function POST(req: Request) {
     const sb = auth.supabase;
     const counts: Record<string, number> = {};
     const log = [...b.log];
-    const step = async (name: string, fn: () => PromiseLike<{ error: { message: string } | null }>) => {
+    /** 행이 있을 때만 쓰기 실행. 오류는 단계명을 붙여 throw */
+    const step = async (name: string, rows: unknown[], fn: () => PromiseLike<{ error: { message: string } | null }>) => {
+        if (rows.length === 0) return;
         const { error } = await fn();
         if (error) throw new Error(`${name}: ${error.message}`);
     };
 
     try {
-        await step('code_values', () => sb.from('code_values').upsert(b.code_values, { onConflict: 'code_type,value' }));
-        await step('employees', () => sb.from('employees').upsert(b.employees, { onConflict: 'employee_id' }));
-        await step('vendors', () => sb.from('vendors').upsert(b.vendors, { onConflict: 'vendor_code' }));
+        await step('code_values', b.code_values, () => sb.from('code_values').upsert(b.code_values, { onConflict: 'code_type,value' }));
+        await step('employees', b.employees, () => sb.from('employees').upsert(b.employees, { onConflict: 'employee_id' }));
+        await step('vendors', b.vendors, () => sb.from('vendors').upsert(b.vendors, { onConflict: 'vendor_code' }));
 
         // 위자드 매핑 품목(wizard_option_key 있음)은 이름을 덮어쓰지 않는다
         const { data: mapped } = await sb.from('items').select('item_no').not('wizard_option_key', 'is', null);
         const keep = new Set((mapped ?? []).map(m => m.item_no));
         const newItems = b.items.filter(i => !keep.has(i.item_no as string));
-        for (const i of b.items) if (keep.has(i.item_no as string)) log.push(`품목 ${i.item_no}: 기존 위자드 품목 유지 (템플릿 품명 "${i.name}" 무시)`);
-        await step('items', () => sb.from('items').upsert(newItems, { onConflict: 'item_no' }));
         counts.items = newItems.length;
+        for (const i of b.items) if (keep.has(i.item_no as string)) log.push(`품목 ${i.item_no}: 기존 위자드 품목 유지 (템플릿 품명 "${i.name}" 무시)`);
+        await step('items', newItems, () => sb.from('items').upsert(newItems, { onConflict: 'item_no' }));
 
-        await step('products', () => sb.from('products').upsert(b.products, { onConflict: 'product_code' }));
+        await step('products', b.products, () => sb.from('products').upsert(b.products, { onConflict: 'product_code' }));
         // BOM은 상품 단위로 교체 (레벨1 → 레벨2 순서 유지)
         for (const code of [...new Set(b.bom_lines.map(l => l.product_code as string))]) {
-            await step('bom_lines(delete)', () => sb.from('bom_lines').delete().eq('product_code', code));
             const lines = b.bom_lines.filter(l => l.product_code === code);
-            await step('bom_lines(level1)', () => sb.from('bom_lines').insert(lines.filter(l => l.level === 1)));
-            await step('bom_lines(level2)', () => sb.from('bom_lines').insert(lines.filter(l => l.level !== 1)));
+            const l1 = lines.filter(l => l.level === 1), l2 = lines.filter(l => l.level !== 1);
+            await step('bom_lines(delete)', [code], () => sb.from('bom_lines').delete().eq('product_code', code));
+            await step('bom_lines(level1)', l1, () => sb.from('bom_lines').insert(l1));
+            await step('bom_lines(level2)', l2, () => sb.from('bom_lines').insert(l2));
         }
-        await step('avl', () => sb.from('avl').upsert(b.avl, { onConflict: 'item_no,vendor_code' }));
-        await step('npi_status', () => sb.from('npi_status').upsert(b.npi_status, { onConflict: 'product_code,item_no' }));
-        await step('ecn', () => sb.from('ecn').upsert(b.ecn, { onConflict: 'ecn_no' }));
-        await step('ecn_products', () => sb.from('ecn_products').upsert(b.ecn_products, { onConflict: 'ecn_no,product_code' }));
+        await step('avl', b.avl, () => sb.from('avl').upsert(b.avl, { onConflict: 'item_no,vendor_code' }));
+        await step('npi_status', b.npi_status, () => sb.from('npi_status').upsert(b.npi_status, { onConflict: 'product_code,item_no' }));
+        await step('ecn', b.ecn, () => sb.from('ecn').upsert(b.ecn, { onConflict: 'ecn_no' }));
+        await step('ecn_products', b.ecn_products, () => sb.from('ecn_products').upsert(b.ecn_products, { onConflict: 'ecn_no,product_code' }));
     } catch (e) {
-        return NextResponse.json({ error: (e as Error).message, log }, { status: 400 });
+        return NextResponse.json({ error: `${(e as Error).message} (이 단계 이전의 데이터는 이미 저장되었습니다. 파일을 수정한 뒤 다시 가져오면 덮어씁니다.)`, log }, { status: 400 });
     }
-    for (const k of ['employees', 'vendors', 'products', 'bom_lines', 'avl', 'npi_status', 'ecn'] as const) counts[k] = b[k].length;
+    for (const k of ['code_values', 'employees', 'vendors', 'products', 'bom_lines', 'avl', 'npi_status', 'ecn', 'ecn_products'] as const) counts[k] = b[k].length;
     return NextResponse.json({ log, counts });
 }
