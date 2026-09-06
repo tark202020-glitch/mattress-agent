@@ -1,8 +1,6 @@
 'use client';
 
 import DevelopmentRequestModal from '../components/DevelopmentRequestModal';
-import PricingManageModal from '../components/PricingManageModal';
-import CompletionModal from '../components/CompletionModal';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -33,8 +31,6 @@ export default function Page() {
     const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
     const [mounted, setMounted] = useState(false);
     const [isDevRequestOpen, setIsDevRequestOpen] = useState(false);
-    const [isCompletionOpen, setIsCompletionOpen] = useState(false);
-    const [isPricingOpen, setIsPricingOpen] = useState(false);
     const router = useRouter();
     const supabase = createClient();
 
@@ -132,17 +128,6 @@ export default function Page() {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <PresetPanel />
-                            <button
-                                onClick={() => setIsPricingOpen(true)}
-                                style={{
-                                    fontSize: 11, fontWeight: 700, padding: '6px 14px', borderRadius: 20,
-                                    background: 'rgba(5,150,105,0.08)', color: '#059669',
-                                    border: '1px solid rgba(5,150,105,0.15)',
-                                    cursor: 'pointer', transition: 'all 0.15s',
-                                }}
-                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(5,150,105,0.15)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(5,150,105,0.08)'; }}
-                            >💰 단가 관리</button>
                             <span style={{
                                 fontSize: 13, fontWeight: 600, padding: '4px 12px', borderRadius: 20,
                                 background: 'rgba(79,70,229,0.06)', color: '#4f46e5',
@@ -245,7 +230,7 @@ export default function Page() {
                                             if (missing.length > 0) {
                                                 alert(`다음 정보가 선택되지 않았습니다:\n- ${missing.join('\n- ')}`);
                                             } else {
-                                                setIsCompletionOpen(true);
+                                                alert('9단계에서 상품을 저장하세요.');
                                             }
                                         }
                                     }}
@@ -312,20 +297,6 @@ export default function Page() {
             {isDevRequestOpen && (
                 <DevelopmentRequestModal
                     onClose={() => setIsDevRequestOpen(false)}
-                />
-            )}
-            {isCompletionOpen && (
-                <CompletionModal
-                    onClose={() => setIsCompletionOpen(false)}
-                    onOpenDevRequest={() => {
-                        setIsCompletionOpen(false);
-                        setIsDevRequestOpen(true);
-                    }}
-                />
-            )}
-            {isPricingOpen && (
-                <PricingManageModal
-                    onClose={() => setIsPricingOpen(false)}
                 />
             )}
         </div>
