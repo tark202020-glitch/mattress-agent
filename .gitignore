@@ -48,3 +48,6 @@ resource/AI-concept/
 public/resource/AI-cover/
 public/resource/AI-concept/
 public/covers/새 폴더/
+
+# supabase CLI
+supabase/.temp/

@@ -1,3 +1,16 @@
+## [Alpha V1.089] - 2026-09-07 08:01:11
+
+### 🔄 Build Update
+- **Summary**: BOM(자재명세서) 관리 기능의 데이터베이스와 서버 API 1차 도입 (화면은 다음 버전에서 제공)
+- **Detail** :
+  - **`supabase/migrations/20260907000001_bom_schema.sql` [ADD]**: 상품·품목·협력사·담당자·BOM·AVL·NPI·ECN 테이블, 상품별완성률 뷰, 상품+BOM 원자 생성 함수, 로그인 사용자 전용 접근 정책, 문서 저장 버킷을 만들었습니다.
+  - **`supabase/seed/seed.sql` [ADD]**: 위자드의 모든 선택 옵션(폼·스트링·커버·컨트롤러·센서·포장)을 품번(CV/FM/ST/CT/SN/PK/SW)으로 등록하고, 현행 단가표를 기준 협력사(V-000)의 AVL 단가로 옮겼습니다.
+  - **`app/lib/bom/*` [ADD]**: 위자드 선택 → BOM 변환, AVL 단가 기반 견적 계산(현행 단가표와 동일한 결과를 테스트로 보증), 엑셀 템플릿 가져오기/내보내기, 견적서 양식 채우기 모듈과 단위 테스트 71건.
+  - **`app/api/bom/*` [ADD]**: 품목·협력사·담당자·코드표 조회/편집, 자동 채번, 위자드 결과로 사이즈별 상품과 BOM 생성, 상품 상세·견적 계산, 모델 단위 견적서 xlsx 생성(Storage 저장), AVL 관리, 엑셀 import/export API. 모두 로그인 후에만 사용 가능합니다.
+  - **`vitest.config.mts`, `package.json` [ADD/MODIFY]**: 테스트 도구(Vitest)와 Supabase CLI를 도입했습니다.
+  - 기존 견적·디자이너·3D 화면의 동작 변경은 없습니다.
+- **Build Time**: 2026-09-07 08:01:11
+
 ## [Alpha V1.088] - 2026-03-26 17:55:00
 
 ### 🐛 Bug Fix
