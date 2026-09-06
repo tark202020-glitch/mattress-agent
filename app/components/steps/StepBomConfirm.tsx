@@ -24,11 +24,35 @@ export default function StepBomConfirm() {
     const [modelCode, setModelCode] = useState('');
     const [name, setName] = useState(s.title || '');
     const [family, setFamily] = useState('에어매트리스');
-    const [sizeIds, setSizeIds] = useState<string[]>(s.sizePresetId ? [s.sizePresetId] : []);
+
+    // 사이즈 선택 목록: SIZE_PRESETS + 커스텀 사이즈 (있을 경우)
+    const selectableSizes: Array<{ id: string; label: string; width: number; depth: number }> = useMemo(() => {
+        const result = SIZE_PRESETS.map(p => ({ id: p.id, label: p.label, width: p.width, depth: p.depth }));
+        // 현재 사이즈가 커스텀인 경우 맨 앞에 추가
+        const isCustom = s.sizePresetId === null || !SIZE_PRESETS.find(p => p.id === s.sizePresetId);
+        if (isCustom && s.customWidth > 0 && s.customDepth > 0) {
+            const customId = `C${s.customWidth}X${s.customDepth}`;
+            result.unshift({ id: customId, label: '커스텀', width: s.customWidth, depth: s.customDepth });
+        }
+        return result;
+    }, [s.sizePresetId, s.customWidth, s.customDepth]);
+
+    const [sizeIds, setSizeIds] = useState<string[]>(() => {
+        if (s.sizePresetId) return [s.sizePresetId];
+        if (s.customWidth > 0 && s.customDepth > 0) return [`C${s.customWidth}X${s.customDepth}`];
+        return [];
+    });
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const currentSize: SizeSpec = { size_preset_id: s.sizePresetId ?? 'CUSTOM', width_mm: s.customWidth, depth_mm: s.customDepth };
+    // 현재 선택 사이즈: 커스텀이면 생성된 커스텀 ID 사용
+    const currentSizeId = (() => {
+        if (s.sizePresetId) return s.sizePresetId;
+        if (s.customWidth > 0 && s.customDepth > 0) return `C${s.customWidth}X${s.customDepth}`;
+        return 'CUSTOM';
+    })();
+
+    const currentSize: SizeSpec = { size_preset_id: currentSizeId, width_mm: s.customWidth, depth_mm: s.customDepth };
     const preview = useMemo(() => buildBom(s, currentSize), [s, currentSize.width_mm, currentSize.depth_mm]);
     const quote = avl ? quoteFromDesign(s, currentSize, avl) : null;
     const missing: string[] = [];
@@ -43,7 +67,7 @@ export default function StepBomConfirm() {
         if (modelCode && !/^[A-Z0-9]+-[A-Z0-9]+$/.test(modelCode)) { setError('모델코드 형식: MAT-001 처럼 영대문자/숫자-영대문자/숫자'); return; }
         setBusy(true); setError(null);
         try {
-            const sizes: SizeSpec[] = sizeIds.map(id => { const p = SIZE_PRESETS.find(x => x.id === id)!; return { size_preset_id: p.id, width_mm: p.width, depth_mm: p.depth }; });
+            const sizes: SizeSpec[] = sizeIds.map(id => { const p = selectableSizes.find(x => x.id === id)!; return { size_preset_id: p.id, width_mm: p.width, depth_mm: p.depth }; });
             const snapshot = lightSnapshot(s); // 이미지·텍스처(base64)는 제외
             const r = await bomApi<{ product_codes: string[]; model_code: string }>('/products/from-design', {
                 method: 'POST', json: { model_code: modelCode || undefined, name: name.trim(), family: family || undefined, sizes, design: { ...snapshot, deliveryId: s.deliveryId }, snapshot },
@@ -82,9 +106,10 @@ export default function StepBomConfirm() {
                     <label style={{ fontSize: 12, color: '#64748b' }}>상품군<input style={input} value={family} onChange={e => setFamily(e.target.value)} /></label>
                     <div style={{ fontSize: 12, color: '#64748b' }}>사이즈 (선택한 수만큼 상품이 생성됩니다)
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-                            {SIZE_PRESETS.map(p => {
+                            {selectableSizes.map(p => {
                                 const on = sizeIds.includes(p.id);
-                                return <button key={p.id} type="button" onClick={() => toggleSize(p.id)} style={{ fontSize: 11, padding: '4px 10px', borderRadius: 14, border: `1px solid ${on ? '#4f46e5' : '#e2e8f0'}`, background: on ? '#e0e7ff' : '#fff', color: on ? '#3730a3' : '#64748b', cursor: 'pointer' }}>{p.label} {p.width}×{p.depth}</button>;
+                                const isCustom = p.id.startsWith('C');
+                                return <button key={p.id} type="button" onClick={() => toggleSize(p.id)} style={{ fontSize: 11, padding: '4px 10px', borderRadius: 14, border: `${isCustom ? '2px dashed' : '1px solid'} ${on ? '#4f46e5' : '#e2e8f0'}`, background: on ? '#e0e7ff' : '#fff', color: on ? '#3730a3' : '#64748b', cursor: 'pointer' }}>{p.label} {p.width}×{p.depth}</button>;
                             })}
                         </div>
                     </div>
