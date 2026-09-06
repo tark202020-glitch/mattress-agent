@@ -25,6 +25,15 @@ const MENU_ITEMS = [
         href: '/designer',
         features: ['AI 커버 이미지 생성', '3D 분해도(Exploded View)', '구조별 레이어 시각화'],
     },
+    {
+        id: 'bom',
+        title: 'BOM / 개발관리',
+        subtitle: '상품별 부품 구성·협력사·단가 관리',
+        icon: '🧩',
+        gradient: 'linear-gradient(135deg, #0ea5e9, #6366f1)',
+        href: '/bom/products',
+        features: ['위자드 결과를 BOM으로 저장', '품목·협력사·AVL 단가 관리', '엑셀 템플릿 가져오기/내보내기'],
+    },
 ];
 
 export default function HubPage() {
@@ -111,7 +120,7 @@ export default function HubPage() {
                 <div style={{
                     display: 'flex',
                     gap: 28,
-                    maxWidth: 900,
+                    maxWidth: 1240,
                     width: '100%',
                 }}>
                     {MENU_ITEMS.map(item => {
