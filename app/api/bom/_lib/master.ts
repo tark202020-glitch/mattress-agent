@@ -19,6 +19,13 @@ export function pickColumns(body: Record<string, unknown>, columns: string[]): R
     return out;
 }
 
+/** PostgREST or= 필터 구분자(쉼표·괄호)를 제거한 검색어. 비어 있으면 null */
+export function sanitizeSearch(q: string | null): string | null {
+    if (!q) return null;
+    const s = q.replace(/[,()]/g, ' ').replace(/\s+/g, ' ').trim();
+    return s.length ? s : null;
+}
+
 type Ctx = { params: Promise<{ id: string }> };
 
 export function masterHandlers(cfg: MasterConfig) {
@@ -28,7 +35,7 @@ export function masterHandlers(cfg: MasterConfig) {
         const auth = await requireUser();
         if ('error' in auth) return auth.error;
         const url = new URL(req.url);
-        const q = url.searchParams.get('q');
+        const q = sanitizeSearch(url.searchParams.get('q'));
         let query = auth.supabase.from(cfg.table).select('*').order(order);
         // 단순 동등 필터: ?category=폼 처럼 컬럼명=값
         for (const [k, v] of url.searchParams) {
