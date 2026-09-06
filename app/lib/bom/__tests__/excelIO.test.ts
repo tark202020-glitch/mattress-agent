@@ -79,6 +79,15 @@ describe('엑셀 왕복 (가져오기 → 내보내기 → 다시 가져오기)'
         line.spec_text = '1800×2000×80';
         line.dims = [{ w: 1800, d: 2000, h: 80, qty: 2 }];
         line.source = 'wizard';
+        // 우리 export 재가져오기 보호: 시드 컨트롤러(CT-002)는 품명이 템플릿과 달라 재번호되면 안 된다
+        b.items.push({
+            item_no: 'CT-002', name: 'Controller 1.6', category: '컨트롤러', subcategory: '본체',
+            item_type: '부품', unit: 'EA', revision: 'A',
+        });
+        b.bom_lines.push({
+            product_code: 'MAT-001-LK', level: 2, parent_item_no: 'CT-000', item_no: 'CT-002',
+            quantity: 1, required: '필수', alt_item_no: null, note: null, spec_text: null, dims: null, source: 'manual',
+        });
 
         const out = await buildExportWorkbook({ ...b, progress: [] });
         const b2 = parseTemplate(out, { size_preset_id: 'LK' });
@@ -94,5 +103,32 @@ describe('엑셀 왕복 (가져오기 → 내보내기 → 다시 가져오기)'
         });
         expect(b2.bom_lines.map(key)).toEqual(b.bom_lines.map(key));
         expect(b2.avl).toEqual(b.avl);
+
+        // 시드 컨트롤러 CT-002는 품명이 템플릿 원본('어댑터')과 달라 재번호되지 않고 그대로 유지된다
+        expect(b2.items.find(i => i.item_no === 'CT-002')).toMatchObject({ name: 'Controller 1.6' });
+        expect(b2.items.filter(i => i.item_no === 'CT-010').length).toBe(1);
+        expect(b2.bom_lines.some(l => l.item_no === 'CT-002' && l.parent_item_no === 'CT-000' && l.product_code === 'MAT-001-LK')).toBe(true);
+    });
+});
+
+describe('TEMPLATE_LEGACY: 품명이 템플릿 원본과 일치할 때만 재번호한다', () => {
+    const baseData = { employees: [], vendors: [], products: [], bom_lines: [], avl: [], npi_status: [], ecn: [], ecn_products: [], code_values: [], progress: [] };
+    it('CT-003 품명이 우리 시드 컨트롤러(IoT Controller)면 재번호하지 않는다', async () => {
+        const out = await buildExportWorkbook({
+            ...baseData,
+            items: [{ item_no: 'CT-003', name: 'IoT Controller', category: '컨트롤러', subcategory: '본체', item_type: '부품', unit: 'EA', revision: 'A' }],
+        });
+        const b = parseTemplate(out, { size_preset_id: 'LK' });
+        expect(b.items.find(i => i.item_no === 'CT-003')).toMatchObject({ name: 'IoT Controller' });
+        expect(b.items.find(i => i.item_no === 'CT-011')).toBeUndefined();
+    });
+    it('CT-003 품명이 템플릿 원본(에어호스)이면 CT-011로 재번호한다', async () => {
+        const out = await buildExportWorkbook({
+            ...baseData,
+            items: [{ item_no: 'CT-003', name: '에어호스', category: '컨트롤러', subcategory: '본체', item_type: '부품', unit: 'EA', revision: 'A' }],
+        });
+        const b = parseTemplate(out, { size_preset_id: 'LK' });
+        expect(b.items.find(i => i.item_no === 'CT-011')).toMatchObject({ name: '에어호스' });
+        expect(b.items.find(i => i.item_no === 'CT-003')).toBeUndefined();
     });
 });

@@ -7,11 +7,20 @@ import ExcelJS from 'exceljs';
 import { SIZE_PRESETS } from '../constants';
 import { PREFIX_CATEGORY, prefixOf } from './codes';
 
-/** 템플릿 품번 → 새 체계 (기획안 5.1) */
-export const RENUMBER: Record<string, string> = {
-    'CT-002': 'CT-010', 'CT-003': 'CT-011', 'CT-004': 'CT-012', 'CT-005': 'CT-013', 'CT-006': 'CT-014',
-    'CV-010': 'FM-002',
+/** 배포 템플릿의 구 품번 → 새 체계. 품명이 템플릿 원본과 일치할 때만 적용 (우리 export 재가져오기 보호) */
+export const TEMPLATE_LEGACY: Record<string, { to: string; name: RegExp }> = {
+    'CT-002': { to: 'CT-010', name: /어댑터/ },
+    'CT-003': { to: 'CT-011', name: /에어호스/ },
+    'CT-004': { to: 'CT-012', name: /매뉴얼/ },
+    'CT-005': { to: 'CT-013', name: /IoT\s*Stick/i },
+    'CT-006': { to: 'CT-014', name: /포장박스/ },
+    'CV-010': { to: 'FM-002', name: /^폼/ },
 };
+
+/** 템플릿 품번 → 새 체계 (기획안 5.1). 하위 호환용 평탄화 맵 */
+export const RENUMBER: Record<string, string> = Object.fromEntries(
+    Object.entries(TEMPLATE_LEGACY).map(([k, v]) => [k, v.to]),
+);
 
 type Row = Record<string, unknown>;
 const S = (v: unknown) => (v === undefined || v === null || v === '' ? null : String(v).trim());
@@ -52,9 +61,17 @@ export function parseTemplate(buf: Buffer, opts: { size_preset_id: string }): Im
     const log: string[] = [];
     const size = SIZE_PRESETS.find(s => s.id === opts.size_preset_id);
     if (!size) throw new Error(`알 수 없는 사이즈 프리셋: ${opts.size_preset_id}`);
+    // 품목마스터에 legacy 품번이 "템플릿 원본 품명"으로 실존할 때만 재번호 대상에 넣는다
+    // (우리 export 재가져오기 시 같은 품번을 쓰는 시드 데이터의 품명은 다르므로 보호된다)
+    const itemRows = sheetRows(wb, '품목마스터');
+    const activeRenumber: Record<string, string> = {};
+    for (const [code, { to, name }] of Object.entries(TEMPLATE_LEGACY)) {
+        const row = itemRows.find(r => S(r['품번']) === code);
+        if (row && name.test(String(S(row['품명']) ?? ''))) activeRenumber[code] = to;
+    }
     const renum = (no: string | null) => {
         if (!no) return null;
-        const to = RENUMBER[no];
+        const to = activeRenumber[no];
         if (to) log.push(`품번 재번호: ${no} → ${to}`);
         return to ?? no;
     };
@@ -70,7 +87,7 @@ export function parseTemplate(buf: Buffer, opts: { size_preset_id: string }): Im
         vendor_code: S(r['협력사코드']), name: S(r['협력사명']), vendor_type: S(r['유형']), country: S(r['국가']),
         contact_name: S(r['담당자명']), phone: S(r['연락처']), email: S(r['이메일']), main_items: S(r['주요취급품목']), note: S(r['비고']),
     }));
-    const allItems = sheetRows(wb, '품목마스터').map(r => {
+    const allItems = itemRows.map(r => {
         const item_no = renum(S(r['품번']))!;
         const created = D(r['등록일']);   // 비면 키 자체를 만들지 않는다 (items.created_at NOT NULL DEFAULT current_date)
         return {
