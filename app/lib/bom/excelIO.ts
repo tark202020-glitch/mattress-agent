@@ -4,7 +4,7 @@
 // ============================================================
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
-import { SIZE_PRESETS } from '../constants';
+import { SIZE_PRESETS, type SizePreset } from '../constants';
 import { PREFIX_CATEGORY, prefixOf } from './codes';
 
 /** 배포 템플릿의 구 품번 → 새 체계. 품명이 템플릿 원본과 일치할 때만 적용 (우리 export 재가져오기 보호) */
@@ -33,6 +33,21 @@ const D = (v: unknown) => {                       // 엑셀 날짜(숫자/문자
 
 /** JSON 문자열 셀 → 객체. 비어 있으면 null */
 const J = <T,>(v: unknown): T | null => { const s = S(v); return s ? (JSON.parse(s) as T) : null; };
+
+/**
+ * 상품코드에서 사이즈 접미어를 분리한다. 마지막 '-' 뒤 조각이 SIZE_PRESETS의 id와 일치하면
+ * (사이즈 id 자체는 '-'를 포함하지 않으므로) 이미 접미어가 붙은 코드로 보고 그 사이즈를 쓰고,
+ * 아니면(접미어 없는 원본 코드) defaultSizeId를 붙인다.
+ * 우리 export를 재가져올 때 상품마다 서로 다른 사이즈였던 접미어가 defaultSizeId로 뭉개지지 않게 한다.
+ */
+export function splitProductCode(code: string, defaultSizeId: string): { product_code: string; model_code: string; size: SizePreset } {
+    const dash = code.lastIndexOf('-');
+    const suffix = dash >= 0 ? code.slice(dash + 1) : '';
+    const existing = SIZE_PRESETS.find(s => s.id === suffix);
+    if (existing) return { product_code: code, model_code: code.slice(0, dash), size: existing };
+    const size = SIZE_PRESETS.find(s => s.id === defaultSizeId)!;
+    return { product_code: `${code}-${defaultSizeId}`, model_code: code, size };
+}
 
 /** 템플릿 일반 커버 패널 판별 (기획안 5.1) */
 const LEGACY_COVER_NO = /^CV-00[1-3]$/;
@@ -75,9 +90,8 @@ export function parseTemplate(buf: Buffer, opts: { size_preset_id: string }): Im
         if (to) log.push(`품번 재번호: ${no} → ${to}`);
         return to ?? no;
     };
-    // 상품코드에 사이즈 접미어 부여. 이미 붙어 있으면(내보내기 파일 재가져오기) 유지
-    const pcode = (code: string | null) => (code ? (code.endsWith(`-${size.id}`) ? code : `${code}-${size.id}`) : null);
-    const mcode = (code: string) => (code.endsWith(`-${size.id}`) ? code.slice(0, -(size.id.length + 1)) : code);
+    // 상품코드에 사이즈 접미어 부여. 이미 다른 사이즈 접미어가 붙어 있으면(내보내기 파일 재가져오기) 그 사이즈를 유지한다
+    const pcode = (code: string | null) => (code ? splitProductCode(code, size.id).product_code : null);
 
     const employees = sheetRows(wb, '담당자마스터').map(r => ({
         employee_id: S(r['담당자ID']), name: S(r['이름']), department: S(r['부서']), title: S(r['직책']),
@@ -106,11 +120,11 @@ export function parseTemplate(buf: Buffer, opts: { size_preset_id: string }): Im
     const items = allItems.filter(i => !legacyPanels.has(i.item_no));
     const products = sheetRows(wb, '상품마스터').map(r => {
         const raw = S(r['상품코드'])!;
-        const model_code = mcode(raw);
+        const { product_code, model_code, size: productSize } = splitProductCode(raw, size.id);
         return {
-            product_code: pcode(raw), model_code, name: S(r['상품명']), family: S(r['상품군']), status: S(r['상태']) ?? '기획',
+            product_code, model_code, name: S(r['상품명']), family: S(r['상품군']), status: S(r['상태']) ?? '기획',
             launch_target_date: D(r['출시목표일']), pm_id: S(r['PM(담당자ID)']), cover_split_count: N(r['커버 분리수']) ?? 2,
-            size_preset_id: size.id, width_mm: size.width, depth_mm: size.depth, is_dual: false, note: S(r['비고']),
+            size_preset_id: productSize.id, width_mm: productSize.width, depth_mm: productSize.depth, is_dual: false, note: S(r['비고']),
         };
     });
     const bomRaw = sheetRows(wb, 'BOM').map(r => ({

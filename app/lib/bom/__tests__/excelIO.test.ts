@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { parseTemplate, RENUMBER, buildExportWorkbook } from '../excelIO';
+import { parseTemplate, RENUMBER, buildExportWorkbook, splitProductCode } from '../excelIO';
 import * as XLSX from 'xlsx';
 
 const buf = fs.readFileSync(path.join(process.cwd(), 'resource', 'bom_template.xlsx'));
@@ -53,6 +53,28 @@ describe('parseTemplate', () => {
     });
 });
 
+describe('splitProductCode', () => {
+    it('접미어 없는 코드는 opts 사이즈를 붙인다', () => {
+        const r = splitProductCode('MAT-001', 'LK');
+        expect(r.product_code).toBe('MAT-001-LK');
+        expect(r.model_code).toBe('MAT-001');
+        expect(r.size.id).toBe('LK');
+    });
+    it('기존 사이즈 접미어(다른 사이즈)를 인식해 유지한다', () => {
+        const r = splitProductCode('MAT-001-Q_KR', 'LK');
+        expect(r.product_code).toBe('MAT-001-Q_KR');
+        expect(r.model_code).toBe('MAT-001');
+        expect(r.size.id).toBe('Q_KR');
+        expect(r.size.width).toBe(1500);
+    });
+    it('기존 사이즈 접미어(opts와 동일)면 변화 없다', () => {
+        const r = splitProductCode('MAT-001-LK', 'LK');
+        expect(r.product_code).toBe('MAT-001-LK');
+        expect(r.model_code).toBe('MAT-001');
+        expect(r.size.id).toBe('LK');
+    });
+});
+
 describe('코드표 왕복', () => {
     it('내보낸 코드표(영문 헤더)를 다시 읽으면 코드값이 보존된다', async () => {
         const b = parseTemplate(buf, { size_preset_id: 'LK' });
@@ -98,14 +120,22 @@ describe('엑셀 왕복 (가져오기 → 내보내기 → 다시 가져오기)'
             product_code: 'MAT-001-LK', level: 2, parent_item_no: 'CT-000', item_no: 'CT-002',
             quantity: 1, required: '필수', alt_item_no: null, note: null, spec_text: null, dims: null, source: 'manual',
         });
+        // 다중 사이즈 export 재가져오기 보호: 우리 export에는 같은 모델의 다른 사이즈 상품(MAT-001-Q_KR)이 함께 있을 수 있다
+        b.products.splice(1, 0, { ...b.products[0], product_code: 'MAT-001-Q_KR', size_preset_id: 'Q_KR', width_mm: 1500, depth_mm: 2000 });
+        const l1 = b.bom_lines.find(l => l.product_code === 'MAT-001-LK' && l.level === 1 && l.item_no === 'CV-000')!;
+        const l2 = b.bom_lines.find(l => l.product_code === 'MAT-001-LK' && l.level === 2 && l.parent_item_no === 'CV-000' && l.item_no === 'FM-002')!;
+        b.bom_lines.push({ ...l1, product_code: 'MAT-001-Q_KR' }, { ...l2, product_code: 'MAT-001-Q_KR' });
 
         const out = await buildExportWorkbook({ ...b, progress: [] });
         const b2 = parseTemplate(out, { size_preset_id: 'LK' });
 
-        // 사이즈 접미어가 두 번 붙지 않는다
-        expect(b2.products.map(p => p.product_code)).toEqual(['MAT-001-LK', 'MAT-002-LK']);
+        // 사이즈 접미어가 두 번 붙지 않고, 서로 다른 사이즈 상품이 하나의 사이즈로 뭉개지지 않는다
+        expect(b2.products.map(p => p.product_code)).toEqual(['MAT-001-LK', 'MAT-001-Q_KR', 'MAT-002-LK']);
         expect(b2.products.map(p => p.product_code)).toEqual(b.products.map(p => p.product_code));
-        expect(b2.products.map(p => p.model_code)).toEqual(['MAT-001', 'MAT-002']);
+        expect(b2.products.map(p => p.model_code)).toEqual(['MAT-001', 'MAT-001', 'MAT-002']);
+        expect(b2.products.find(p => p.product_code === 'MAT-001-Q_KR')).toMatchObject({ model_code: 'MAT-001', width_mm: 1500 });
+        expect(b2.bom_lines.some(l => l.item_no === 'CV-000' && l.product_code === 'MAT-001-Q_KR')).toBe(true);
+        expect(b2.bom_lines.some(l => l.item_no === 'FM-002' && l.parent_item_no === 'CV-000' && l.product_code === 'MAT-001-Q_KR')).toBe(true);
 
         const key = (l: Record<string, unknown>) => ({
             product_code: l.product_code, item_no: l.item_no, parent_item_no: l.parent_item_no,
