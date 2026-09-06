@@ -30,3 +30,6 @@ export function quoteFromDesign(design: BomDesignInput & { deliveryId: string | 
     const { lines, unmapped } = buildBom(design, size);
     return { ...priceBom(lines, avlRows, { width_mm: size.width_mm, delivery_option: design.deliveryId }), unmapped };
 }
+
+/** AVL 편집 후 호출: 다음 사용 시 다시 받는다 */
+export function invalidateAvlCache() { cache = null; }
