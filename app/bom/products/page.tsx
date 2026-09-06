@@ -17,6 +17,7 @@ export default function ProductsPage() {
 
     useEffect(() => {
         setGroups(null);
+        setError(null);
         bomApi<Group[]>(`/products${status ? `?status=${encodeURIComponent(status)}` : ''}`).then(setGroups).catch(e => setError(errMsg(e)));
     }, [status]);
 

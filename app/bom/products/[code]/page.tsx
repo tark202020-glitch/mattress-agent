@@ -17,13 +17,13 @@ export default function ProductDetailPage() {
     const [detail, setDetail] = useState<ProductDetail | null>(null);
     const [quote, setQuote] = useState<Quote | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [quoteError, setQuoteError] = useState<string | null>(null);
     const [quoteOpen, setQuoteOpen] = useState(false);
 
     const load = useCallback(() => {
-        setError(null);
-        Promise.all([bomApi<ProductDetail>(`/products/${code}`), bomApi<Quote>(`/products/${code}/quote`)])
-            .then(([d, q]) => { setDetail(d); setQuote(q); })
-            .catch(e => setError(errMsg(e)));
+        setError(null); setQuoteError(null);
+        bomApi<ProductDetail>(`/products/${code}`).then(setDetail).catch(e => setError(errMsg(e)));
+        bomApi<Quote>(`/products/${code}/quote`).then(setQuote).catch(e => setQuoteError(errMsg(e)));
     }, [code]);
     useEffect(load, [load]);
 
@@ -68,7 +68,7 @@ export default function ProductDetailPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <Card>
                         <h3 style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 800, color: C.text }}>견적 합계 (이 사이즈)</h3>
-                        {!quote ? <Spinner /> : <>
+                        {quoteError ? <ErrorBox error={`견적 계산 실패: ${quoteError}`} /> : !quote ? <Spinner /> : <>
                             <div style={{ fontSize: 24, fontWeight: 800, color: C.text }}>{fmtWon(quote.total)}</div>
                             <div style={{ fontSize: 12, color: C.sub, marginTop: 4 }}>배송: {quote.delivery.option ?? '-'} {fmtWon(quote.delivery.price)}</div>
                             <div style={{ marginTop: 8 }}>{quote.incomplete ? <Badge tone="warn">불완전 견적 — 경고 {quote.warnings.length}건</Badge> : <Badge tone="ok">단가 전부 승인됨</Badge>}</div>
