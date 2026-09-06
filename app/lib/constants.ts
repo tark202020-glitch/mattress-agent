@@ -154,6 +154,7 @@ export const WIZARD_STEPS = [
     { id: 6, title: '센서', icon: '📡', description: '스마트 센서를 선택하세요' },
     { id: 7, title: '포장', icon: '📦', description: '포장 방식을 선택하세요' },
     { id: 8, title: '배송', icon: '🚚', description: '배송 방식을 선택하세요' },
+    { id: 9, title: 'BOM 확인', icon: '🧩', description: '선택 결과를 품번 기반 BOM으로 확인하고 상품으로 저장하세요' },
 ] as const;
 
 // --- 도면 상수 ---

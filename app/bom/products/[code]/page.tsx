@@ -5,11 +5,23 @@ import { bomApi, errMsg } from '../../../lib/bom/client';
 import type { QuoteResult, PricedLine } from '../../../lib/bom/types';
 import { Card, Table, Badge, Btn, Spinner, ErrorBox, PageTitle, fmtWon, C } from '../../_components/ui';
 import QuoteDialog from './QuoteDialog';
+import { useDesignStore, type DesignState } from '../../../lib/store';
 
 export interface BomLineRow { product_code: string; item_no: string; level: number; parent_item_no: string | null; quantity: number; required: string; alt_item_no: string | null; spec_text: string | null; note: string | null; source: string; items: { name: string; unit: string; category: string; revision: string } | null }
 export interface ProductRow { product_code: string; model_code: string; name: string; family: string | null; status: string; size_preset_id: string; width_mm: number; depth_mm: number; is_dual: boolean; delivery_option: string | null; design_snapshot: unknown; note: string | null; cover_split_count: number }
 export interface ProductDetail { product: ProductRow; lines: BomLineRow[]; tree: (BomLineRow & { children: BomLineRow[] })[] }
 type Quote = QuoteResult & { lines: (PricedLine & { name: string })[] };
+
+/** 위자드 스냅샷(lightSnapshot으로 이미지·텍스처가 빠진 상태)에 기본값을 채워 loadFromPreset에 넘길 상태로 복원한다 */
+const EMPTY_TEX = { top: null, front: null, side: null };
+export function restoreSnapshot(snap: Record<string, unknown>, p: ProductRow): Omit<DesignState, 'currentStep'> {
+    return {
+        ...(snap as unknown as Omit<DesignState, 'currentStep'>),
+        title: p.name, sizePresetId: p.size_preset_id, customWidth: p.width_mm, customDepth: p.depth_mm, isDual: p.is_dual,
+        customCoverImages: {}, upperCoverTextures: EMPTY_TEX, lowerCoverTextures: EMPTY_TEX, upperCoverCoords: null, lowerCoverCoords: null,
+        coverExtractSourceImage: { upper: null, lower: null }, defaultTextures: useDesignStore.getState().defaultTextures,
+    };
+}
 
 export default function ProductDetailPage() {
     const { code } = useParams<{ code: string }>();
@@ -78,7 +90,13 @@ export default function ProductDetailPage() {
                     <Card>
                         <h3 style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 800, color: C.text }}>문서 / 작업</h3>
                         <div id="product-actions" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {/* T4: 위자드로 열기 · T5: 개발요청서 버튼이 여기에 붙는다 */}
+                            {/* T5: 개발요청서 버튼이 여기에 붙는다 */}
+                            <Btn onClick={() => {
+                                const snap = p.design_snapshot as Record<string, unknown> | null;
+                                if (!snap || !('coreId' in snap)) { alert('이 상품에는 위자드 스냅샷이 없습니다 (엑셀로 가져온 상품).'); return; }
+                                useDesignStore.getState().loadFromPreset(restoreSnapshot(snap, p));
+                                router.push('/builder');
+                            }}>🧭 위자드로 열기</Btn>
                             <Btn variant="primary" onClick={() => setQuoteOpen(true)}>📊 견적서 (모델 전체 사이즈)</Btn>
                         </div>
                     </Card>

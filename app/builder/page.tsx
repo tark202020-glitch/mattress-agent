@@ -13,6 +13,7 @@ import StepFoam from '../components/steps/StepFoam';
 import StepCore from '../components/steps/StepCore';
 import StepCover from '../components/steps/StepCover';
 import { StepGenericSelect } from '../components/steps/StepGenericSelect';
+import StepBomConfirm from '../components/steps/StepBomConfirm';
 import MattressDrawing from '../components/MattressDrawing';
 import Mattress3D from '../components/Mattress3D';
 import SpecSummary from '../components/SpecSummary';
@@ -59,6 +60,7 @@ export default function Page() {
             case 6: return <StepGenericSelect stepKey="sensor" />;
             case 7: return <StepGenericSelect stepKey="packaging" />;
             case 8: return <StepGenericSelect stepKey="delivery" />;
+            case 9: return <StepBomConfirm />;
             default: return <div>Unknown Step</div>;
         }
     };
@@ -211,32 +213,32 @@ export default function Page() {
                                     className="btn-secondary"
                                     style={{ flex: 1, opacity: currentStep === 1 ? 0.5 : 1 }}
                                 >이전</button>
-                                <button
-                                    onClick={() => {
-                                        if (currentStep < WIZARD_STEPS.length) {
-                                            nextStep();
-                                        } else {
-                                            // Validation
-                                            const missing: string[] = [];
-                                            if (!useDesignStore.getState().sizePresetId && useDesignStore.getState().customWidth === 0) missing.push('사이즈');
-                                            if (!useDesignStore.getState().coreId) missing.push('스트링 코어');
-                                            if (!useDesignStore.getState().coverId) missing.push('커버');
-                                            if (useDesignStore.getState().topFoamEnabled && !useDesignStore.getState().topFoamOptionId) missing.push('상단폼');
-                                            if (!useDesignStore.getState().controllerId) missing.push('컨트롤러');
-                                            if (!useDesignStore.getState().sensorId) missing.push('센서');
-                                            if (!useDesignStore.getState().packagingId) missing.push('포장');
-                                            if (!useDesignStore.getState().deliveryId) missing.push('배송');
+                                {currentStep < WIZARD_STEPS.length && (
+                                    <button
+                                        onClick={() => {
+                                            if (currentStep === 8) {
+                                                // Validation
+                                                const missing: string[] = [];
+                                                if (!useDesignStore.getState().sizePresetId && useDesignStore.getState().customWidth === 0) missing.push('사이즈');
+                                                if (!useDesignStore.getState().coreId) missing.push('스트링 코어');
+                                                if (!useDesignStore.getState().coverId) missing.push('커버');
+                                                if (useDesignStore.getState().topFoamEnabled && !useDesignStore.getState().topFoamOptionId) missing.push('상단폼');
+                                                if (!useDesignStore.getState().controllerId) missing.push('컨트롤러');
+                                                if (!useDesignStore.getState().sensorId) missing.push('센서');
+                                                if (!useDesignStore.getState().packagingId) missing.push('포장');
+                                                if (!useDesignStore.getState().deliveryId) missing.push('배송');
 
-                                            if (missing.length > 0) {
-                                                alert(`다음 정보가 선택되지 않았습니다:\n- ${missing.join('\n- ')}`);
-                                            } else {
-                                                alert('9단계에서 상품을 저장하세요.');
+                                                if (missing.length > 0) {
+                                                    alert(`다음 정보가 선택되지 않았습니다:\n- ${missing.join('\n- ')}`);
+                                                    return;
+                                                }
                                             }
-                                        }
-                                    }}
-                                    className="btn-primary"
-                                    style={{ flex: 2 }}
-                                >{currentStep === WIZARD_STEPS.length ? '설계 완료' : '다음 단계'}</button>
+                                            nextStep();
+                                        }}
+                                        className="btn-primary"
+                                        style={{ flex: 2 }}
+                                    >다음 단계</button>
+                                )}
                             </div>
                         </div>
                     </aside>
