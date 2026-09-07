@@ -34,9 +34,21 @@ const SECTION_TITLE: React.CSSProperties = {
 
 interface DevelopmentRequestModalProps {
     onClose: () => void;
+    bom?: {
+        product_code: string;
+        lines: {
+            item_no: string;
+            level: number;
+            parent_item_no: string | null;
+            quantity: number;
+            required: string;
+            spec_text: string | null;
+            items: { name: string; unit: string; category: string; revision: string } | null;
+        }[];
+    };
 }
 
-export default function DevelopmentRequestModal({ onClose }: DevelopmentRequestModalProps) {
+export default function DevelopmentRequestModal({ onClose, bom }: DevelopmentRequestModalProps) {
     const state = useDesignStore();
     const custom = useCustomOptionsStore();
     const [mounted, setMounted] = useState(false);
@@ -257,7 +269,7 @@ export default function DevelopmentRequestModal({ onClose }: DevelopmentRequestM
                             매트리스 개발 요청서
                         </h1>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 12, color: '#64748b' }}>
-                            <span>Project: <strong style={{ color: '#0f172a' }}>{sizePreset?.label || 'Custom'} — {state.isDual ? 'Dual' : 'Single'}</strong></span>
+                            <span>Project: <strong style={{ color: '#0f172a' }}>{bom ? `${bom.product_code} — ` : ''}{sizePreset?.label || 'Custom'} — {state.isDual ? 'Dual' : 'Single'}</strong></span>
                             <span>Date: <strong style={{ color: '#0f172a' }}>{new Date().toLocaleDateString()}</strong></span>
                         </div>
                     </header>
@@ -532,6 +544,31 @@ export default function DevelopmentRequestModal({ onClose }: DevelopmentRequestM
                             </div>
                         </div>
                     </section>
+
+                    {bom && (
+                        <section style={{ marginTop: 24 }}>
+                            <h2 style={SECTION_TITLE}>6. BOM (자재명세) — {bom.product_code}</h2>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead><tr style={{ background: '#f1f5f9' }}>
+                                    {['레벨', '품번', '품명', '수량', '단위', '규격', '구분', 'Rev.'].map(h => <th key={h} style={{ ...cellBase, fontWeight: 800, textAlign: 'left' }}>{h}</th>)}
+                                </tr></thead>
+                                <tbody>
+                                    {bom.lines.map(l => (
+                                        <tr key={l.item_no} style={{ background: l.level === 1 ? '#f8fafc' : '#fff' }}>
+                                            <td style={cellBase}>{l.level}</td>
+                                            <td style={{ ...cellBase, paddingLeft: l.level === 2 ? 28 : 14, fontWeight: l.level === 1 ? 800 : 500 }}>{l.item_no}</td>
+                                            <td style={cellBase}>{l.items?.name ?? '-'}</td>
+                                            <td style={{ ...cellBase, textAlign: 'right' }}>{l.level === 2 ? l.quantity : ''}</td>
+                                            <td style={cellBase}>{l.items?.unit ?? ''}</td>
+                                            <td style={cellBase}>{l.spec_text ?? ''}</td>
+                                            <td style={cellBase}>{l.level === 2 ? l.required : ''}</td>
+                                            <td style={cellBase}>{l.items?.revision ?? ''}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </section>
+                    )}
 
                     {/* Page 2 Footer */}
                     <div style={{ position: 'absolute', bottom: '12mm', left: '18mm', right: '18mm', borderTop: '1px solid #e2e8f0', paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 9, color: '#94a3b8' }}>

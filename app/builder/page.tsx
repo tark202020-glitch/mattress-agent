@@ -1,8 +1,6 @@
 'use client';
 
 import DevelopmentRequestModal from '../components/DevelopmentRequestModal';
-import PricingManageModal from '../components/PricingManageModal';
-import CompletionModal from '../components/CompletionModal';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -15,6 +13,7 @@ import StepFoam from '../components/steps/StepFoam';
 import StepCore from '../components/steps/StepCore';
 import StepCover from '../components/steps/StepCover';
 import { StepGenericSelect } from '../components/steps/StepGenericSelect';
+import StepBomConfirm from '../components/steps/StepBomConfirm';
 import MattressDrawing from '../components/MattressDrawing';
 import Mattress3D from '../components/Mattress3D';
 import SpecSummary from '../components/SpecSummary';
@@ -33,8 +32,6 @@ export default function Page() {
     const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
     const [mounted, setMounted] = useState(false);
     const [isDevRequestOpen, setIsDevRequestOpen] = useState(false);
-    const [isCompletionOpen, setIsCompletionOpen] = useState(false);
-    const [isPricingOpen, setIsPricingOpen] = useState(false);
     const router = useRouter();
     const supabase = createClient();
 
@@ -63,6 +60,7 @@ export default function Page() {
             case 6: return <StepGenericSelect stepKey="sensor" />;
             case 7: return <StepGenericSelect stepKey="packaging" />;
             case 8: return <StepGenericSelect stepKey="delivery" />;
+            case 9: return <StepBomConfirm />;
             default: return <div>Unknown Step</div>;
         }
     };
@@ -127,13 +125,13 @@ export default function Page() {
                                 fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
                                 background: 'rgba(79,70,229,0.06)', color: '#4f46e5',
                                 cursor: 'default'
-                            }}>Alpha V1.089</span>
+                            }}>Alpha V1.090</span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <PresetPanel />
                             <button
-                                onClick={() => setIsPricingOpen(true)}
+                                onClick={() => setIsDevRequestOpen(true)}
                                 style={{
                                     fontSize: 11, fontWeight: 700, padding: '6px 14px', borderRadius: 20,
                                     background: 'rgba(5,150,105,0.08)', color: '#059669',
@@ -142,7 +140,7 @@ export default function Page() {
                                 }}
                                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(5,150,105,0.15)'; }}
                                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(5,150,105,0.08)'; }}
-                            >💰 단가 관리</button>
+                            >📄 개발요청서</button>
                             <span style={{
                                 fontSize: 13, fontWeight: 600, padding: '4px 12px', borderRadius: 20,
                                 background: 'rgba(79,70,229,0.06)', color: '#4f46e5',
@@ -226,32 +224,32 @@ export default function Page() {
                                     className="btn-secondary"
                                     style={{ flex: 1, opacity: currentStep === 1 ? 0.5 : 1 }}
                                 >이전</button>
-                                <button
-                                    onClick={() => {
-                                        if (currentStep < WIZARD_STEPS.length) {
-                                            nextStep();
-                                        } else {
-                                            // Validation
-                                            const missing: string[] = [];
-                                            if (!useDesignStore.getState().sizePresetId && useDesignStore.getState().customWidth === 0) missing.push('사이즈');
-                                            if (!useDesignStore.getState().coreId) missing.push('스트링 코어');
-                                            if (!useDesignStore.getState().coverId) missing.push('커버');
-                                            if (useDesignStore.getState().topFoamEnabled && !useDesignStore.getState().topFoamOptionId) missing.push('상단폼');
-                                            if (!useDesignStore.getState().controllerId) missing.push('컨트롤러');
-                                            if (!useDesignStore.getState().sensorId) missing.push('센서');
-                                            if (!useDesignStore.getState().packagingId) missing.push('포장');
-                                            if (!useDesignStore.getState().deliveryId) missing.push('배송');
+                                {currentStep < WIZARD_STEPS.length && (
+                                    <button
+                                        onClick={() => {
+                                            if (currentStep === 8) {
+                                                // Validation
+                                                const missing: string[] = [];
+                                                if (!useDesignStore.getState().sizePresetId && useDesignStore.getState().customWidth === 0) missing.push('사이즈');
+                                                if (!useDesignStore.getState().coreId) missing.push('스트링 코어');
+                                                if (!useDesignStore.getState().coverId) missing.push('커버');
+                                                if (useDesignStore.getState().topFoamEnabled && !useDesignStore.getState().topFoamOptionId) missing.push('상단폼');
+                                                if (!useDesignStore.getState().controllerId) missing.push('컨트롤러');
+                                                if (!useDesignStore.getState().sensorId) missing.push('센서');
+                                                if (!useDesignStore.getState().packagingId) missing.push('포장');
+                                                if (!useDesignStore.getState().deliveryId) missing.push('배송');
 
-                                            if (missing.length > 0) {
-                                                alert(`다음 정보가 선택되지 않았습니다:\n- ${missing.join('\n- ')}`);
-                                            } else {
-                                                setIsCompletionOpen(true);
+                                                if (missing.length > 0) {
+                                                    alert(`다음 정보가 선택되지 않았습니다:\n- ${missing.join('\n- ')}`);
+                                                    return;
+                                                }
                                             }
-                                        }
-                                    }}
-                                    className="btn-primary"
-                                    style={{ flex: 2 }}
-                                >{currentStep === WIZARD_STEPS.length ? '설계 완료' : '다음 단계'}</button>
+                                            nextStep();
+                                        }}
+                                        className="btn-primary"
+                                        style={{ flex: 2 }}
+                                    >다음 단계</button>
+                                )}
                             </div>
                         </div>
                     </aside>
@@ -312,20 +310,6 @@ export default function Page() {
             {isDevRequestOpen && (
                 <DevelopmentRequestModal
                     onClose={() => setIsDevRequestOpen(false)}
-                />
-            )}
-            {isCompletionOpen && (
-                <CompletionModal
-                    onClose={() => setIsCompletionOpen(false)}
-                    onOpenDevRequest={() => {
-                        setIsCompletionOpen(false);
-                        setIsDevRequestOpen(true);
-                    }}
-                />
-            )}
-            {isPricingOpen && (
-                <PricingManageModal
-                    onClose={() => setIsPricingOpen(false)}
                 />
             )}
         </div>

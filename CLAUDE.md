@@ -13,13 +13,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 명령어
 
 ```bash
-npm run dev      # http://localhost:3000
-npm run build    # Vercel과 동일한 프로덕션 빌드 (TS 에러도 여기서 잡힘)
-npm run lint     # eslint (eslint-config-next core-web-vitals + typescript)
-npx tsc --noEmit # 타입 체크만
+npm run dev       # http://localhost:3000
+npm run build     # Vercel과 동일한 프로덕션 빌드 (TS 에러도 여기서 잡힘)
+npm run lint      # eslint (eslint-config-next core-web-vitals + typescript)
+npx tsc --noEmit  # 타입 체크만
+npm test          # Vitest (app/lib/bom/__tests__/) — BOM 순수 로직 단위 테스트
+npm run seed:gen  # supabase/seed/seed.sql 재생성 (scripts/genSeed.ts)
 ```
 
-- 테스트 프레임워크는 없다. 검증은 `npm run build` + 브라우저 확인.
+- BOM 모듈의 순수 로직(`app/lib/bom/*`)은 Vitest로 검증한다. 그 외 화면은 여전히 `npm run build` + 브라우저 확인.
 - 루트의 `check_models.js`(Gemini 이미지 모델 목록 조회), `test_image_api.js`(dev 서버에 `/api/generate-image` POST), `analyze_excel.js`(견적 템플릿 xlsx 덤프)는 `node <파일>`로 실행하는 수동 디버그 스크립트.
 - `deploy.js`는 커밋 메시지가 하드코딩된 레거시 스크립트다. 배포는 그냥 `git push origin main`으로 한다.
 
@@ -54,7 +56,7 @@ npx tsc --noEmit # 타입 체크만
 | 스토어 | 파일 | localStorage 키 |
 |---|---|---|
 | `useDesignStore` | `app/lib/store.ts` | `mattress_default_textures` (defaultTextures만) |
-| `usePricingStore` | `app/lib/pricingStore.ts` | `mattress-pricing-data` |
+| `usePricingStore` | `app/lib/pricingStore.ts` | AVL(DB)로 이관, `pricingStore`는 동치 테스트 전용 |
 | `usePresetStore` | `app/lib/presetStore.ts` | `mattress-presets` (최대 20개) |
 | `useCustomOptionsStore` | `app/lib/customOptionsStore.ts` | `mattress-custom-options` |
 
@@ -111,6 +113,18 @@ npx tsc --noEmit # 타입 체크만
 - 큰 이미지는 클라이언트에서 800px로 리사이즈해 보낸다. `next.config.ts`의 `serverActions.bodySizeLimit`은 50mb, 이미지 라우트는 `maxDuration = 60`.
 - AI 결과물 폴더(`resource/AI-cover`, `resource/AI-concept`, `public/resource/AI-*`)는 `.gitignore`와 `.vercelignore` 양쪽에서 제외되어 있다. 새 출력 폴더를 만들면 둘 다 추가할 것.
 
+### BOM 모듈 (1차)
+
+- **라우트**: `/bom/products`, `/bom/products/[code]`, `/bom/items`, `/bom/vendors`, `/bom/employees`, `/bom/avl`, `/bom/import`. 허브의 "BOM / 개발관리" 카드에서 진입한다. `middleware.ts`의 보호 경로 목록에 `/bom`도 포함되어 있다.
+- **데이터 흐름**: 위자드 9단계("BOM 확인")에서 `POST /api/bom/products/from-design`을 호출해 `products`/`bom_lines` 테이블에 저장한다. 견적 금액은 AVL 승인 단가(`priceBom`)로 계산하고, 견적서는 `POST /api/bom/documents/quote`가 생성해 Storage에 저장한다.
+- **핵심 파일**: `app/lib/bom/*`(순수 로직 + `__tests__/`), `app/api/bom/*`(API 라우트), `app/bom/*`(화면, 공통 UI는 `_components/ui.tsx`), `app/components/steps/StepBomConfirm.tsx`(위자드 9단계).
+- **규칙**:
+  - `bom_lines`→`items` PostgREST 임베드는 반드시 `items!bom_lines_item_no_fkey(...)`로 쓴다.
+  - AVL 단가를 편집한 뒤에는 `invalidateAvlCache()`를 호출해 캐시를 갱신한다.
+  - 시드 데이터는 `npm run seed:gen`으로 생성한다.
+  - 마이그레이션은 `supabase/migrations`에 있고, 적용은 `npx supabase db push --include-seed` (Supabase 프로젝트 ref `jkeisufqjemsnqamiqlv`).
+  - 테스트는 `npm test`(Vitest, `app/lib/bom/__tests__/`).
+
 ## 작업 규칙 (이 저장소 고유)
 
 - **버전 관리**: 빌드마다 `app/builder/page.tsx` 헤더의 `Alpha V1.0xx` 라벨과 `Changelog.md` 최상단 엔트리를 함께 올린다. Changelog 형식:
@@ -123,7 +137,7 @@ npx tsc --noEmit # 타입 체크만
     - **`파일경로` [MODIFY|ADD]**: 변경 내용
   - **Build Time**: YYYY-MM-DD HH:mm:ss
   ```
-  현재 라벨(V1.087)과 Changelog(V1.088)가 어긋나 있으니 다음 빌드 때 맞출 것.
+  라벨과 Changelog 최상단 버전은 항상 같아야 한다 (2026-09-07 기준 V1.090).
 - **DailyReport**: 작업 마무리 시 `doc/DailyReport.md`를 갱신하고 날짜별 사본 `doc/DailyReport_YYYY-MM-DD.md`를 남긴다. 기존 리포트 형식(주요 작업 요약 → 수정 요청 반영 내역 → 다음 계획)을 따른다.
 - **스타일링**: `/builder`, `/designer`, `/hub`와 대부분의 모달은 인라인 `style={{}}` 객체를, `/`, `/login`은 Tailwind를 쓴다. 파일이 이미 쓰는 방식을 따른다.
 - 로고는 `app` 밖의 `resource/ANSSil_logo_final_B.png`를 상대경로로 import한다. `@/*` 별칭이 tsconfig에 있지만 코드 전반은 상대경로를 쓴다.

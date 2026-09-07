@@ -99,6 +99,7 @@ export default function StepIndicator() {
                 }
                 return '-';
             }
+            case 9: return currentStep >= 9 ? '저장 대기' : '-';
             default: return '-';
         }
     };
