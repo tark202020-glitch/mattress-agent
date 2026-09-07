@@ -108,7 +108,7 @@ export default function StepBomConfirm() {
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
                             {selectableSizes.map(p => {
                                 const on = sizeIds.includes(p.id);
-                                const isCustom = p.id.startsWith('C');
+                                const isCustom = !SIZE_PRESETS.some(x => x.id === p.id);
                                 return <button key={p.id} type="button" onClick={() => toggleSize(p.id)} style={{ fontSize: 11, padding: '4px 10px', borderRadius: 14, border: `${isCustom ? '2px dashed' : '1px solid'} ${on ? '#4f46e5' : '#e2e8f0'}`, background: on ? '#e0e7ff' : '#fff', color: on ? '#3730a3' : '#64748b', cursor: 'pointer' }}>{p.label} {p.width}×{p.depth}</button>;
                             })}
                         </div>

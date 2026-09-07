@@ -16,6 +16,7 @@ export default function PricingPanel() {
 
     const q = quoteFromDesign(s, { size_preset_id: s.sizePresetId ?? 'CUSTOM', width_mm: s.customWidth, depth_mm: s.customDepth }, rows);
     const shown = q.lines.filter(l => l.total > 0 || l.warning);
+    const nameOf = new Map(rows.map(r => [r.item_no, r.items?.name ?? '']));
 
     return (
         <div style={box}>
@@ -28,7 +29,7 @@ export default function PricingPanel() {
                 <tbody>
                     {shown.map(l => (
                         <tr key={l.item_no} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '6px 4px', color: '#64748b', width: 80 }}>{l.item_no}</td>
+                            <td style={{ padding: '6px 4px', color: '#0f172a' }}>{nameOf.get(l.item_no) || l.item_no}{nameOf.get(l.item_no) && <span style={{ color: '#94a3b8', fontSize: 10 }}> {l.item_no}</span>}</td>
                             <td style={{ padding: '6px 4px', color: '#0f172a' }}>{l.quantity > 1 ? `×${l.quantity}` : ''}</td>
                             <td style={{ padding: '6px 4px', textAlign: 'right', color: l.warning ? '#b45309' : '#0f172a', fontWeight: 600 }}>{l.warning ?? fmt(l.total)}</td>
                         </tr>

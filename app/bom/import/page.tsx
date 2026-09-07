@@ -4,7 +4,7 @@ import { bomApiBlob, saveBlob, errMsg } from '../../lib/bom/client';
 import { SIZE_PRESETS } from '../../lib/constants';
 import { Card, Btn, Field, Select, ErrorBox, PageTitle, C } from '../_components/ui';
 
-interface ImportResult { log: string[]; counts?: Record<string, number>; error?: string }
+interface ImportResult { log?: string[]; counts?: Record<string, number>; error?: string }
 
 export default function ImportPage() {
     const [file, setFile] = useState<File | null>(null);
@@ -61,7 +61,9 @@ export default function ImportPage() {
                 <Card style={{ marginTop: 16 }}>
                     <h3 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 800, color: C.text }}>{result.error ? '가져오기 실패' : '가져오기 완료'}</h3>
                     {result.counts && <div style={{ fontSize: 12, color: C.text, marginBottom: 8 }}>{Object.entries(result.counts).map(([k, v]) => `${k} ${v}`).join(' · ')}</div>}
-                    <pre style={{ margin: 0, fontSize: 11, color: C.sub, whiteSpace: 'pre-wrap', maxHeight: 320, overflowY: 'auto', background: C.soft, padding: 12, borderRadius: 8 }}>{result.log.join('\n')}</pre>
+                    {(result.log ?? []).length > 0 && (
+                        <pre style={{ margin: 0, fontSize: 11, color: C.sub, whiteSpace: 'pre-wrap', maxHeight: 320, overflowY: 'auto', background: C.soft, padding: 12, borderRadius: 8 }}>{(result.log ?? []).join('\n')}</pre>
+                    )}
                 </Card>
             )}
         </>

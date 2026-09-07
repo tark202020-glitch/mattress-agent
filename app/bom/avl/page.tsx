@@ -23,6 +23,7 @@ export default function AvlPage() {
     const [draft, setDraft] = useState<Partial<AvlRow> | null>(null);
     const [stepsText, setStepsText] = useState('');
     const [busy, setBusy] = useState(false);
+    const [editKey, setEditKey] = useState<{ item_no: string; vendor_code: string } | null>(null);
 
     const load = useCallback(() => {
         setRows(null);
@@ -34,7 +35,12 @@ export default function AvlPage() {
             .then(([i, v, e, s]) => { setItems(i); setVendors(v); setEmployees(e); setStatuses(s.map(x => x.value)); }).catch(e => setError(errMsg(e)));
     }, []);
 
-    const open = (r?: AvlRow) => { const d = r ? { ...r } : { ...EMPTY, item_no: filterItem || '' }; setDraft(d); setStepsText(d.price_steps ? JSON.stringify(d.price_steps, null, 0) : '[{"maxWidth":1100,"price":7000,"boxSpec":"Box: 1400×310×310"},{"maxWidth":99999,"price":13000}]'); };
+    const open = (r?: AvlRow) => {
+        const d = r ? { ...r } : { ...EMPTY, item_no: filterItem || '' };
+        setDraft(d);
+        setStepsText(d.price_steps ? JSON.stringify(d.price_steps, null, 0) : '[{"maxWidth":1100,"price":7000,"boxSpec":"Box: 1400×310×310"},{"maxWidth":99999,"price":13000}]');
+        setEditKey(r ? { item_no: r.item_no, vendor_code: r.vendor_code } : null);
+    };
     const set = <K extends keyof AvlRow>(k: K, v: AvlRow[K]) => setDraft(d => d && ({ ...d, [k]: v }));
 
     const save = async () => {
@@ -45,7 +51,7 @@ export default function AvlPage() {
         try {
             const { items: _i, vendors: _v, employees: _e, ...body } = draft as AvlRow; // eslint-disable-line @typescript-eslint/no-unused-vars
             await bomApi('/avl', { method: 'POST', json: { ...body, price_steps: steps, approved_at: body.approved_at || null, owner_id: body.owner_id || null, lead_time_days: body.lead_time_days ?? null, moq: body.moq ?? null } });
-            invalidateAvlCache(); setDraft(null); load();
+            invalidateAvlCache(); setDraft(null); setEditKey(null); load();
         } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
     };
     const remove = async (r: AvlRow) => {
@@ -75,10 +81,10 @@ export default function AvlPage() {
                 ]} />)}</Card>
 
             {draft && (
-                <Modal title="AVL 행" onClose={() => setDraft(null)} width={620}>
+                <Modal title={editKey ? `AVL 행 수정 — ${editKey.item_no} / ${editKey.vendor_code}` : 'AVL 행 추가'} onClose={() => { setDraft(null); setEditKey(null); }} width={620}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                        <Field label="품번 *"><Select value={draft.item_no ?? ''} onChange={e => set('item_no', e.target.value)}><option value="">선택</option>{items.map(i => <option key={i.item_no} value={i.item_no}>{i.item_no} {i.name}</option>)}</Select></Field>
-                        <Field label="협력사 *"><Select value={draft.vendor_code ?? ''} onChange={e => set('vendor_code', e.target.value)}><option value="">선택</option>{vendors.map(v => <option key={v.vendor_code} value={v.vendor_code}>{v.vendor_code} {v.name}</option>)}</Select></Field>
+                        <Field label="품번 *"><Select value={draft.item_no ?? ''} onChange={e => set('item_no', e.target.value)} disabled={!!editKey}><option value="">선택</option>{items.map(i => <option key={i.item_no} value={i.item_no}>{i.item_no} {i.name}</option>)}</Select></Field>
+                        <Field label="협력사 *"><Select value={draft.vendor_code ?? ''} onChange={e => set('vendor_code', e.target.value)} disabled={!!editKey}><option value="">선택</option>{vendors.map(v => <option key={v.vendor_code} value={v.vendor_code}>{v.vendor_code} {v.name}</option>)}</Select></Field>
                         <Field label="사내 담당자"><Select value={draft.owner_id ?? ''} onChange={e => set('owner_id', e.target.value || null)}><option value="">없음</option>{employees.map(e => <option key={e.employee_id} value={e.employee_id}>{e.employee_id} {e.name}</option>)}</Select></Field>
                         <Field label="승인상태"><Select value={draft.approval_status ?? '후보'} onChange={e => set('approval_status', e.target.value)}>{statuses.map(s => <option key={s}>{s}</option>)}</Select></Field>
                         <Field label="승인일" hint="비우면 승인 시 오늘 날짜"><TextInput type="date" value={draft.approved_at ?? ''} onChange={e => set('approved_at', e.target.value || null)} /></Field>
@@ -95,7 +101,7 @@ export default function AvlPage() {
                     {draft.price_type === 'WIDTH_STEP' && <Field label="폭 구간 (JSON)" hint='[{"maxWidth":1100,"price":7000,"boxSpec":"Box: 1400×310×310"}, …] 마지막은 maxWidth 99999'><textarea value={stepsText} onChange={e => setStepsText(e.target.value)} rows={4} style={{ width: '100%', fontFamily: 'monospace', fontSize: 12, padding: 8, borderRadius: 8, border: '1px solid #cbd5e1', boxSizing: 'border-box' }} /></Field>}
                     <Field label="비고"><TextInput value={draft.note ?? ''} onChange={e => set('note', e.target.value)} /></Field>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-                        <Btn variant="ghost" onClick={() => setDraft(null)}>취소</Btn>
+                        <Btn variant="ghost" onClick={() => { setDraft(null); setEditKey(null); }}>취소</Btn>
                         <Btn variant="primary" onClick={save} disabled={busy}>{busy ? '저장 중…' : '저장'}</Btn>
                     </div>
                 </Modal>

@@ -4,6 +4,7 @@
 - **Summary**: BOM 관리 화면 1차 공개 — 위자드 9단계 "BOM 확인"으로 상품 저장, BOM/품목/협력사/AVL/엑셀 화면, 견적서·개발요청서를 DB 기준으로 생성
 - **Detail** :
   - **`app/components/steps/StepBomConfirm.tsx` [ADD]**: 8단계까지 고른 사양을 품번 BOM으로 미리 보고, 모델코드·상품명·사이즈(복수)를 정해 상품으로 저장합니다.
+  - **`app/builder/page.tsx` [MODIFY]**: 헤더에 "개발요청서" 버튼을 두어 설계 중에도 바로 열 수 있습니다. 저장된 상품의 개발요청서(BOM 표 포함)는 상품 상세에서 엽니다.
   - **`app/bom/**` [ADD]**: 허브의 "BOM / 개발관리" 카드에서 진입. 상품 목록·상세(BOM 트리, 승인 단가, 견적서·개발요청서·위자드로 열기), 품목/협력사/담당자 마스터, AVL 단가 관리, 엑셀 가져오기/내보내기.
   - **`app/components/PricingPanel.tsx` [MODIFY]**: 설계 현황의 예상 단가가 브라우저 저장 단가표 대신 DB의 승인 협력사(AVL) 단가로 계산됩니다.
   - **`app/components/DevelopmentRequestModal.tsx` [MODIFY]**: 상품 상세에서 열면 6번 "BOM 자재명세" 표가 추가됩니다.

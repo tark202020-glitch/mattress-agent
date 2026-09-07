@@ -130,6 +130,17 @@ export default function Page() {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <PresetPanel />
+                            <button
+                                onClick={() => setIsDevRequestOpen(true)}
+                                style={{
+                                    fontSize: 11, fontWeight: 700, padding: '6px 14px', borderRadius: 20,
+                                    background: 'rgba(5,150,105,0.08)', color: '#059669',
+                                    border: '1px solid rgba(5,150,105,0.15)',
+                                    cursor: 'pointer', transition: 'all 0.15s',
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(5,150,105,0.15)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(5,150,105,0.08)'; }}
+                            >📄 개발요청서</button>
                             <span style={{
                                 fontSize: 13, fontWeight: 600, padding: '4px 12px', borderRadius: 20,
                                 background: 'rgba(79,70,229,0.06)', color: '#4f46e5',

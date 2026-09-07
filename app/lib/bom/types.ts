@@ -71,6 +71,7 @@ export interface AvlPriceRow {
     price_base: number;
     price_steps: { maxWidth: number; price: number; boxSpec?: string }[] | null;
     currency?: string;   // 없으면 KRW로 본다
+    items?: { name: string } | null;
 }
 
 export interface PricedLine {
